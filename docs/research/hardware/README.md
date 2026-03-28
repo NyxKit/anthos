@@ -20,6 +20,78 @@ Current hardware strategy:
 - add ambient sensing on only one experimental node first
 - keep `SSD`, batteries, `ADC`, `NFC`, and polished enclosures as later upgrades
 
+## Estimated Total Cost
+
+Practical Phase 1 estimate:
+
+- `Pi 5` server bundle: about `90-135 EUR`
+- M5Stack/probe bundle: about `48.40 EUR` plus any extra cables you still need
+- combined Phase 1 total: about `140-190 EUR`
+
+What moves the total:
+
+- whether you already own USB-C and Ethernet cables
+- whether the chosen `microSD` is the cheaper local option or a nicer `A2` card
+- whether you buy everything from one shop or split orders
+
+## Final Approved Basket
+
+This is the one-page basket to treat as the current approved purchase set.
+
+### Server basket
+
+- `1x Raspberry Pi 5` `4 GB`
+- `1x official 27W USB-C Power Supply`
+- `1x Pi 5 case with active cooling`
+- `1x 64 GB microSD`, preferably `A2`
+- `1x Ethernet cable` if needed
+
+### Node basket
+
+- `2x M5Stack AtomS3 Lite`
+- `2x Seeed Grove Capacitive Moisture Sensor (corrosion-resistant)`
+- `1x M5Stack Unit ENV-III`
+- `2x USB-C data/power cables` if needed
+- Grove/HY2.0 cable only if not already included with the selected parts
+
+### Basket notes
+
+- this is enough to validate one-node and two-node behavior
+- this is enough to test the future capability-expansion path with one experimental node
+- this intentionally avoids batteries, `ADC`, `SSD`, and `NFC` for now
+
+## Hardware Architecture
+
+```text
+                    home network / ethernet / wifi
+
+      +-----------------------------------------------+
+      |            Raspberry Pi 5 server              |
+      |-----------------------------------------------|
+      | API / ingestion / storage / dashboard / admin |
+      +-----------------------------------------------+
+                    ^                          ^
+                    |                          |
+                    | Wi-Fi                    | Wi-Fi
+                    |                          |
+      +---------------------------+   +---------------------------+
+      | Node A                    |   | Node B                    |
+      | M5Stack AtomS3 Lite       |   | M5Stack AtomS3 Lite       |
+      | + moisture probe          |   | + moisture probe          |
+      +---------------------------+   | + ENV-III (experimental)  |
+                                      +---------------------------+
+
+      plant A record <-> node A assignment
+      plant B record <-> node B assignment
+```
+
+Architecture intent:
+
+- one local hub receives and stores all telemetry
+- each plant node is small and single-purpose first
+- one node carries the ambient expansion so the backend and UI can become capability-aware
+- plant identity stays separate from node identity
+
 ## Approved Hardware List
 
 ### Server
