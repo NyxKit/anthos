@@ -11,7 +11,8 @@ This shopping list assumes:
 - `1` server
 - `2` plant-monitoring nodes
 - moisture sensing on both nodes
-- `1` ambient expansion sensor for experimentation
+- ambient sensing on both nodes
+- lux sensing on both nodes
 - wired server networking
 - USB-powered nodes for the first phase
 
@@ -79,15 +80,27 @@ Subtotal:
 
 ### Ambient expansion
 
-- `1x M5Stack Unit ENV-III`
+- `2x M5Stack Unit ENV-III`
 
 Confirmed price example:
 
-- `Reichelt`: `7.11 EUR`
+- `Reichelt`: `7.11 EUR` each
 
 Subtotal:
 
-- `7.11 EUR`
+- `14.22 EUR`
+
+### Lux sensors
+
+- `2x M5Stack DLight (BH1750, Grove, I2C)`
+
+Confirmed price example:
+
+- `MC Hobby`: `M5Stack: Capteur luminosite ambiante (BH1750FVI-TR), Grove, I2C` - `7.80 EUR` each
+
+Subtotal:
+
+- `15.60 EUR`
 
 ## Likely supporting accessories
 
@@ -123,11 +136,12 @@ Using the confirmed `Reichelt` items only:
 
 - `2x AtomS3 Lite = 22.16 EUR`
 - `2x moisture probes = 12.18 EUR`
-- `1x ENV-III = 7.11 EUR`
+- `2x ENV-III = 14.22 EUR`
+- `2x DLight = 15.60 EUR`
 
 Subtotal before cables/shipping:
 
-- `41.45 EUR`
+- `64.16 EUR`
 
 Add shipping:
 
@@ -135,7 +149,7 @@ Add shipping:
 
 So the M5Stack/probe part of Phase 1 is roughly:
 
-- about `48.40 EUR` plus any extra cables you still need
+- about `71.11 EUR` plus any extra cables you still need
 
 ## Suggested Purchase Split
 
@@ -144,7 +158,8 @@ So the M5Stack/probe part of Phase 1 is roughly:
 - `Pi 5` bundle
 - `2x AtomS3 Lite`
 - `2x moisture probes`
-- `1x ENV-III`
+- `2x ENV-III`
+- `2x DLight (BH1750)`
 
 This is the exact Phase 1 purchase I recommend.
 
@@ -176,6 +191,7 @@ Phase 1 exact buy list:
 - `1x high-quality 64 GB microSD`
 - `2x M5Stack AtomS3 Lite`
 - `2x Seeed Grove capacitive corrosion-resistant moisture probe`
-- `1x M5Stack Unit ENV-III`
+- `2x M5Stack Unit ENV-III`
+- `2x M5Stack DLight (BH1750, Grove, I2C)`
 - `2x USB-C cables` if needed
 - `1x Ethernet cable` if needed

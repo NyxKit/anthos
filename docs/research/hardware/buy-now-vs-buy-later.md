@@ -19,7 +19,8 @@ These are the parts I would buy immediately.
 
 - `2x M5Stack AtomS3 Lite`
 - `2x Seeed Grove capacitive corrosion-resistant moisture probes`
-- `1x M5Stack Unit ENV-III`
+- `2x M5Stack Unit ENV-III`
+- `2x M5Stack DLight (BH1750, Grove, I2C)`
 
 ### Basic accessories
 
@@ -39,7 +40,6 @@ These should wait until the first prototype loop works.
 
 ### Node extras
 
-- extra `ENV-III` modules for every node
 - ADC bridge modules
 - batteries and battery-management accessories
 - custom enclosures beyond a simple prototype mount
@@ -102,7 +102,7 @@ The right early spending shape is:
 That means:
 
 - buy `2` real nodes now
-- buy `1` experimental ambient module now
+- buy the ambient and lux modules now if they are cheap enough to avoid later shipping
 - defer everything else until the first end-to-end loop is stable
 
 ## Bottom Line
@@ -112,7 +112,8 @@ Buy now:
 - server
 - two node controllers
 - two moisture probes
-- one ambient module
+- two ambient modules
+- two lux sensors
 - only the cables you actually need
 
 Buy later:

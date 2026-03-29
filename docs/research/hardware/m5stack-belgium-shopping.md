@@ -154,11 +154,36 @@ Concrete example:
 
 Buy quantity:
 
-- buy `1`
+- buy `2`
 
 Why:
 
-- enough to validate capability-aware hardware/software without forcing every node to carry extra sensors
+- low enough unit cost that avoiding a second shipping round is sensible
+- keeps both nodes physically symmetrical if you want that
+
+## Lux Sensor
+
+### `M5Stack DLight (BH1750FVI-TR, Grove, I2C)`
+
+Why this one:
+
+- proper lux sensor rather than just a simple light/dark detector
+- better fit for plant-light tracking
+- Grove/I2C integration
+- cheap enough to buy two up front
+
+Concrete example:
+
+- `MC Hobby`: `M5Stack: Capteur luminosite ambiante (BH1750FVI-TR), Grove, I2C` - `7.80 EUR`
+
+Buy quantity:
+
+- buy `2`
+
+Why:
+
+- the extra cost is small compared with paying shipping again later
+- lets both nodes carry the same full sensor set if you want
 
 ## Optional Physical Packaging / Atom Expansion
 
@@ -202,7 +227,8 @@ Recommendation:
 If you want the cleanest first order, I would make this basket:
 
 - `2x M5Stack AtomS3 Lite`
-- `1x M5Stack Unit ENV-III`
+- `2x M5Stack Unit ENV-III`
+- `2x M5Stack DLight (BH1750)`
 - required Grove/HY2.0 cables if not included with the selected unit
 
 Best current shop for that basket:
@@ -211,16 +237,17 @@ Best current shop for that basket:
 
 Why:
 
-- I confirmed both `AtomS3 Lite` and `ENVIII`
+- I confirmed `AtomS3 Lite` and `ENVIII` at `Reichelt`, and `DLight` at `MC Hobby`
 - shipping info is explicit for Belgium
 - the pricing is solid
 
 Rough subtotal from the confirmed items:
 
 - `2 x 11.08 EUR = 22.16 EUR`
-- `1 x 7.11 EUR = 7.11 EUR`
-- subtotal before cables/shipping: `29.27 EUR`
-- plus shipping from `6.95 EUR`
+- `2 x 7.11 EUR = 14.22 EUR`
+- `2 x 7.80 EUR = 15.60 EUR`
+- subtotal before cables/shipping: `51.98 EUR`
+- plus shipping from `6.95 EUR` if all ordered from one compatible source mix is not possible, or more if split across shops
 
 That makes the core M5Stack part of the first prototype surprisingly affordable.
 
