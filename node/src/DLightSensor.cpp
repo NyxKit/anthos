@@ -1,5 +1,6 @@
 #include "DLightSensor.h"
 
+#include <ArduinoJson.h>
 #include <Wire.h>
 
 void DLightSensor::begin(bool forceRetry) {
@@ -43,5 +44,21 @@ void DLightSensor::read() {
     return;
   }
 
+  lastLux_ = lux;
   Serial.printf("sensor=dlight status=ok lux=%.2f\n", lux);
+}
+
+String DLightSensor::toJson() const {
+  if (!available_) {
+    return "";
+  }
+  StaticJsonDocument<128> doc;
+  JsonArray arr = doc.to<JsonArray>();
+  JsonObject obj = arr.add<JsonObject>();
+  obj["type"] = "lux";
+  obj["value"] = lastLux_;
+  obj["unit"] = "lux";
+  String json;
+  serializeJson(doc, json);
+  return json;
 }

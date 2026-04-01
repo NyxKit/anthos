@@ -26,6 +26,10 @@
 #define ANTHOS_API_PORT "8088"
 #endif
 
+#ifndef ANTHOS_PUSH_INTERVAL_MS
+#define ANTHOS_PUSH_INTERVAL_MS "1000"
+#endif
+
 namespace {
 PortMode parsePortMode(const char* value) {
   return std::strcmp(value, "earth") == 0 ? PortMode::EarthOnly : PortMode::I2cSensors;
@@ -46,7 +50,7 @@ AppConfig makeAppConfig() {
   config.wifi.password = ANTHOS_WIFI_PASSWORD;
   config.api.host = ANTHOS_API_HOST;
   config.api.port = static_cast<uint16_t>(atoi(ANTHOS_API_PORT));
-  config.api.checkIntervalMs = 10000;
+  config.api.pushIntervalMs = static_cast<unsigned long>(atoi(ANTHOS_PUSH_INTERVAL_MS));
   return config;
 }
 }

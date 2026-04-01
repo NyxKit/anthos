@@ -1,5 +1,6 @@
 #include "EnvSensor.h"
 
+#include <ArduinoJson.h>
 #include <Wire.h>
 
 void EnvSensor::begin(bool forceRetry) {
@@ -48,6 +49,8 @@ void EnvSensor::read() {
 
   if (sht30Available_) {
     if (sht30_.update()) {
+      lastTemp_ = sht30_.cTemp;
+      lastHumidity_ = sht30_.humidity;
       Serial.printf("sensor=enviii_sht30 status=ok temp_c=%.2f humidity_pct=%.2f\n",
                     sht30_.cTemp,
                     sht30_.humidity);
@@ -59,6 +62,7 @@ void EnvSensor::read() {
 
   if (qmp6988Available_) {
     if (qmp6988_.update()) {
+      lastPressure_ = qmp6988_.pressure;
       Serial.printf("sensor=enviii_qmp6988 status=ok temp_c=%.2f pressure_pa=%.2f altitude_m=%.2f\n",
                     qmp6988_.cTemp,
                     qmp6988_.pressure,
@@ -68,4 +72,32 @@ void EnvSensor::read() {
       printUnavailable("enviii_qmp6988", "read_failed");
     }
   }
+}
+
+String EnvSensor::toJson() const {
+  if (!sht30Available_ && !qmp6988Available_) {
+    return "";
+  }
+  StaticJsonDocument<256> doc;
+  JsonArray arr = doc.to<JsonArray>();
+  if (sht30Available_) {
+    JsonObject temp = arr.add<JsonObject>();
+    temp["type"] = "temperature";
+    temp["value"] = lastTemp_;
+    temp["unit"] = "c";
+
+    JsonObject hum = arr.add<JsonObject>();
+    hum["type"] = "humidity";
+    hum["value"] = lastHumidity_;
+    hum["unit"] = "pct";
+  }
+  if (qmp6988Available_) {
+    JsonObject pres = arr.add<JsonObject>();
+    pres["type"] = "pressure";
+    pres["value"] = lastPressure_;
+    pres["unit"] = "pa";
+  }
+  String json;
+  serializeJson(doc, json);
+  return json;
 }

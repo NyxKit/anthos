@@ -15,7 +15,7 @@ struct WifiConfig {
 struct ApiConfig {
   const char* host = "";
   uint16_t port = 8088;
-  unsigned long checkIntervalMs = 10000;
+  unsigned long pushIntervalMs = 1000;
 };
 
 struct AppConfig {

@@ -35,6 +35,7 @@ string_keys = [
     "ANTHOS_WIFI_PASSWORD",
     "ANTHOS_API_HOST",
     "ANTHOS_API_PORT",
+    "ANTHOS_PUSH_INTERVAL_MS",
 ]
 
 defines = []

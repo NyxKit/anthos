@@ -26,7 +26,7 @@ void NodeHealth::loop() {
   ensureWifiConnected();
 
   const auto now = millis();
-  if (now - lastServerCheckAt_ >= kAppConfig.api.checkIntervalMs) {
+  if (now - lastServerCheckAt_ >= kAppConfig.api.pushIntervalMs) {
     refreshServerReachability();
   }
 

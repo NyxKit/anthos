@@ -1,10 +1,12 @@
 #include "ApiClient.h"
 
+#include <ArduinoJson.h>
 #include <HTTPClient.h>
 
 #include "AppConfig.h"
 
-ApiClient::ApiClient(Logger& logger, const NodeHealth& health) : logger_(logger), health_(health) {
+ApiClient::ApiClient(Logger& logger, const NodeHealth& health, SensorManager& sensors)
+    : logger_(logger), health_(health), sensors_(sensors) {
 }
 
 void ApiClient::begin() {
@@ -28,25 +30,39 @@ bool ApiClient::shouldPublish() const {
     return false;
   }
 
-  return millis() - lastPublishAt_ >= kAppConfig.api.checkIntervalMs;
+  return millis() - lastPublishAt_ >= kAppConfig.api.pushIntervalMs;
 }
 
 String ApiClient::buildPayload() const {
   const auto snapshot = health_.snapshot();
 
-  String payload = "{";
-  payload += "\"nodeId\":\"" + String(kAppConfig.nodeId) + "\",";
-  payload += "\"timestampMs\":" + String(millis()) + ",";
-  payload += "\"health\":{";
-  payload += "\"wifi\":\"" + String(snapshot.wifiStatus) + "\",";
-  payload += "\"ip\":\"" + String(snapshot.ipAddress) + "\",";
-  payload += "\"rssi\":" + String(snapshot.rssi) + ",";
-  payload += "\"server\":\"" + String(snapshot.serverStatus) + "\",";
-  payload += "\"target\":\"" + String(snapshot.serverHost) + "\",";
-  payload += "\"uptimeMs\":" + String(snapshot.uptimeMs);
-  payload += "},";
-  payload += "\"sensors\":[]";
-  payload += "}";
+  StaticJsonDocument<512> doc;
+  doc["nodeId"] = kAppConfig.nodeId;
+  doc["timestampMs"] = millis();
+
+  doc["health"]["wifi"] = snapshot.wifiStatus;
+  doc["health"]["ip"] = snapshot.ipAddress;
+  doc["health"]["rssi"] = snapshot.rssi;
+  doc["health"]["server"] = snapshot.serverStatus;
+  doc["health"]["target"] = snapshot.serverHost;
+  doc["health"]["uptimeMs"] = snapshot.uptimeMs;
+
+  String sensorJson = sensors_.readAllJson();
+  StaticJsonDocument<512> sensorDoc;
+  deserializeJson(sensorDoc, sensorJson);
+  JsonArray sensorArray = doc["sensors"].to<JsonArray>();
+  if (sensorDoc.is<JsonArray>()) {
+    JsonArray inputArr = sensorDoc.as<JsonArray>();
+    for (JsonObject item : inputArr) {
+      JsonObject s = sensorArray.add<JsonObject>();
+      s["type"] = item["type"].as<const char*>();
+      s["value"] = item["value"].as<double>();
+      s["unit"] = item["unit"].as<const char*>();
+    }
+  }
+
+  String payload;
+  serializeJson(doc, payload);
   return payload;
 }
 

@@ -9,6 +9,7 @@ class SensorManager {
  public:
   void begin();
   void readAll();
+  String readAllJson() const;
 
  private:
   DLightSensor dlight_;

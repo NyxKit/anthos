@@ -17,7 +17,7 @@ class NodeApp {
   Logger logger_;
   I2CBus i2cBus_{logger_};
   NodeHealth health_{logger_};
-  ApiClient api_{logger_, health_};
   SensorManager sensors_;
+  ApiClient api_{logger_, health_, sensors_};
   unsigned long lastReadAt_ = 0;
 };

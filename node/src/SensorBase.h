@@ -10,6 +10,7 @@ class SensorBase {
   virtual ~SensorBase() = default;
   virtual void begin(bool forceRetry = true) = 0;
   virtual void read() = 0;
+  virtual String toJson() const = 0;
 
  protected:
   static Logger logger_;

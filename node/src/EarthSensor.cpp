@@ -1,5 +1,7 @@
 #include "EarthSensor.h"
 
+#include <ArduinoJson.h>
+
 void EarthSensor::begin(bool forceRetry) {
   (void)forceRetry;
 
@@ -21,7 +23,29 @@ void EarthSensor::read() {
     return;
   }
 
-  const int rawAnalog = analogRead(kAppConfig.portWhitePin);
-  const int digitalState = digitalRead(kAppConfig.portYellowPin);
-  Serial.printf("sensor=earth status=ok raw=%d digital=%d\n", rawAnalog, digitalState);
+  lastRaw_ = analogRead(kAppConfig.portWhitePin);
+  lastDigital_ = digitalRead(kAppConfig.portYellowPin);
+  Serial.printf("sensor=earth status=ok raw=%d digital=%d\n", lastRaw_, lastDigital_);
+}
+
+String EarthSensor::toJson() const {
+  if (!available_) {
+    return "";
+  }
+  StaticJsonDocument<128> doc;
+  JsonArray arr = doc.to<JsonArray>();
+
+  JsonObject moist = arr.add<JsonObject>();
+  moist["type"] = "moisture";
+  moist["value"] = lastRaw_;
+  moist["unit"] = "raw";
+
+  JsonObject probe = arr.add<JsonObject>();
+  probe["type"] = "probe";
+  probe["value"] = lastDigital_;
+  probe["unit"] = "bool";
+
+  String json;
+  serializeJson(doc, json);
+  return json;
 }
