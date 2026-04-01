@@ -21,7 +21,7 @@ def parse_env_file(file_path):
 
 def quoted(value):
     escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-    return f'"{escaped}"'
+    return f'\\"{escaped}\\"'
 
 
 project_dir = Path(env.subst("$PROJECT_DIR"))
@@ -34,6 +34,7 @@ string_keys = [
     "ANTHOS_WIFI_SSID",
     "ANTHOS_WIFI_PASSWORD",
     "ANTHOS_API_BASE_URL",
+    "ANTHOS_ENABLE_ENV_SENSOR",
 ]
 
 defines = []

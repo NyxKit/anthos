@@ -25,3 +25,19 @@ void Logger::info(const char* message) const {
 void Logger::sensorUnavailable(const char* sensorName, const char* reason) const {
   Serial.printf("sensor=%s status=unavailable reason=%s\n", sensorName, reason);
 }
+
+void Logger::health(const char* wifiStatus,
+                    const char* ipAddress,
+                    long rssi,
+                    const char* serverStatus,
+                    const char* serverHost,
+                    unsigned long uptimeMs) const {
+  Serial.printf(
+      "health uptime_ms=%lu wifi=%s ip=%s rssi=%ld server=%s target=%s\n",
+      uptimeMs,
+      wifiStatus,
+      ipAddress,
+      rssi,
+      serverStatus,
+      serverHost);
+}

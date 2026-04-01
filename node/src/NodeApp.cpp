@@ -19,13 +19,18 @@ void NodeApp::begin() {
 
   if (kAppConfig.portMode == PortMode::I2cSensors) {
     Wire.begin(kAppConfig.portYellowPin, kAppConfig.portWhitePin);
+    Wire.setClock(kAppConfig.i2cClockHz);
     logger_.info("hy2.0 bus: i2c initialized");
+    delay(100);
   }
 
+  health_.begin();
   sensors_.begin();
 }
 
 void NodeApp::loop() {
+  health_.loop();
+
   const auto now = millis();
   if (now - lastReadAt_ < kAppConfig.readIntervalMs) {
     delay(10);

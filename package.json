@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "node:build": "pio run --project-dir node",
-    "node:upload": "pio run --project-dir node -t upload --upload-port /dev/ttyACM0",
+    "node:flash": "pio run --project-dir node -t upload --upload-port /dev/ttyACM0",
     "node:monitor": "pio device monitor --port /dev/ttyACM0 --baud 115200",
-    "node:run": "pnpm node:upload && pnpm node:monitor"
+    "node:run": "pnpm node:flash && pnpm node:monitor"
   }
 }

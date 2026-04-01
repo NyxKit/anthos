@@ -101,10 +101,14 @@ Earth Unit
 - the `1-3 hub` is appropriate for `I2C` unit sharing, not for mixing `Earth Unit` with the `I2C` units
 - if `ENV-III` stock blocks progress, `ENV Pro Unit (BME688)` is a viable development substitute for one node
 - if `Earth Unit` must coexist with the `I2C` stack on one Atom, it needs a separate wiring path off the shared HY2.0 port
+- keep controller docs model-specific: `Atom`, `Atom Lite`, and `AtomS3 Lite` differ in pins, examples, and firmware assumptions
+- when hardware behavior seems inconsistent after flashing, double-check that the reference docs match the exact controller variant in hand
 - keep batteries, `ADC`, `NFC`, and `SSD` as later upgrades
 
 ## Key Docs
 
+- `https://docs.m5stack.com/en/core/AtomS3%20Lite` - primary controller doc for the current node hardware
+- `https://docs.m5stack.com/en/core/ATOM%20Lite` - older Atom Lite reference; useful for comparison, but not interchangeable with `AtomS3 Lite`
 - `two-shop-basket.md` - final purchase split, subtotals, totals
 - `webshop-urls.md` - raw shop/search/product URLs
 - `pi5-server-parts-list.md` - Pi 5 server notes

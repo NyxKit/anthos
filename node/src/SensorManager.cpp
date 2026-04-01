@@ -2,7 +2,6 @@
 
 void SensorManager::begin() {
   dlight_.begin(true);
-  env_.begin(true);
   earth_.begin(true);
 }
 

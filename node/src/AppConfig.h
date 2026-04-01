@@ -14,15 +14,19 @@ struct WifiConfig {
 
 struct ApiConfig {
   const char* baseUrl = "";
+  unsigned long checkIntervalMs = 10000;
 };
 
 struct AppConfig {
   const char* nodeId = "dev-node";
   PortMode portMode = PortMode::I2cSensors;
+  bool enableEnvSensor = false;
   uint8_t portYellowPin = 2;
   uint8_t portWhitePin = 1;
   uint8_t dlightAddress = 0x23;
+  uint32_t i2cClockHz = 50000;
   unsigned long readIntervalMs = 1000;
+  unsigned long healthIntervalMs = 5000;
   unsigned long retryIntervalMs = 5000;
   WifiConfig wifi{};
   ApiConfig api{};
