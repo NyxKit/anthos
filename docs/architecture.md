@@ -71,6 +71,12 @@ Example shape:
 - `GET /api/...` -> dashboard/backend data endpoints
 - `POST /api/ingest` -> node telemetry ingestion
 
+Current local development default:
+
+- shared local config should expose `ANTHOS_API_HOST` and `ANTHOS_API_PORT`
+- server origin: `http://<lan-ip>:<api-port>`
+- ingest endpoint: `http://<lan-ip>:<api-port>/api/ingest`
+
 This keeps deployment simple on a `NAS`, `Pi`, or other Docker host while the product is still early.
 
 ## Backend Framework

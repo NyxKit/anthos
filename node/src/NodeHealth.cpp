@@ -11,11 +11,6 @@ namespace {
 bool hasValue(const char* value) {
   return value != nullptr && value[0] != '\0';
 }
-
-const char* stripScheme(const char* url) {
-  const char* scheme = strstr(url, "://");
-  return scheme ? scheme + 3 : url;
-}
 }
 
 NodeHealth::NodeHealth(Logger& logger) : logger_(logger) {
@@ -45,17 +40,7 @@ const char* NodeHealth::serverHost() const {
     return "not_configured";
   }
 
-  static char host[128];
-  const char* start = stripScheme(kAppConfig.api.baseUrl);
-  size_t index = 0;
-
-  while (start[index] != '\0' && start[index] != ':' && start[index] != '/' && index < sizeof(host) - 1) {
-    host[index] = start[index];
-    ++index;
-  }
-  host[index] = '\0';
-
-  return host[0] == '\0' ? "not_configured" : host;
+  return kAppConfig.api.host;
 }
 
 uint16_t NodeHealth::serverPort() const {
@@ -63,21 +48,11 @@ uint16_t NodeHealth::serverPort() const {
     return 0;
   }
 
-  const char* url = kAppConfig.api.baseUrl;
-  const bool https = strncmp(url, "https://", 8) == 0;
-  const char* start = stripScheme(url);
-  const char* colon = strchr(start, ':');
-  const char* slash = strchr(start, '/');
-
-  if (colon != nullptr && (slash == nullptr || colon < slash)) {
-    return static_cast<uint16_t>(atoi(colon + 1));
-  }
-
-  return https ? 443 : 80;
+  return kAppConfig.api.port;
 }
 
 bool NodeHealth::hasServerTarget() const {
-  return hasValue(kAppConfig.api.baseUrl);
+  return hasValue(kAppConfig.api.host) && kAppConfig.api.port > 0;
 }
 
 bool NodeHealth::isWifiConnected() const {

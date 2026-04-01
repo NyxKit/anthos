@@ -13,7 +13,8 @@ struct WifiConfig {
 };
 
 struct ApiConfig {
-  const char* baseUrl = "";
+  const char* host = "";
+  uint16_t port = 8088;
   unsigned long checkIntervalMs = 10000;
 };
 

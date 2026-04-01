@@ -18,18 +18,17 @@
 #define ANTHOS_WIFI_PASSWORD ""
 #endif
 
-#ifndef ANTHOS_API_BASE_URL
-#define ANTHOS_API_BASE_URL ""
+#ifndef ANTHOS_API_HOST
+#define ANTHOS_API_HOST ""
+#endif
+
+#ifndef ANTHOS_API_PORT
+#define ANTHOS_API_PORT "8088"
 #endif
 
 namespace {
 PortMode parsePortMode(const char* value) {
   return std::strcmp(value, "earth") == 0 ? PortMode::EarthOnly : PortMode::I2cSensors;
-}
-
-bool parseBool(const char* value) {
-  return std::strcmp(value, "1") == 0 || std::strcmp(value, "true") == 0 ||
-         std::strcmp(value, "yes") == 0 || std::strcmp(value, "on") == 0;
 }
 
 AppConfig makeAppConfig() {
@@ -45,7 +44,8 @@ AppConfig makeAppConfig() {
   config.retryIntervalMs = 5000;
   config.wifi.ssid = ANTHOS_WIFI_SSID;
   config.wifi.password = ANTHOS_WIFI_PASSWORD;
-  config.api.baseUrl = ANTHOS_API_BASE_URL;
+  config.api.host = ANTHOS_API_HOST;
+  config.api.port = static_cast<uint16_t>(atoi(ANTHOS_API_PORT));
   config.api.checkIntervalMs = 10000;
   return config;
 }

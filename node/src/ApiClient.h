@@ -15,6 +15,7 @@ class ApiClient {
  private:
   bool shouldPublish() const;
   String buildPayload() const;
+  String ingestUrl() const;
   void publishHeartbeat();
 
   Logger& logger_;

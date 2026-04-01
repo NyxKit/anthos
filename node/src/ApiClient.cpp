@@ -50,6 +50,15 @@ String ApiClient::buildPayload() const {
   return payload;
 }
 
+String ApiClient::ingestUrl() const {
+  String url = "http://";
+  url += kAppConfig.api.host;
+  url += ":";
+  url += String(kAppConfig.api.port);
+  url += "/api/ingest";
+  return url;
+}
+
 void ApiClient::publishHeartbeat() {
   if (!health_.hasServerTarget()) {
     return;
@@ -62,14 +71,18 @@ void ApiClient::publishHeartbeat() {
   }
 
   HTTPClient http;
+  const String url = ingestUrl();
   http.setTimeout(2000);
-  if (!http.begin(kAppConfig.api.baseUrl)) {
+  if (!http.begin(url)) {
     logger_.info("api: begin failed");
     return;
   }
 
   http.addHeader("Content-Type", "application/json");
   const int statusCode = http.POST(buildPayload());
-  Serial.printf("api status=%d target=%s\n", statusCode, kAppConfig.api.baseUrl);
+  if (statusCode < 0) {
+    Serial.printf("api error=%s target=%s\n", http.errorToString(statusCode).c_str(), url.c_str());
+  }
+  Serial.printf("api status=%d target=%s\n", statusCode, url.c_str());
   http.end();
 }
