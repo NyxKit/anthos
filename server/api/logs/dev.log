@@ -1,6 +1,0 @@
-
-> @anthos/api@ dev /home/arnedecant/Projects/nyxkit/anthos/server/api
-> tsx watch src/server.ts
-
-Anthos API listening on http://0.0.0.0:3000
- ELIFECYCLE  Command failed with exit code 143.
