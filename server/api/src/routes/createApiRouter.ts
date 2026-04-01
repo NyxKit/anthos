@@ -3,11 +3,10 @@ import { Router } from 'express'
 import { IngestController } from '../controllers/IngestController.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 
-export function createApiRouter(): Router {
+export function createApiRouter(telemetry: TelemetryService): Router {
   const router = Router()
 
-  const telemetryService = new TelemetryService()
-  const ingestController = new IngestController(telemetryService)
+  const ingestController = new IngestController(telemetry)
 
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' })
