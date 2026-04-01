@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import type { TelemetryPayload } from '../../../shared/src/telemetry.js'
 
-const DB_PATH = path.resolve(process.cwd(), 'logs/anthos.db')
+const DB_PATH = path.resolve(process.cwd(), '../db/anthos.db')
 const STORE_INTERVAL_MS = 60000
 
 interface Reading {

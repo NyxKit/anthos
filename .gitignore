@@ -6,3 +6,4 @@ node_modules/
 node/.pio/
 node/.vscode/
 server/api/logs/
+server/db/
