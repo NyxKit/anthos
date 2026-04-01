@@ -113,6 +113,44 @@ Implementation style:
 - HTTPS should be considered mandatory before public exposure
 - node ingestion should also be authenticated, not left as an open endpoint forever
 
+## Database & Storage
+
+The server uses **SQLite** (via `sql.js` - WASM-based, no native dependencies) to store telemetry readings.
+
+### Storage Strategy
+
+Nodes push readings at **1-second intervals** for real-time dashboard updates. However, we don't store every single reading to the DB - that would create ~86K rows per day per node.
+
+Instead:
+- **1s**: Node pushes readings → Server keeps in memory buffer
+- **60s**: Server computes average of buffered readings per sensor type → stores to SQLite
+
+This gives you:
+- Real-time updates on the dashboard (1s resolution)
+- Efficient storage (1 row per sensor type per minute = ~5K rows/day)
+- Still plenty of data for graphs and trends
+
+### Schema
+
+```sql
+readings (
+  id INTEGER PRIMARY KEY,
+  node_id TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  sensor_type TEXT NOT NULL,
+  value REAL NOT NULL,
+  unit TEXT NOT NULL
+)
+
+-- index for time-range queries
+INDEX idx_readings_node_time ON readings(node_id, timestamp)
+```
+
+### Data Location
+
+- Database: `server/db/anthos.db` (gitignored)
+- Runtime logs: `server/api/logs/` (gitignored)
+
 ## Hardware Findings That Affect Architecture
 
 - `M5Stack AtomS3 Lite` is the controller in use; do not assume `Atom Lite` docs or examples are interchangeable
