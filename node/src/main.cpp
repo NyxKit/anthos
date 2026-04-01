@@ -12,6 +12,21 @@ namespace {
   unsigned long lastReadAt = 0;
 }
 
+void readLight() {
+  if (lightMeter.measurementReady()) {
+    const float lux = lightMeter.readLightLevel();
+    if (lux < 0) {
+      Serial.println("lux read failed");
+      return;
+    }
+
+    Serial.printf("lux: %.2f\n", lux);
+    return;
+  }
+
+  Serial.println("waiting for light sample");
+}
+
 void setup() {
   Serial.begin(115200);
   delay(1500);
@@ -38,17 +53,5 @@ void loop() {
   }
 
   lastReadAt = now;
-
-  if (lightMeter.measurementReady()) {
-    const float lux = lightMeter.readLightLevel();
-    if (lux < 0) {
-      Serial.println("lux read failed");
-      return;
-    }
-
-    Serial.printf("lux: %.2f\n", lux);
-    return;
-  }
-
-  Serial.println("waiting for light sample");
+  readLight();
 }
