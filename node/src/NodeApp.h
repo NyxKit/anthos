@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ApiClient.h"
 #include "I2CBus.h"
 #include "Logger.h"
 #include "NodeHealth.h"
@@ -16,6 +17,7 @@ class NodeApp {
   Logger logger_;
   I2CBus i2cBus_{logger_};
   NodeHealth health_{logger_};
+  ApiClient api_{logger_, health_};
   SensorManager sensors_;
   unsigned long lastReadAt_ = 0;
 };

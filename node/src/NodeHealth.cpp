@@ -80,6 +80,38 @@ bool NodeHealth::hasServerTarget() const {
   return hasValue(kAppConfig.api.baseUrl);
 }
 
+bool NodeHealth::isWifiConnected() const {
+  return WiFi.status() == WL_CONNECTED;
+}
+
+NodeHealthSnapshot NodeHealth::snapshot() const {
+  const bool wifiConnected = isWifiConnected();
+  const char* wifiStatus = hasValue(kAppConfig.wifi.ssid)
+                               ? (wifiConnected ? "connected" : "disconnected")
+                               : "not_configured";
+
+  if (wifiConnected) {
+    const String ip = WiFi.localIP().toString();
+    ip.toCharArray(ipAddress_, sizeof(ipAddress_));
+  } else {
+    std::strcpy(ipAddress_, "n/a");
+  }
+
+  const char* serverStatus = !hasServerTarget()
+                                 ? "not_configured"
+                                 : (wifiConnected ? (serverReachable_ ? "reachable" : "unreachable")
+                                                  : "wifi_down");
+
+  NodeHealthSnapshot snapshot;
+  snapshot.wifiStatus = wifiStatus;
+  snapshot.ipAddress = ipAddress_;
+  snapshot.rssi = wifiConnected ? WiFi.RSSI() : 0;
+  snapshot.serverStatus = serverStatus;
+  snapshot.serverHost = serverHost();
+  snapshot.uptimeMs = millis();
+  return snapshot;
+}
+
 void NodeHealth::ensureWifiConnected() {
   if (!hasValue(kAppConfig.wifi.ssid)) {
     return;
@@ -117,24 +149,12 @@ void NodeHealth::refreshServerReachability() {
 }
 
 void NodeHealth::emitHeartbeat() const {
-  const bool wifiConnected = WiFi.status() == WL_CONNECTED;
-  const char* wifiStatus = hasValue(kAppConfig.wifi.ssid)
-                               ? (wifiConnected ? "connected" : "disconnected")
-                               : "not_configured";
-  static char ipAddress[24] = "n/a";
-  if (wifiConnected) {
-    const String ip = WiFi.localIP().toString();
-    ip.toCharArray(ipAddress, sizeof(ipAddress));
-  } else {
-    std::strcpy(ipAddress, "n/a");
-  }
-  const long rssi = wifiConnected ? WiFi.RSSI() : 0;
-
-  const char* serverStatus = !hasServerTarget()
-                                 ? "not_configured"
-                                 : (wifiConnected ? (serverReachable_ ? "reachable" : "unreachable")
-                                                  : "wifi_down");
-
-  logger_.health(wifiStatus, ipAddress, rssi, serverStatus, serverHost(), millis());
+  const auto current = snapshot();
+  logger_.health(current.wifiStatus,
+                 current.ipAddress,
+                 current.rssi,
+                 current.serverStatus,
+                 current.serverHost,
+                 current.uptimeMs);
   const_cast<NodeHealth*>(this)->lastHealthReportAt_ = millis();
 }

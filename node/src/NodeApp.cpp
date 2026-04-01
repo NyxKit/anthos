@@ -25,11 +25,13 @@ void NodeApp::begin() {
   }
 
   health_.begin();
+  api_.begin();
   sensors_.begin();
 }
 
 void NodeApp::loop() {
   health_.loop();
+  api_.loop();
 
   const auto now = millis();
   if (now - lastReadAt_ < kAppConfig.readIntervalMs) {

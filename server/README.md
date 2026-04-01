@@ -1,9 +1,15 @@
 # Server
 
-This directory is reserved for the ingestion API, storage layer, and later the dashboard frontend.
+This directory contains the TypeScript server stack.
 
-Likely next layout:
+Planned layout:
 
-- `server/api/`
-- `server/web/`
-- `server/shared/`
+- `server/api/` - Node.js + Express backend
+- `server/web/` - Vue frontend
+- `server/shared/` - TypeScript types shared by API and web
+
+Design direction:
+
+- one deployable server that both ingests node telemetry and serves the dashboard
+- object-oriented backend structure with minimal libraries
+- shared contracts for telemetry payloads and domain models
