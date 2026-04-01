@@ -3,14 +3,6 @@
 #include <Wire.h>
 
 void EnvSensor::begin(bool forceRetry) {
-  if (!kAppConfig.enableEnvSensor) {
-    sht30Available_ = false;
-    qmp6988Available_ = false;
-    printUnavailable("enviii_sht30", "disabled");
-    printUnavailable("enviii_qmp6988", "disabled");
-    return;
-  }
-
   if (kAppConfig.portMode != PortMode::I2cSensors) {
     sht30Available_ = false;
     qmp6988Available_ = false;

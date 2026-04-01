@@ -34,7 +34,6 @@ string_keys = [
     "ANTHOS_WIFI_SSID",
     "ANTHOS_WIFI_PASSWORD",
     "ANTHOS_API_BASE_URL",
-    "ANTHOS_ENABLE_ENV_SENSOR",
 ]
 
 defines = []

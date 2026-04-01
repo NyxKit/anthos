@@ -14,10 +14,6 @@
 #define ANTHOS_WIFI_SSID ""
 #endif
 
-#ifndef ANTHOS_ENABLE_ENV_SENSOR
-#define ANTHOS_ENABLE_ENV_SENSOR "false"
-#endif
-
 #ifndef ANTHOS_WIFI_PASSWORD
 #define ANTHOS_WIFI_PASSWORD ""
 #endif
@@ -40,7 +36,6 @@ AppConfig makeAppConfig() {
   AppConfig config;
   config.nodeId = ANTHOS_NODE_ID;
   config.portMode = parsePortMode(ANTHOS_PORT_MODE);
-  config.enableEnvSensor = parseBool(ANTHOS_ENABLE_ENV_SENSOR);
   config.portYellowPin = 2;
   config.portWhitePin = 1;
   config.dlightAddress = 0x23;
