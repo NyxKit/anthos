@@ -69,7 +69,11 @@ export class TelemetryService {
       this.lastStoredAt = timestamp
     }
 
-    console.log('telemetry.ingest', { nodeId: payload.nodeId, sensors: payload.sensors.length })
+    console.log('telemetry.ingest', { 
+      nodeId: payload.nodeId, 
+      sensors: payload.sensors.length,
+      readings: payload.sensors.map(s => `${s.type}=${s.value}${s.unit}`).join(', ')
+    })
   }
 
   private async storePendingReadings(): Promise<void> {

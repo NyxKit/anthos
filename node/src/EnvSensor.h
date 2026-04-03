@@ -1,6 +1,7 @@
 #pragma once
 
-#include <M5UnitENV.h>
+#include <M5UnitUnified.h>
+#include <M5UnitUnifiedENV.h>
 
 #include "SensorBase.h"
 
@@ -11,10 +12,14 @@ class EnvSensor : public SensorBase {
   String toJson() const override;
 
  private:
-  SHT3X sht30_;
-  QMP6988 qmp6988_;
-  bool sht30Available_ = false;
-  bool qmp6988Available_ = false;
+  m5::unit::UnitUnified units_;
+  m5::unit::UnitENV3 enviii_;
+  m5::unit::UnitENVPro envpro_;
+  m5::unit::UnitENVPro envproAlt_{0x76};
+  bool unitsAdded_ = false;
+  bool useEnvproAlt_ = false;
+  bool enviiiAvailable_ = false;
+  bool envproAvailable_ = false;
   float lastTemp_ = 0;
   float lastHumidity_ = 0;
   float lastPressure_ = 0;
