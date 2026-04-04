@@ -25,12 +25,14 @@ void NodeApp::begin() {
   }
 
   health_.begin();
+  ntp_.begin();
   api_.begin();
   sensors_.begin();
 }
 
 void NodeApp::loop() {
   health_.loop();
+  ntp_.loop();
   api_.loop();
 
   const auto now = millis();

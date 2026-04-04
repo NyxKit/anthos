@@ -5,8 +5,8 @@
 
 #include "AppConfig.h"
 
-ApiClient::ApiClient(Logger& logger, const NodeHealth& health, SensorManager& sensors)
-    : logger_(logger), health_(health), sensors_(sensors) {
+ApiClient::ApiClient(Logger& logger, const NodeHealth& health, SensorManager& sensors, NtpSync& ntp)
+    : logger_(logger), health_(health), sensors_(sensors), ntp_(ntp) {
 }
 
 void ApiClient::begin() {
@@ -38,7 +38,7 @@ String ApiClient::buildPayload() const {
 
   StaticJsonDocument<512> doc;
   doc["nodeId"] = kAppConfig.nodeId;
-  doc["timestampMs"] = millis();
+  doc["timestampMs"] = ntp_.isSynced() ? ntp_.nowMs() : millis();
 
   doc["health"]["wifi"] = snapshot.wifiStatus;
   doc["health"]["ip"] = snapshot.ipAddress;

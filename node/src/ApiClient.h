@@ -4,11 +4,12 @@
 
 #include "Logger.h"
 #include "NodeHealth.h"
+#include "NtpSync.h"
 #include "SensorManager.h"
 
 class ApiClient {
  public:
-  ApiClient(Logger& logger, const NodeHealth& health, SensorManager& sensors);
+  ApiClient(Logger& logger, const NodeHealth& health, SensorManager& sensors, NtpSync& ntp);
 
   void begin();
   void loop();
@@ -22,5 +23,6 @@ class ApiClient {
   Logger& logger_;
   const NodeHealth& health_;
   SensorManager& sensors_;
+  NtpSync& ntp_;
   unsigned long lastPublishAt_ = 0;
 };
