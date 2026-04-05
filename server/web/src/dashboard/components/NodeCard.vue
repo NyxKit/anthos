@@ -17,8 +17,6 @@ const formattedTimestamp = computed(() => {
   const now = Date.now()
   const ts = store.timestampMs ?? 0
   
-  if (ts < 1000000000000) return 'No timestamp'
-  
   const diff = now - ts
   const seconds = Math.floor(diff / 1000)
   
@@ -37,7 +35,6 @@ const formattedTimestamp = computed(() => {
 
 const rawTimestamp = computed(() => {
   const ts = store.timestampMs ?? 0
-  if (ts < 1000000000000) return `N/A (millis: ${ts})`
   return new Date(ts).toISOString()
 })
 
