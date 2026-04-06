@@ -10,8 +10,7 @@ export interface NodeHealthPayload {
 }
 
 export interface SensorSample {
-  sensor: SensorName
-  metric: string
+  type: string
   value: number
   unit?: string
 }

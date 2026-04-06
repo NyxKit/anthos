@@ -51,9 +51,9 @@ export class TelemetryService {
   }
 
   async ingest(payload: TelemetryPayload): Promise<void> {
-    this.latestPayload = payload
-
     const timestamp = Date.now()
+    payload.timestampMs = timestamp
+    this.latestPayload = payload
     for (const sensor of payload.sensors) {
       this.pendingReadings.push({
         nodeId: payload.nodeId,

@@ -10,5 +10,8 @@
     "node:run": "pnpm node:flash && pnpm node:monitor",
     "web:serve": "pnpm --dir server/web dev",
     "web:build": "pnpm --dir server/web build"
+  },
+  "pnpm": {
+    "workspace": ["server/*"]
   }
 }

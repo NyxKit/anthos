@@ -105,10 +105,18 @@ Earth Unit
 - when hardware behavior seems inconsistent after flashing, double-check that the reference docs match the exact controller variant in hand
 - keep batteries, `ADC`, `NFC`, and `SSD` as later upgrades
 
+## Earth Unit Wiring Reminder (AtomS3 Lite)
+
+- `Earth Unit` pin roles: `black=GND`, `red=5V`, `yellow=DO` (digital output), `white=AO` (analog output)
+- on `AtomS3 Lite`, `AO` must go to an ADC-capable bottom pin: `G5`, `G6`, `G7`, or `G8`
+- `G38` and `G39` are not ADC pins, so they are not valid for `AO`
+- safe mapping example: `white(AO) -> G5`, `yellow(DO) -> G39`, `black -> GND`, `red -> 5V`
+
 ## Key Docs
 
 - `https://docs.m5stack.com/en/core/AtomS3%20Lite` - primary controller doc for the current node hardware
 - `https://docs.m5stack.com/en/core/ATOM%20Lite` - older Atom Lite reference; useful for comparison, but not interchangeable with `AtomS3 Lite`
+- `node-setup.md` - node wiring, battery, and provisioning decisions
 - `two-shop-basket.md` - final purchase split, subtotals, totals
 - `webshop-urls.md` - raw shop/search/product URLs
 - `pi5-server-parts-list.md` - Pi 5 server notes

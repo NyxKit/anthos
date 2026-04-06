@@ -105,6 +105,54 @@ Implementation style:
 - minimal dependencies until the product needs more
 - shared payload and domain types in `server/shared/`
 
+## Frontend Stack
+
+The dashboard uses the following frontend stack, matching the nyx-notes project structure:
+
+- **Vue 3** with Composition API
+- **SCSS** for styling
+- **Vue Router** for navigation
+- **Pinia** for state management
+- **nyx-kit** for UI components (all primitives must use nyx-kit)
+
+### Frontend Structure
+
+```
+frontend/
+├── src/
+│   ├── App.vue
+│   ├── main.ts
+│   ├── shared/
+│   │   ├── assets/        # Styles, icons
+│   │   ├── components/   # Shared UI components
+│   │   ├── composables/  # Shared composables
+│   │   ├── router/      # Vue Router configuration
+│   │   └── types/        # TypeScript types
+│   └── [feature]/
+│       ├── api/          # API calls
+│       ├── components/  # Feature components
+│       ├── composables/ # Feature composables
+│       ├── stores/       # Pinia stores (if needed)
+│       └── views/        # Feature views
+├── index.html
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
+
+### Development Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run test:unit` - Run unit tests with Vitest
+
+### API Integration
+
+The frontend communicates with the server API:
+- `GET /api/readings` - Fetch sensor readings
+- Server serves the built Vue frontend at `GET /`
+
 ## Remote Access
 
 - local-network access is the first target

@@ -1,0 +1,37 @@
+{
+  "name": "anthos-dashboard",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "test:unit": "vitest",
+    "test:unit:run": "vitest run",
+    "validate": "npm run lint && npm run test:unit:run && npm run build"
+  },
+  "dependencies": {
+    "nyx-kit": "^2.0.16",
+    "ofetch": "^1.5.1",
+    "pinia": "^3.0.4",
+    "vue": "^3.5.13",
+    "vue-router": "^5.0.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/eslint-config-typescript": "^14.7.0",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.39.4",
+    "eslint-plugin-oxlint": "^0.15.15",
+    "eslint-plugin-vue": "^9.33.0",
+    "jsdom": "^26.1.0",
+    "sass": "^1.85.0",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.3",
+    "vitest": "^3.2.4",
+    "vue-tsc": "^2.1.10"
+  }
+}
