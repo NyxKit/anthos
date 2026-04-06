@@ -74,13 +74,6 @@ void NvsConfig::setNodeId(const String& nodeId) {
   prefs.end();
 }
 
-void NvsConfig::clearAll() {
-  Preferences prefs;
-  prefs.begin(kNamespace, false);
-  prefs.clear();
-  prefs.end();
-}
-
 void NvsConfig::factoryReset() {
   Preferences prefs;
   prefs.begin(kNamespace, false);

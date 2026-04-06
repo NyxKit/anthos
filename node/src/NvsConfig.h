@@ -23,9 +23,6 @@ class NvsConfig {
   static void setServerUrl(const String& url);
   static void setNodeId(const String& nodeId);
 
-  // Clear all keys without restarting (for debug use only)
-  static void clearAll();
-
   // Factory reset: clears all keys in "anthos" namespace then restarts
   static void factoryReset();
 

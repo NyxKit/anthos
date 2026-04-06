@@ -14,9 +14,6 @@
 static constexpr const char* kFirmwareVersion = "1.0.0";
 
 void ProvisioningManager::begin() {
-  // ONE-TIME: clear NVS so BLE provisioning runs fresh. Remove after testing.
-  NvsConfig::clearAll();
-
   if (!NvsConfig::hasWifiCredentials()) {
     state_ = BootState::NO_CREDS;
     Serial.println("[BOOT] No credentials. Entering BLE provisioning mode.");
