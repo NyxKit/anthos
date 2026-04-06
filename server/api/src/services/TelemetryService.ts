@@ -47,6 +47,30 @@ export class TelemetryService {
       ON readings(node_id, timestamp)
     `)
 
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS hardware_nodes (
+        hw_id            TEXT    PRIMARY KEY,
+        first_seen       INTEGER NOT NULL,
+        last_seen        INTEGER NOT NULL,
+        firmware_version TEXT
+      )
+    `)
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS logical_nodes (
+        node_id       TEXT    PRIMARY KEY,
+        hw_id         TEXT    NOT NULL REFERENCES hardware_nodes(hw_id),
+        display_name  TEXT,
+        claim_status  TEXT    NOT NULL DEFAULT 'unclaimed',
+        registered_at INTEGER NOT NULL
+      )
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_logical_nodes_hw_id
+      ON logical_nodes(hw_id)
+    `)
+
     console.log('telemetry.db.init', DB_PATH)
   }
 
@@ -60,7 +84,7 @@ export class TelemetryService {
         timestamp,
         sensorType: sensor.type,
         value: sensor.value,
-        unit: sensor.unit,
+        unit: sensor.unit ?? '',
       })
     }
 
@@ -103,6 +127,15 @@ export class TelemetryService {
     const logsDir = path.dirname(DB_PATH)
     await mkdir(logsDir, { recursive: true })
     await writeFile(DB_PATH, buffer)
+  }
+
+  getDb(): Database {
+    if (!this.db) throw new Error('DB not initialized')
+    return this.db
+  }
+
+  async saveDbPublic(): Promise<void> {
+    await this.saveDb()
   }
 
   getLatest(): TelemetryPayload | null {

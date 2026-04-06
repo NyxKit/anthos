@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>NSBluetoothAlwaysUsageDescription</key>
+  <string>Anthos uses Bluetooth to provision new plant sensor nodes.</string>
+  <key>NSBluetoothPeripheralUsageDescription</key>
+  <string>Anthos uses Bluetooth to connect to plant sensor nodes.</string>
+</dict>
+</plist>

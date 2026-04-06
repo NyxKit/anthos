@@ -4,6 +4,7 @@
 #include <Wire.h>
 
 #include "AppConfig.h"
+#include "NvsConfig.h"
 
 const char* NodeApp::describePortMode() const {
   return kAppConfig.portMode == PortMode::I2cSensors ? "i2c" : "earth";
@@ -14,7 +15,9 @@ void NodeApp::begin() {
   delay(1500);
 
   logger_.line();
-  logger_.boot(kAppConfig.nodeId, describePortMode());
+
+  const String nodeId = NvsConfig::getNodeId();
+  logger_.boot(nodeId.length() > 0 ? nodeId.c_str() : "unregistered", describePortMode());
   logger_.portPins(kAppConfig.portYellowPin, kAppConfig.portWhitePin);
 
   if (kAppConfig.portMode == PortMode::I2cSensors) {
@@ -24,12 +27,17 @@ void NodeApp::begin() {
     delay(100);
   }
 
+  // Run provisioning (BLE → WiFi → hub registration) before starting telemetry.
+  // This call blocks until the node is fully configured (BootState::READY).
+  provisioning_.begin();
+
   health_.begin();
   api_.begin();
   sensors_.begin();
 }
 
 void NodeApp::loop() {
+  provisioning_.loop();
   health_.loop();
   api_.loop();
 

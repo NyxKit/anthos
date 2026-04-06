@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Anthos",
+  "version": "0.1.0",
+  "identifier": "com.nyxkit.anthos",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "iOS": {
+      "minimumSystemVersion": "14.0"
+    },
+    "android": {
+      "minSdkVersion": 24
+    }
+  },
+  "app": {
+    "security": {
+      "csp": null
+    }
+  }
+}
