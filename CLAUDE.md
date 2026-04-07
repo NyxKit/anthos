@@ -8,8 +8,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-06
 |---|---|---|
 | Node firmware | C++ (Arduino framework, ESP-IDF base) | NimBLE-Arduino, Arduino Preferences, ESPmDNS, ArduinoJson 7, M5Unit-ENV, BH1750 |
 | Hub server API | TypeScript 5.8 (Node.js 20) | Express 4.21, sql.js 1.14, cors |
-| Hub dashboard | TypeScript + Vue 3.5 | Vite 6, Pinia 3, Vue Router 5, nyx-kit 2, Sass, Vitest |
-| Mobile app | TypeScript + Vue 3.5 + Rust (Tauri v2) | tauri-plugin-blec 0.8 |
+| Frontend app | TypeScript + Vue 3.5 + Rust (Tauri v2) | Vite 6, Pinia 3, Vue Router 5, nyx-kit 2, Sass, Vitest, tauri-plugin-blec 0.8 |
 | Package manager | pnpm (workspace) | pnpm-workspace.yaml |
 | Firmware build | PlatformIO | M5Stack AtomS3 Lite (ESP32-S3), Arduino framework |
 
@@ -31,20 +30,27 @@ anthos/
 │       └── ...                  # Sensor drivers, I2C, Logger, NodeHealth
 │
 ├── server/
-│   ├── api/src/                 # Express API
-│   │   ├── routes/createApiRouter.ts
-│   │   ├── controllers/
-│   │   │   ├── IngestController.ts
-│   │   │   └── ProvisionController.ts
-│   │   └── services/
-│   │       ├── TelemetryService.ts    # SQLite schema + telemetry
-│   │       ├── NodeRegistryService.ts # hardware_nodes + logical_nodes
-│   │       └── PairingWindowService.ts
-│   ├── web/src/                 # Vue 3 dashboard
-│   └── shared/src/telemetry.ts  # Shared TypeScript types
+│   └── api/src/                 # Express API (serves app/dist/ in production)
+│       ├── routes/createApiRouter.ts
+│       ├── controllers/
+│       │   ├── IngestController.ts
+│       │   └── ProvisionController.ts
+│       └── services/
+│           ├── TelemetryService.ts    # SQLite schema + telemetry
+│           ├── NodeRegistryService.ts # hardware_nodes + logical_nodes
+│           └── PairingWindowService.ts
 │
-├── app/                         # Tauri v2 mobile app (new)
-│   ├── src/                     # Vue 3 frontend (provisioning + dashboard)
+├── shared/src/                  # Shared TypeScript types (@anthos/shared)
+│   ├── index.ts
+│   └── telemetry.ts
+│
+├── app/                         # Unified frontend: dashboard + provisioning (Tauri v2)
+│   ├── src/
+│   │   ├── dashboard/           # Telemetry dashboard feature
+│   │   ├── nodes/               # Node management feature
+│   │   ├── shared/              # Shared assets, router, types
+│   │   ├── views/               # App-level views (HomeView, ProvisionView)
+│   │   └── composables/         # useBleProvisioning
 │   └── src-tauri/               # Rust shell + tauri-plugin-blec
 │
 ├── specs/                       # Feature specifications (speckit)
@@ -65,18 +71,17 @@ pio test                     # Run unit tests
 ### Server
 ```bash
 pnpm install                          # Install all workspace dependencies
-pnpm --filter @anthos/api dev         # Run API server (port 3000, watch mode)
-pnpm --filter @anthos/web dev         # Run dashboard (port 5173, watch mode)
+pnpm --filter @anthos/api dev         # Run API server (port 8088, watch mode)
 pnpm --filter @anthos/api test        # Run API tests (Vitest)
-pnpm --filter @anthos/web test        # Run frontend tests (Vitest)
 ```
 
-### Mobile App (Tauri)
+### App (Frontend + Tauri)
 ```bash
-cd app
-pnpm dev                     # Run in browser (no BLE)
-pnpm tauri android dev       # Run on Android device/emulator
-pnpm tauri ios dev           # Run on iOS simulator (macOS only)
+pnpm --filter anthos-app dev          # Run in browser at port 1420 (no BLE)
+pnpm --filter anthos-app build        # Build for production (outputs app/dist/)
+pnpm --filter anthos-app test         # Run frontend tests (Vitest)
+pnpm --dir app tauri android dev      # Run on Android device/emulator
+pnpm --dir app tauri ios dev          # Run on iOS simulator (macOS only)
 ```
 
 ### Feature Workflow (speckit)
@@ -99,7 +104,7 @@ pnpm tauri ios dev           # Run on iOS simulator (macOS only)
 ### TypeScript (Server + App)
 - Strict TypeScript (`"strict": true`)
 - Services own DB access — controllers never touch sql.js directly
-- All API response shapes are defined as TypeScript types in `server/shared/`
+- All API response shapes are defined as TypeScript types in `shared/` (`@anthos/shared`)
 - Vitest for all tests; no Jest
 
 ### Vue 3 (Dashboard + App)
@@ -122,6 +127,7 @@ pnpm tauri ios dev           # Run on iOS simulator (macOS only)
 |---|---|---|
 | Telemetry Dashboard | `001-telemetry-dashboard` | SQLite `readings` table, `/api/ingest`, `/api/readings`, Vue dashboard with live chart, NTP sync |
 | Generic Node Provisioning | `002-generic-node-provisioning` | BLE GATT provisioning, NVS config, mDNS hub discovery, `/api/register`, pairing window, `hardware_nodes`/`logical_nodes` tables, Unclaimed Nodes UI, Tauri mobile app scaffold |
+| Monorepo Restructure | `003-monorepo-restructure` | `server/shared/` → `shared/` as `@anthos/shared`; merged `server/web/` into `app/`; API serves `app/dist/` as static files; deleted `server/web/` |
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

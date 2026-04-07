@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import type { TelemetryPayload } from '../../../shared/src/telemetry.js'
+import type { TelemetryPayload } from '@anthos/shared'
 import { TelemetryService } from '../services/TelemetryService.js'
 
 export class IngestController {

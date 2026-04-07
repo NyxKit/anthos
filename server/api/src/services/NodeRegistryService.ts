@@ -1,6 +1,6 @@
 import type { Database } from 'sql.js'
 
-import type { LogicalNodeRecord } from '../../../shared/src/telemetry.js'
+import type { LogicalNodeRecord } from '@anthos/shared'
 
 export class NodeRegistryService {
   constructor(private readonly db: Database) {}

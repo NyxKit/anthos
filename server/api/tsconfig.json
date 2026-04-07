@@ -7,10 +7,14 @@
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@anthos/shared": ["../../shared/src/index.ts"]
+    }
   },
   "include": [
     "src/**/*.ts",
-    "../shared/src/**/*.ts"
+    "../../shared/src/**/*.ts"
   ]
 }
+
