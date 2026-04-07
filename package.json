@@ -2,16 +2,15 @@
   "name": "anthos",
   "private": true,
   "scripts": {
-    "api:serve": "pnpm --dir server/api dev",
+    "api:dev": "pnpm --dir server/api dev",
     "api:build": "pnpm --dir server/api build",
+    "app:dev": "pnpm --dir app dev",
+    "app:build": "pnpm --dir app build",
+    "app:tauri": "pnpm --dir app tauri",
     "node:build": "pio run --project-dir node",
     "node:flash": "pio run --project-dir node -t upload",
     "node:monitor": "pio device monitor --project-dir node --baud 115200",
-    "node:run": "pnpm node:flash && pnpm node:monitor",
-    "web:serve": "pnpm --dir server/web dev",
-    "web:build": "pnpm --dir server/web build"
-  },
-  "pnpm": {
-    "workspace": ["server/*"]
+    "node:run": "pnpm node:flash && pnpm node:monitor"
   }
 }
+

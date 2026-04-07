@@ -16,19 +16,19 @@ const toggleHealth = () => {
 const formattedTimestamp = computed(() => {
   const now = Date.now()
   const ts = store.timestampMs ?? 0
-  
+
   const diff = now - ts
   const seconds = Math.floor(diff / 1000)
-  
+
   if (seconds < 10) return 'just now'
   if (seconds < 60) return `${seconds}s ago`
-  
+
   const minutes = Math.floor(seconds / 60)
   if (minutes < 60) return `${minutes}m ago`
-  
+
   const hours = Math.floor(minutes / 60)
   if (hours < 24) return `${hours}h ago`
-  
+
   const days = Math.floor(hours / 24)
   return `${days}d ago`
 })
@@ -74,7 +74,7 @@ const formattedUptime = computed(() => {
     <div v-else-if="!store.sensors.length" class="node-card__empty">
       <p>Waiting for data...</p>
     </div>
-    
+
     <SensorList v-else class="node-card__sensors" :readings="store.sensors" />
 
     <p v-if="store.error" class="error">{{ store.error }}</p>
