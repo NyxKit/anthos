@@ -30,9 +30,7 @@ watch(status, (newStatus) => {
       clearTimeout(provisioningTimer)
       provisioningTimer = null
     }
-    if (newStatus !== 'provisioning') {
-      showTimeoutWarning.value = false
-    }
+    showTimeoutWarning.value = false
   }
 })
 
