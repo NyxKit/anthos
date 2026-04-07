@@ -5,8 +5,8 @@
     "api:serve": "pnpm --dir server/api dev",
     "api:build": "pnpm --dir server/api build",
     "node:build": "pio run --project-dir node",
-    "node:flash": "pio run --project-dir node -t upload --upload-port /dev/ttyACM0",
-    "node:monitor": "pio device monitor --port /dev/ttyACM0 --baud 115200",
+    "node:flash": "pio run --project-dir node -t upload",
+    "node:monitor": "pio device monitor --project-dir node --baud 115200",
     "node:run": "pnpm node:flash && pnpm node:monitor",
     "web:serve": "pnpm --dir server/web dev",
     "web:build": "pnpm --dir server/web build"
