@@ -1,12 +1,19 @@
 import { Router } from 'express'
 
 import { IngestController } from '../controllers/IngestController.js'
+import { ProvisionController } from '../controllers/ProvisionController.js'
+import { NodeRegistryService } from '../services/NodeRegistryService.js'
+import { PairingWindowService } from '../services/PairingWindowService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 
 export function createApiRouter(telemetry: TelemetryService): Router {
   const router = Router()
 
   const ingestController = new IngestController(telemetry)
+
+  const registry = new NodeRegistryService(telemetry.getDb())
+  const pairing = new PairingWindowService()
+  const provisionCtrl = new ProvisionController(registry, pairing, () => telemetry.saveDbPublic())
 
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' })
@@ -28,8 +35,7 @@ export function createApiRouter(telemetry: TelemetryService): Router {
       readings: payload.sensors.map(s => ({
         nodeId: payload.nodeId,
         timestamp: payload.timestampMs,
-        sensor: s.sensor,
-        metric: s.metric,
+        sensor: s.type,
         value: s.value,
         unit: s.unit || ''
       }))
@@ -38,6 +44,12 @@ export function createApiRouter(telemetry: TelemetryService): Router {
 
   router.get('/telemetry/latest', ingestController.getLatestTelemetry)
   router.post('/ingest', ingestController.postTelemetry)
+
+  router.post('/register', provisionCtrl.register)
+  router.post('/provision/open', provisionCtrl.openProvisionWindow)
+  router.get('/provision/status', provisionCtrl.getProvisionStatus)
+  router.get('/nodes', provisionCtrl.listNodes)
+  router.patch('/nodes/:id', provisionCtrl.claimNode)
 
   return router
 }

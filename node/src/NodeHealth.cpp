@@ -1,24 +1,16 @@
 #include "NodeHealth.h"
 
-#include <cstdlib>
 #include <cstring>
 
 #include <WiFi.h>
 
 #include "AppConfig.h"
+#include "NvsConfig.h"
 
-namespace {
-bool hasValue(const char* value) {
-  return value != nullptr && value[0] != '\0';
-}
-}
-
-NodeHealth::NodeHealth(Logger& logger) : logger_(logger) {
-}
+NodeHealth::NodeHealth(Logger& logger) : logger_(logger) {}
 
 void NodeHealth::begin() {
   ensureWifiConnected();
-  refreshServerReachability();
   emitHeartbeat();
 }
 
@@ -26,33 +18,9 @@ void NodeHealth::loop() {
   ensureWifiConnected();
 
   const auto now = millis();
-  if (now - lastServerCheckAt_ >= kAppConfig.api.pushIntervalMs) {
-    refreshServerReachability();
-  }
-
   if (now - lastHealthReportAt_ >= kAppConfig.healthIntervalMs) {
     emitHeartbeat();
   }
-}
-
-const char* NodeHealth::serverHost() const {
-  if (!hasServerTarget()) {
-    return "not_configured";
-  }
-
-  return kAppConfig.api.host;
-}
-
-uint16_t NodeHealth::serverPort() const {
-  if (!hasServerTarget()) {
-    return 0;
-  }
-
-  return kAppConfig.api.port;
-}
-
-bool NodeHealth::hasServerTarget() const {
-  return hasValue(kAppConfig.api.host) && kAppConfig.api.port > 0;
 }
 
 bool NodeHealth::isWifiConnected() const {
@@ -61,9 +29,11 @@ bool NodeHealth::isWifiConnected() const {
 
 NodeHealthSnapshot NodeHealth::snapshot() const {
   const bool wifiConnected = isWifiConnected();
-  const char* wifiStatus = hasValue(kAppConfig.wifi.ssid)
-                               ? (wifiConnected ? "connected" : "disconnected")
-                               : "not_configured";
+  const String ssid = NvsConfig::getWifiSsid();
+
+  const char* wifiStatus = ssid.length() > 0
+      ? (wifiConnected ? "connected" : "disconnected")
+      : "not_configured";
 
   if (wifiConnected) {
     const String ip = WiFi.localIP().toString();
@@ -72,64 +42,31 @@ NodeHealthSnapshot NodeHealth::snapshot() const {
     std::strcpy(ipAddress_, "n/a");
   }
 
-  const char* serverStatus = !hasServerTarget()
-                                 ? "not_configured"
-                                 : (wifiConnected ? (serverReachable_ ? "reachable" : "unreachable")
-                                                  : "wifi_down");
-
-  NodeHealthSnapshot snapshot;
-  snapshot.wifiStatus = wifiStatus;
-  snapshot.ipAddress = ipAddress_;
-  snapshot.rssi = wifiConnected ? WiFi.RSSI() : 0;
-  snapshot.serverStatus = serverStatus;
-  snapshot.serverHost = serverHost();
-  snapshot.uptimeMs = millis();
-  return snapshot;
+  NodeHealthSnapshot s;
+  s.wifiStatus = wifiStatus;
+  s.ipAddress  = ipAddress_;
+  s.rssi       = wifiConnected ? WiFi.RSSI() : 0;
+  s.uptimeMs   = millis();
+  return s;
 }
 
 void NodeHealth::ensureWifiConnected() {
-  if (!hasValue(kAppConfig.wifi.ssid)) {
-    return;
-  }
+  const String ssid = NvsConfig::getWifiSsid();
+  if (ssid.length() == 0) return;
 
-  if (WiFi.status() == WL_CONNECTED) {
-    return;
-  }
+  if (WiFi.status() == WL_CONNECTED) return;
 
   const auto now = millis();
-  if (now - lastWifiAttemptAt_ < kAppConfig.retryIntervalMs) {
-    return;
-  }
+  if (now - lastWifiAttemptAt_ < kAppConfig.retryIntervalMs) return;
 
   lastWifiAttemptAt_ = now;
   WiFi.mode(WIFI_STA);
-  WiFi.begin(kAppConfig.wifi.ssid, kAppConfig.wifi.password);
+  WiFi.begin(ssid.c_str(), NvsConfig::getWifiPass().c_str());
   logger_.info("wifi: connect requested");
 }
 
-void NodeHealth::refreshServerReachability() {
-  lastServerCheckAt_ = millis();
-
-  if (WiFi.status() != WL_CONNECTED || !hasServerTarget()) {
-    serverReachable_ = false;
-    return;
-  }
-
-  WiFiClient client;
-  client.setTimeout(1000);
-  serverReachable_ = client.connect(serverHost(), serverPort());
-  if (serverReachable_) {
-    client.stop();
-  }
-}
-
 void NodeHealth::emitHeartbeat() const {
-  const auto current = snapshot();
-  logger_.health(current.wifiStatus,
-                 current.ipAddress,
-                 current.rssi,
-                 current.serverStatus,
-                 current.serverHost,
-                 current.uptimeMs);
+  const auto s = snapshot();
+  logger_.health(s.wifiStatus, s.ipAddress, s.rssi, "n/a", "n/a", s.uptimeMs);
   const_cast<NodeHealth*>(this)->lastHealthReportAt_ = millis();
 }

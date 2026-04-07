@@ -21,3 +21,21 @@ export interface TelemetryPayload {
   health: NodeHealthPayload
   sensors: SensorSample[]
 }
+
+export interface HardwareNodeRegistration {
+  hwId: string
+  firmwareVersion: string
+}
+
+export interface NodeRegistrationResponse {
+  nodeId: string
+  status: 'registered' | 'reconnected'
+}
+
+export interface LogicalNodeRecord {
+  nodeId: string
+  hwId: string
+  displayName: string | null
+  claimStatus: 'unclaimed' | 'claimed'
+  registeredAt: number
+}
