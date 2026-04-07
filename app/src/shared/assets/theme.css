@@ -1,45 +1,135 @@
 :root {
-  --nyx-c-bg:      #0e0e10;
-  --nyx-c-bg-soft: #131316;
-  --nyx-c-bg-mute: #1f1f24;
+  /* Anthos Design System Colors - Dark Theme */
+  /* Based on design/anthos_dashboard_rebranded/code.html */
+  
+  /* Background colors */
+  --nyx-c-bg:               #0f1419;
+  --nyx-c-bg-soft:          #171c22;
+  --nyx-c-bg-mute:          #1b2026;
+  --nyx-c-surface-container-lowest: #0a0f14;
+  --nyx-c-surface-container-low:    #171c22;
+  --nyx-c-surface-container:        #1b2026;
+  --nyx-c-surface-container-high:   #252a30;
+  --nyx-c-surface-container-highest: #30353b;
+  --nyx-c-surface-dim:        #0f1419;
+  --nyx-c-surface-bright:     #353a40;
+  --nyx-c-surface-variant:    #30353b;
+
+  /* Divider colors */
   --nyx-c-divider:       rgba(71, 71, 77, 0.20);
   --nyx-c-divider-light: rgba(71, 71, 77, 0.12);
-  --nyx-c-text-1: #e6e4ec;
-  --nyx-c-text-2: #abaab1;
+  --nyx-c-outline:       #988d9f;
+  --nyx-c-outline-variant: #4c4354;
+
+  /* Text colors */
+  --nyx-c-text-1: #dee3eb;
+  --nyx-c-text-2: #cfc2d6;
   --nyx-c-text-3: rgba(171, 170, 177, 0.55);
   --nyx-c-text-4: rgba(171, 170, 177, 0.25);
-  --nyx-c-primary:           #cbc2e4;
-  --nyx-c-primary-light:     #d5cbee;
-  --nyx-c-primary-dark:      #49435f;
-  --nyx-c-primary-highlight: #bdb4d5;
-  --nyx-c-primary-alt:       #d5cbee;
-  --nyx-rgb-primary:         203, 194, 228;
+  --nyx-c-on-surface: #dee3eb;
+  --nyx-c-on-surface-variant: #cfc2d6;
+  --nyx-c-on-background: #dee3eb;
+  --nyx-c-inverse-surface: #dee3eb;
+  --nyx-c-inverse-on-surface: #2c3137;
+
+  /* Primary - Purple (Anthos accent) */
+  --nyx-c-primary:           #dcb8ff;
+  --nyx-c-primary-light:     #efdbff;
+  --nyx-c-primary-dark:      #6700b5;
+  --nyx-c-primary-highlight: #b56eff;
+  --nyx-c-primary-alt:       #dcb8ff;
+  --nyx-rgb-primary:         220, 184, 255;
+  --nyx-c-primary-container: #b56eff;
+  --nyx-c-on-primary:        #480082;
+  --nyx-c-on-primary-container: #3f0072;
+  --nyx-c-primary-fixed:     #efdbff;
+  --nyx-c-primary-fixed-dim: #dcb8ff;
+  --nyx-c-on-primary-fixed:  #2b0052;
+  --nyx-c-on-primary-fixed-variant: #6700b5;
+  --nyx-c-surface-tint:      #dcb8ff;
+  --nyx-c-inverse-primary:  #812dd2;
+
+  /* Secondary - Blue */
+  --nyx-c-secondary:           #9acbfb;
+  --nyx-c-secondary-light:     #cee5ff;
+  --nyx-c-secondary-dark:      #003353;
+  --nyx-c-secondary-highlight: #0b4a73;
+  --nyx-rgb-secondary:         154, 203, 251;
+  --nyx-c-secondary-container: #0b4a73;
+  --nyx-c-on-secondary:        #003353;
+  --nyx-c-on-secondary-container: #89bae9;
+  --nyx-c-secondary-fixed:     #cee5ff;
+  --nyx-c-secondary-fixed-dim: #9acbfb;
+  --nyx-c-on-secondary-fixed:  #001d32;
+  --nyx-c-on-secondary-fixed-variant: #0b4a73;
+
+  /* Tertiary - Green (Success/Connected) */
+  --nyx-c-tertiary:           #60de87;
+  --nyx-c-tertiary-light:     #7dfca0;
+  --nyx-c-tertiary-dark:      #003918;
+  --nyx-c-tertiary-highlight: #17a656;
+  --nyx-rgb-tertiary:         96, 222, 135;
+  --nyx-c-tertiary-container: #17a656;
+  --nyx-c-on-tertiary:        #003918;
+  --nyx-c-on-tertiary-container: #003114;
+  --nyx-c-tertiary-fixed:     #7dfca0;
+  --nyx-c-tertiary-fixed-dim: #60de87;
+  --nyx-c-on-tertiary-fixed:  #00210b;
+  --nyx-c-on-tertiary-fixed-variant: #005226;
+
+  /* Error - Red (Critical/Alert) */
+  --nyx-c-error:           #ffb4ab;
+  --nyx-c-error-light:     #ffdad6;
+  --nyx-c-error-dark:      #690005;
+  --nyx-rgb-error:         255, 180, 171;
+  --nyx-c-error-container: #93000a;
+  --nyx-c-on-error:        #690005;
+  --nyx-c-on-error-container: #ffdad6;
+
+  /* Default (fallback) */
   --nyx-c-default:           #cbc2e4;
   --nyx-c-default-light:     #d5cbee;
   --nyx-c-default-dark:      #49435f;
   --nyx-c-default-highlight: #bdb4d5;
   --nyx-c-default-alt:       #d5cbee;
   --nyx-rgb-default:         203, 194, 228;
+
+  /* Typography */
   --nyx-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont,
     'Segoe UI', Roboto, sans-serif;
+  --nyx-font-family-headline: 'Space Grotesk', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+  --nyx-font-family-mono: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+
+  /* Shadows */
   --nyx-shadow-xs: 0 0 24px -4px rgba(230, 228, 236, 0.04);
   --nyx-shadow-sm: 0 0 24px -4px rgba(230, 228, 236, 0.06);
   --nyx-shadow-md: 0 0 32px -4px rgba(230, 228, 236, 0.08);
   --nyx-shadow-lg: 0 0 40px -4px rgba(230, 228, 236, 0.10);
   --nyx-shadow-xl: 0 0 48px -4px rgba(230, 228, 236, 0.12);
+
+  /* Animation */
   --nyx-speed-regular: 0.3s;
+
+  /* Border radius */
   --nyx-radius-xs: 0.125rem;
   --nyx-radius-sm: 0.25rem;
   --nyx-radius-md: 0.375rem;
   --nyx-radius-lg: 0.5rem;
   --nyx-radius-xl: 0.75rem;
+  --nyx-radius-full: 9999px;
 }
 
 :root {
-  --nyx-color-border:         var(--nyx-c-divider);
+  /* Aliases for nyx-kit components */
+  --nyx-color-border:         var(--nyx-c-outline-variant);
   --nyx-color-muted:          var(--nyx-c-text-3);
-  --nyx-color-surface-raised: var(--nyx-c-bg-soft);
-  --nyx-color-surface-hover:  var(--nyx-c-bg-mute);
-  --nyx-color-surface-muted:  var(--nyx-c-bg-soft);
+  --nyx-color-surface-raised: var(--nyx-c-surface-container);
+  --nyx-color-surface-hover:  var(--nyx-c-surface-container-high);
+  --nyx-color-surface-muted:  var(--nyx-c-surface-container-low);
   --nyx-color-accent:         var(--nyx-c-primary);
+  --nyx-color-success:        var(--nyx-c-tertiary);
+  --nyx-color-danger:         var(--nyx-c-error);
+  --nyx-c-bg:                 var(--nyx-c-surface-dim);
+  --nyx-c-text-muted:         var(--nyx-c-text-3);
 }

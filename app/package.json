@@ -13,7 +13,7 @@
   "dependencies": {
     "@anthos/shared": "workspace:*",
     "@tauri-apps/api": "^2.0.0",
-    "nyx-kit": "^2.0.16",
+    "nyx-kit": "^2.0.22",
     "ofetch": "^1.5.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.13",
