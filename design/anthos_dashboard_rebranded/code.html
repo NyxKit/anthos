@@ -1,0 +1,453 @@
+<html class="dark" lang="en"><head></head><body class="bg-background text-on-surface">```html
+
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Anthos | Living Laboratory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "surface-tint": "#dcb8ff",
+                "error": "#ffb4ab",
+                "tertiary-fixed-dim": "#60de87",
+                "inverse-on-surface": "#2c3137",
+                "inverse-primary": "#812dd2",
+                "primary-container": "#b56eff",
+                "on-background": "#dee3eb",
+                "on-primary-fixed": "#2b0052",
+                "surface-container-low": "#171c22",
+                "surface-container-lowest": "#0a0f14",
+                "on-secondary-fixed": "#001d32",
+                "tertiary": "#60de87",
+                "on-surface": "#dee3eb",
+                "secondary-container": "#0b4a73",
+                "secondary-fixed-dim": "#9acbfb",
+                "on-secondary": "#003353",
+                "on-tertiary-fixed-variant": "#005226",
+                "tertiary-fixed": "#7dfca0",
+                "on-tertiary": "#003918",
+                "primary-fixed-dim": "#dcb8ff",
+                "surface-container-high": "#252a30",
+                "surface-container-highest": "#30353b",
+                "on-primary-container": "#3f0072",
+                "on-surface-variant": "#cfc2d6",
+                "on-secondary-container": "#89bae9",
+                "outline-variant": "#4c4354",
+                "surface-dim": "#0f1419",
+                "background": "#0f1419",
+                "on-error": "#690005",
+                "surface-variant": "#30353b",
+                "error-container": "#93000a",
+                "tertiary-container": "#17a656",
+                "on-error-container": "#ffdad6",
+                "on-tertiary-fixed": "#00210b",
+                "surface": "#0f1419",
+                "inverse-surface": "#dee3eb",
+                "primary-fixed": "#efdbff",
+                "secondary-fixed": "#cee5ff",
+                "surface-bright": "#353a40",
+                "on-primary": "#480082",
+                "outline": "#988d9f",
+                "secondary": "#9acbfb",
+                "on-tertiary-container": "#003114",
+                "on-primary-fixed-variant": "#6700b5",
+                "primary": "#dcb8ff",
+                "surface-container": "#1b2026",
+                "on-secondary-fixed-variant": "#0b4a73"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "fontFamily": {
+                "headline": ["Space Grotesk"],
+                "body": ["Inter"],
+                "label": ["Space Grotesk"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f1419; color: #dee3eb; }
+        .font-mono-technical { font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace; }
+        .glass-panel { backdrop-filter: blur(24px); background: rgba(48, 53, 59, 0.6); }
+        .text-glow-tertiary { text-shadow: 0 0 12px rgba(96, 222, 135, 0.4); }
+    </style>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col py-8 bg-[#171c22] h-screen w-64 border-r border-[#252a30]/30 z-40">
+<div class="px-6 mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg overflow-hidden border border-primary/20 bg-surface-container-high">
+<img alt="Anthos Logo Icon" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUSbOJ9kHR4qTnxHUVrHGFgIuB41uY66Q0zEfgWX7Z1O-aggJS1vQrTidqaUvtHf9NYxgueT1GqoRVmmA6A7acEi7yEa56DpblkXnF-hysbB5bk9XdAocdoiRh6q8tZdK4xFP4nJDrizbt6HcRbObO4Ey4IZhtFAm2Dqi_TIvFyIm-qNpZC8h5zqb2ksq9qk4qowiKvpxhCr6QpQOAhKX1_DCGmZauYKonvB9xl_yCtSqA8w3GtUzdQPOeIaIoG34YfRVxw3WP-9zw"/>
+</div>
+<div>
+<h1 class="font-headline font-bold text-primary tracking-tighter text-xl leading-none">Anthos</h1>
+<p class="font-body font-mono text-[10px] tracking-widest uppercase opacity-60 mt-1">Living Laboratory</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2">
+<a class="flex items-center gap-4 px-4 py-3 bg-[#252a30] text-[#dcb8ff] border-r-4 border-[#9F50F0] font-headline font-mono text-sm tracking-wide uppercase transition-all duration-200 active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="potted_plant">potted_plant</span>
+<span>All Plants</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#dee3eb] opacity-60 hover:opacity-100 hover:bg-[#1b2026] font-headline font-mono text-sm tracking-wide uppercase transition-all duration-200 active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="meeting_room">meeting_room</span>
+<span>Rooms</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#dee3eb] opacity-60 hover:opacity-100 hover:bg-[#1b2026] font-headline font-mono text-sm tracking-wide uppercase transition-all duration-200 active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+<span>Alerts</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#dee3eb] opacity-60 hover:opacity-100 hover:bg-[#1b2026] font-headline font-mono text-sm tracking-wide uppercase transition-all duration-200 active:translate-x-1" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<a class="flex items-center gap-4 px-4 py-3 text-[#dee3eb] opacity-60 hover:opacity-100 hover:bg-[#1b2026] font-headline font-mono text-sm tracking-wide uppercase transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen flex flex-col">
+<!-- TopAppBar Shell -->
+<header class="flex justify-between items-center px-6 w-full sticky top-0 z-30 backdrop-blur-md bg-gradient-to-b from-[#171c22] to-transparent h-16">
+<div class="flex items-center gap-6">
+<h2 class="font-headline font-bold tracking-tighter text-[#dcb8ff] text-2xl">Anthos OS</h2>
+<div class="hidden md:flex items-center bg-surface-container-low px-4 py-1.5 rounded-full border border-outline-variant/20">
+<span class="material-symbols-outlined text-sm opacity-50 mr-2" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm font-body w-64 placeholder:opacity-40" placeholder="Search biological nodes..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#1b2026] text-[#dee3eb] transition-colors active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant/30 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="text-xs font-mono-technical font-bold text-primary">DR. SYNTHTIX</p>
+<p class="text-[10px] font-mono-technical opacity-50">LEAD BOTANIST</p>
+</div>
+<img alt="User profile" class="w-10 h-10 rounded-lg object-cover border border-primary/20" data-alt="close-up portrait of a professional botanist in a dark laboratory setting with clinical blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4NbW6mJgu0_hvLMQR5LBDUK0n3OMNyaCK3sbjM-LgHjd2EOVe4BMoJrnv7xOD5oOTPw-IkvhzrfU7BS2VZHl7iXwXbYhCVqGPA_OVDeB6NEMubZQROL0r-5NDM6p2qD2XtbzxsKhThE-aStl3IebA8mJR_DWxOTivwVBmG7NwG187Nm__uSyPigHpfT-4b_U1xKPkdmsijcRn2ADvVOhGLbtU8XD90yOqZbRl5U6QzyMBRhxTiV8nyfQCapHQJWWI_kEp7B6xs__7"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<section class="p-8 space-y-8">
+<!-- Summary Bar -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="bg-surface-container p-4 rounded-xl border-l-2 border-tertiary">
+<p class="text-[10px] font-mono-technical uppercase opacity-50 mb-1">Active Nodes</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-on-surface tracking-tight">12/12</span>
+<span class="text-[10px] font-mono-technical text-tertiary mb-1">STABLE</span>
+</div>
+</div>
+<div class="bg-surface-container p-4 rounded-xl">
+<p class="text-[10px] font-mono-technical uppercase opacity-50 mb-1">Avg. Humidity</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-on-surface tracking-tight">64<span class="text-lg opacity-40">%</span></span>
+<span class="material-symbols-outlined text-tertiary mb-1 text-sm" data-icon="trending_up">trending_up</span>
+</div>
+</div>
+<div class="bg-surface-container p-4 rounded-xl">
+<p class="text-[10px] font-mono-technical uppercase opacity-50 mb-1">System Uptime</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-on-surface tracking-tight">182<span class="text-lg opacity-40">h</span></span>
+<span class="text-[10px] font-mono-technical opacity-40 mb-1">99.9%</span>
+</div>
+</div>
+<div class="bg-surface-container p-4 rounded-xl">
+<p class="text-[10px] font-mono-technical uppercase opacity-50 mb-1">Network Latency</p>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-headline font-bold text-on-surface tracking-tight">24<span class="text-lg opacity-40">ms</span></span>
+<span class="material-symbols-outlined text-primary mb-1 text-sm" data-icon="wifi">wifi</span>
+</div>
+</div>
+</div>
+<!-- Bento Grid of Plant Nodes -->
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Node 01: dev-node -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden flex flex-col border border-outline-variant/10 hover:border-primary/30 transition-all duration-300">
+<div class="p-5 flex justify-between items-start border-b border-outline-variant/10">
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center overflow-hidden border border-primary/10">
+<img alt="Anthos Node Icon" class="w-8 h-8 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUSbOJ9kHR4qTnxHUVrHGFgIuB41uY66Q0zEfgWX7Z1O-aggJS1vQrTidqaUvtHf9NYxgueT1GqoRVmmA6A7acEi7yEa56DpblkXnF-hysbB5bk9XdAocdoiRh6q8tZdK4xFP4nJDrizbt6HcRbObO4Ey4IZhtFAm2Dqi_TIvFyIm-qNpZC8h5zqb2ksq9qk4qowiKvpxhCr6QpQOAhKX1_DCGmZauYKonvB9xl_yCtSqA8w3GtUzdQPOeIaIoG34YfRVxw3WP-9zw"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-lg leading-tight">dev-node</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_rgba(96,222,135,0.6)]"></span>
+<span class="text-[10px] font-mono-technical text-tertiary uppercase font-bold tracking-widest">Connected</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-mono-technical opacity-40 uppercase">Lab A // Bench 04</p>
+<p class="text-[10px] font-mono-technical opacity-60">ID: 0xFF-4412</p>
+</div>
+</div>
+<!-- Metrics Section -->
+<div class="grid grid-cols-2 gap-[1px] bg-outline-variant/10">
+<div class="bg-surface-container-low p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-mono-technical opacity-50">LIGHT</span>
+<span class="material-symbols-outlined text-xs opacity-30" data-icon="wb_sunny">wb_sunny</span>
+</div>
+<p class="text-2xl font-headline font-medium">1,240 <span class="text-xs opacity-40 font-mono-technical">LUX</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-mono-technical opacity-50">TEMPERATURE</span>
+<span class="material-symbols-outlined text-xs opacity-30" data-icon="thermostat">thermostat</span>
+</div>
+<p class="text-2xl font-headline font-medium">24.2 <span class="text-xs opacity-40 font-mono-technical">°C</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-mono-technical opacity-50">HUMIDITY</span>
+<span class="material-symbols-outlined text-xs opacity-30" data-icon="humidity_mid">humidity_mid</span>
+</div>
+<p class="text-2xl font-headline font-medium">58 <span class="text-xs opacity-40 font-mono-technical">%</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-mono-technical opacity-50">SOIL MOISTURE</span>
+<span class="material-symbols-outlined text-xs text-tertiary" data-icon="water_drop">water_drop</span>
+</div>
+<p class="text-2xl font-headline font-medium text-tertiary">42 <span class="text-xs opacity-40 font-mono-technical text-on-surface">%</span></p>
+</div>
+</div>
+<!-- Metadata Footer -->
+<div class="bg-surface-container-lowest p-4 space-y-2">
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">PRESSURE</span>
+<span class="opacity-80">1013.25 PA</span>
+</div>
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">IP ADDRESS</span>
+<span class="opacity-80">192.168.1.104</span>
+</div>
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">UPTIME</span>
+<span class="opacity-80">14d 04h 22m</span>
+</div>
+<div class="pt-2 border-t border-outline-variant/10 flex justify-between items-center">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px] opacity-40" data-icon="signal_wifi_4_bar">signal_wifi_4_bar</span>
+<span class="text-[10px] font-mono-technical opacity-60">RSSI: -64dBm</span>
+</div>
+<span class="text-[9px] font-mono-technical opacity-30 italic uppercase">Updated 2s ago</span>
+</div>
+</div>
+</div>
+<!-- Node 02: Monstera-1 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden flex flex-col border border-outline-variant/10 hover:border-primary/30 transition-all duration-300">
+<div class="relative h-32 overflow-hidden">
+<img alt="Monstera Deliciosa" class="w-full h-full object-cover opacity-60" data-alt="top-down macro shot of a vibrant green monstera leaf with intricate patterns under cool studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUmzZbxQAsMr4QaXO-1MvzUBJpvscMAbWe5vnj4l7FWh_s4lEMQ06-oOhX3xCvS4KtFEftHvB43RTCBCOa9NjxfnJixIPAGcU7MkN16wlF8bwg78baB3T2GRaxBF_cwdn_CWatNqz8wnUWQGWaNSIjP3Wlzr8clvteZ43D2shjzW30aA5xNBPdlwrbzbfKPUuaAkyuG5TVR9jLU506xuEjOBhNytiTrFGVwHqdWZhAAfMmLtbPTNihEaib8qCImMy0so2BShhRO2oU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+<div class="absolute bottom-4 left-5">
+<h3 class="font-headline font-bold text-xl">Monstera-1</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_rgba(96,222,135,0.6)]"></span>
+<span class="text-[10px] font-mono-technical text-tertiary uppercase font-bold tracking-widest">Connected</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-[1px] bg-outline-variant/10">
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Light</p>
+<p class="text-2xl font-headline font-medium">850 <span class="text-xs opacity-40 font-mono-technical">LUX</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Temp</p>
+<p class="text-2xl font-headline font-medium">22.8 <span class="text-xs opacity-40 font-mono-technical">°C</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Humidity</p>
+<p class="text-2xl font-headline font-medium">72 <span class="text-xs opacity-40 font-mono-technical">%</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Soil</p>
+<p class="text-2xl font-headline font-medium text-error">12 <span class="text-xs opacity-40 font-mono-technical text-on-surface">%</span></p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 space-y-2">
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">PRESSURE</span>
+<span class="opacity-80">1012.80 PA</span>
+</div>
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">IP ADDRESS</span>
+<span class="opacity-80">192.168.1.112</span>
+</div>
+<div class="pt-2 border-t border-outline-variant/10 flex justify-between items-center">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px] opacity-40" data-icon="signal_wifi_3_bar">signal_wifi_4_bar</span>
+<span class="text-[10px] font-mono-technical opacity-60">RSSI: -72dBm</span>
+</div>
+<span class="text-[9px] font-mono-technical text-error font-bold italic uppercase">Critical Water Low</span>
+</div>
+</div>
+</div>
+<!-- Node 03: Snake-Plant-A -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden flex flex-col border border-outline-variant/10 hover:border-primary/30 transition-all duration-300">
+<div class="p-5 flex justify-between items-start border-b border-outline-variant/10">
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-surface-container-high rounded-lg flex items-center justify-center overflow-hidden border border-primary/10">
+<img alt="Anthos Node Icon" class="w-8 h-8 opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUSbOJ9kHR4qTnxHUVrHGFgIuB41uY66Q0zEfgWX7Z1O-aggJS1vQrTidqaUvtHf9NYxgueT1GqoRVmmA6A7acEi7yEa56DpblkXnF-hysbB5bk9XdAocdoiRh6q8tZdK4xFP4nJDrizbt6HcRbObO4Ey4IZhtFAm2Dqi_TIvFyIm-qNpZC8h5zqb2ksq9qk4qowiKvpxhCr6QpQOAhKX1_DCGmZauYKonvB9xl_yCtSqA8w3GtUzdQPOeIaIoG34YfRVxw3WP-9zw"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-lg leading-tight">Snake-Plant-A</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse shadow-[0_0_8px_rgba(96,222,135,0.6)]"></span>
+<span class="text-[10px] font-mono-technical text-tertiary uppercase font-bold tracking-widest">Connected</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-mono-technical opacity-40 uppercase">Lab B // Sector 01</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-[1px] bg-outline-variant/10">
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Light</p>
+<p class="text-2xl font-headline font-medium">320 <span class="text-xs opacity-40 font-mono-technical">LUX</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Temp</p>
+<p class="text-2xl font-headline font-medium">21.5 <span class="text-xs opacity-40 font-mono-technical">°C</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Humidity</p>
+<p class="text-2xl font-headline font-medium">45 <span class="text-xs opacity-40 font-mono-technical">%</span></p>
+</div>
+<div class="bg-surface-container-low p-4">
+<p class="text-[10px] font-mono-technical opacity-50 mb-1 uppercase">Soil</p>
+<p class="text-2xl font-headline font-medium text-tertiary">35 <span class="text-xs opacity-40 font-mono-technical text-on-surface">%</span></p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 space-y-2 flex-1">
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">PRESSURE</span>
+<span class="opacity-80">1014.10 PA</span>
+</div>
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">IP ADDRESS</span>
+<span class="opacity-80">192.168.1.109</span>
+</div>
+<div class="flex justify-between text-[10px] font-mono-technical">
+<span class="opacity-40">UPTIME</span>
+<span class="opacity-80">32d 11h 05m</span>
+</div>
+<div class="pt-2 border-t border-outline-variant/10 flex justify-between items-center mt-auto">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px] opacity-40" data-icon="signal_wifi_4_bar">signal_wifi_4_bar</span>
+<span class="text-[10px] font-mono-technical opacity-60">RSSI: -58dBm</span>
+</div>
+<span class="text-[9px] font-mono-technical opacity-30 italic uppercase">Updated 14m ago</span>
+</div>
+</div>
+</div>
+<!-- Ghost Node / Placeholder -->
+<div class="border-2 border-dashed border-outline-variant/20 rounded-xl flex flex-col items-center justify-center p-8 opacity-40 hover:opacity-100 hover:border-primary/50 transition-all cursor-pointer group">
+<div class="w-16 h-16 rounded-full border border-outline-variant flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</div>
+<h3 class="font-headline font-bold text-lg">PROVISION NEW NODE</h3>
+<p class="font-mono-technical text-[10px] uppercase mt-1">Waiting for broadcast...</p>
+</div>
+</div>
+<!-- Detailed Laboratory Overview (Asymmetric Section) -->
+<div class="flex flex-col lg:flex-row gap-8">
+<div class="flex-1 bg-surface-container rounded-xl p-6 border border-outline-variant/10">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-headline font-bold uppercase tracking-widest text-sm text-primary">Anthos Biometric Sync</h4>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-mono-technical border border-outline-variant/20">REAL-TIME</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-mono-technical border border-outline-variant/20">LOGGING</span>
+</div>
+</div>
+<div class="space-y-4 font-mono-technical text-[11px] leading-relaxed">
+<div class="flex gap-4 opacity-100">
+<span class="text-primary w-24 shrink-0">[14:02:44.12]</span>
+<span class="opacity-50">NODE_0xFF-4412:</span>
+<span>Environmental recalibration successful. Sensor drift &lt; 0.02%</span>
+</div>
+<div class="flex gap-4 opacity-80">
+<span class="text-primary w-24 shrink-0">[14:01:12.89]</span>
+<span class="opacity-50">SYS_ALERT:</span>
+<span class="text-error">Node [Monstera-1] reporting sub-optimal soil moisture (12%). Automation triggered.</span>
+</div>
+<div class="flex gap-4 opacity-60">
+<span class="text-primary w-24 shrink-0">[13:58:22.01]</span>
+<span class="opacity-50">NODE_0xAB-1109:</span>
+<span>Heartbeat received. Signal strength stabilized at -58dBm.</span>
+</div>
+<div class="flex gap-4 opacity-40">
+<span class="text-primary w-24 shrink-0">[13:55:04.55]</span>
+<span class="opacity-50">SYS_CORE:</span>
+<span>Main gateway ping 24ms. Anthos laboratory mesh secure.</span>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-80 bg-surface-container rounded-xl p-6 border border-outline-variant/10 flex flex-col justify-between">
+<div>
+<h4 class="font-headline font-bold uppercase tracking-widest text-sm text-primary mb-4">Laboratory Health</h4>
+<div class="space-y-6">
+<div>
+<div class="flex justify-between text-[10px] font-mono-technical mb-2">
+<span class="opacity-50">MESH SIGNAL</span>
+<span class="text-tertiary">94%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[94%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-mono-technical mb-2">
+<span class="opacity-50">CPU LOAD</span>
+<span class="text-primary">18%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[18%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-[10px] font-mono-technical mb-2">
+<span class="opacity-50">STORAGE UTIL</span>
+<span class="opacity-80">1.2 TB / 4 TB</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-on-surface opacity-30 w-[30%]"></div>
+</div>
+</div>
+</div>
+</div>
+<button class="w-full py-3 mt-8 bg-gradient-to-r from-primary to-primary-container text-on-primary-container font-headline font-bold text-xs uppercase tracking-widest rounded-lg transition-transform active:scale-95">
+                        Initiate Global Resync
+                    </button>
+</div>
+</div>
+</section>
+<!-- Tooltip/Toast Simulation -->
+<div class="fixed bottom-8 right-8 glass-panel border border-outline-variant/30 p-4 rounded-xl flex items-center gap-4 z-50">
+<div class="w-2 h-2 rounded-full bg-tertiary shadow-[0_0_8px_rgba(96,222,135,0.8)]"></div>
+<p class="text-xs font-mono-technical font-medium">All Anthos systems operational within parameters.</p>
+<button class="material-symbols-outlined text-sm opacity-50 hover:opacity-100" data-icon="close">close</button>
+</div>
+</main>
+```</body></html>
