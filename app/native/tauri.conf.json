@@ -5,7 +5,7 @@
   "identifier": "com.nyxkit.anthos",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420"
+    "devUrl": "http://localhost:1440"
   },
   "bundle": {
     "active": true,

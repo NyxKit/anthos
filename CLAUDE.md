@@ -77,7 +77,7 @@ pnpm --filter @anthos/api test        # Run API tests (Vitest)
 
 ### App (Frontend + Tauri)
 ```bash
-pnpm --filter anthos-app dev          # Run in browser at port 1420 (no BLE)
+pnpm --filter anthos-app dev          # Run in browser at port 1440 (no BLE)
 pnpm --filter anthos-app build        # Build for production (outputs app/dist/)
 pnpm --filter anthos-app test         # Run frontend tests (Vitest)
 pnpm --dir app tauri android dev      # Run on Android device/emulator

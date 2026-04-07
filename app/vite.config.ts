@@ -7,12 +7,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      '@anthos/shared': resolve(__dirname, '../shared/src/index.ts'),
+      '@anthos/shared': resolve(__dirname, '../shared/src'),
     },
   },
   clearScreen: false,
   server: {
-    port: 1420,
+    port: 1440,
     strictPort: true,
     proxy: {
       '/api': {
