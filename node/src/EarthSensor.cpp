@@ -5,17 +5,20 @@
 void EarthSensor::begin(bool forceRetry) {
   (void)forceRetry;
 
-  if (kAppConfig.portMode != PortMode::EarthOnly) {
+  if (kAppConfig.portMode == PortMode::I2cSensors) {
     available_ = false;
-    printUnavailable("earth", "port_mode_mismatch");
+    Serial.println("sensor=earth status=unavailable port_mode_mismatch");
     return;
   }
 
-  pinMode(kAppConfig.portYellowPin, INPUT);
+  pinMode(kAppConfig.earthWhitePin, INPUT);
+  pinMode(kAppConfig.earthYellowPin, INPUT);
+  analogReadResolution(12);
+  analogSetPinAttenuation(kAppConfig.earthWhitePin, ADC_11db);
   available_ = true;
   Serial.printf("sensor=earth status=ready analog_pin=%u digital_pin=%u\n",
-                kAppConfig.portWhitePin,
-                kAppConfig.portYellowPin);
+                kAppConfig.earthWhitePin,
+                kAppConfig.earthYellowPin);
 }
 
 void EarthSensor::read() {
@@ -23,9 +26,11 @@ void EarthSensor::read() {
     return;
   }
 
-  lastRaw_ = analogRead(kAppConfig.portWhitePin);
-  lastDigital_ = digitalRead(kAppConfig.portYellowPin);
-  Serial.printf("sensor=earth status=ok raw=%d digital=%d\n", lastRaw_, lastDigital_);
+  const int rawMv = analogReadMilliVolts(kAppConfig.earthWhitePin);
+  lastRaw_ = analogRead(kAppConfig.earthWhitePin);
+  lastDigital_ = digitalRead(kAppConfig.earthYellowPin);
+  Serial.printf("sensor=earth status=ok raw=%d mv=%d digital=%d\n",
+                lastRaw_, rawMv, lastDigital_);
 }
 
 String EarthSensor::toJson() const {

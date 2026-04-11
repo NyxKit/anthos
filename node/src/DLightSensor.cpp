@@ -4,7 +4,7 @@
 #include <Wire.h>
 
 void DLightSensor::begin(bool forceRetry) {
-  if (kAppConfig.portMode != PortMode::I2cSensors) {
+  if (kAppConfig.portMode == PortMode::EarthOnly) {
     available_ = false;
     printUnavailable("dlight", "port_mode_mismatch");
     return;

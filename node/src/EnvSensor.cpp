@@ -11,7 +11,7 @@ bool probeI2cAddress(const uint8_t address) {
 }
 
 void EnvSensor::begin(bool forceRetry) {
-  if (kAppConfig.portMode != PortMode::I2cSensors) {
+  if (kAppConfig.portMode == PortMode::EarthOnly) {
     enviiiAvailable_ = false;
     envproAvailable_ = false;
     printUnavailable("enviii", "port_mode_mismatch");

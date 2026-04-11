@@ -7,7 +7,15 @@
 #include "NvsConfig.h"
 
 const char* NodeApp::describePortMode() const {
-  return kAppConfig.portMode == PortMode::I2cSensors ? "i2c" : "earth";
+  switch (kAppConfig.portMode) {
+    case PortMode::I2cSensors:
+      return "i2c";
+    case PortMode::EarthOnly:
+      return "earth";
+    case PortMode::Combined:
+      return "all";
+  }
+  return "i2c";
 }
 
 void NodeApp::begin() {
@@ -20,7 +28,7 @@ void NodeApp::begin() {
   logger_.boot(nodeId.length() > 0 ? nodeId.c_str() : "unregistered", describePortMode());
   logger_.portPins(kAppConfig.portYellowPin, kAppConfig.portWhitePin);
 
-  if (kAppConfig.portMode == PortMode::I2cSensors) {
+  if (kAppConfig.portMode != PortMode::EarthOnly) {
     Wire.begin(kAppConfig.portYellowPin, kAppConfig.portWhitePin);
     Wire.setClock(kAppConfig.i2cClockHz);
     logger_.info("hy2.0 bus: i2c initialized");
