@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NyxLogViewer } from 'nyx-kit/components'
+import { NyxLogViewer, NyxBadge } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 
 interface NyxLogEntry {
@@ -23,8 +23,8 @@ const events = ref<NyxLogEntry[]>([
     <div class="activity-log__header">
       <h4>Anthos Biometric Sync</h4>
       <div class="activity-log__badges">
-        <span class="activity-log__badge">REAL-TIME</span>
-        <span class="activity-log__badge">LOGGING</span>
+        <NyxBadge>REAL-TIME</NyxBadge>
+        <NyxBadge>LOGGING</NyxBadge>
       </div>
     </div>
     <NyxLogViewer v-model="events" timestampFormat="HH:mm:ss" />

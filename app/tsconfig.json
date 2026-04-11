@@ -18,7 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@anthos/shared": ["../shared/src/index.ts"]
+      "@anthos/shared": ["../shared/src/index.ts"],
+      "@anthos/shared/anthos": ["../shared/src/anthos/index.ts"]
     }
   },
   "include": [
@@ -29,4 +30,3 @@
     "../shared/src/**/*.ts"
   ]
 }
-
