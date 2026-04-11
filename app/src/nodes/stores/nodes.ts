@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ofetch } from 'ofetch'
 import type { LogicalNodeRecord } from '@/shared/types/telemetry'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8088'
+import anthos from '@anthos/shared/anthos'
 
 export const useNodesStore = defineStore('nodes', () => {
   const nodes = ref<LogicalNodeRecord[]>([])
@@ -14,9 +12,7 @@ export const useNodesStore = defineStore('nodes', () => {
     isLoading.value = true
     error.value = null
     try {
-      const data = await ofetch<{ nodes: LogicalNodeRecord[] }>('/api/nodes', {
-        baseURL: API_BASE,
-      })
+      const data = await anthos.nodes.getAll()
       nodes.value = data.nodes
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch nodes'
@@ -29,15 +25,10 @@ export const useNodesStore = defineStore('nodes', () => {
     isLoading.value = true
     error.value = null
     try {
-      const updated = await ofetch<LogicalNodeRecord>(`/api/nodes/${nodeId}`, {
-        baseURL: API_BASE,
-        method: 'PATCH',
-        body: { displayName },
-      })
+      const updated = await anthos.nodes.claim(nodeId, displayName)
       const index = nodes.value.findIndex(n => n.nodeId === nodeId)
-      if (index !== -1) {
-        nodes.value[index] = { ...nodes.value[index], displayName: updated.displayName ?? displayName, claimStatus: 'claimed' }
-      }
+      if (index === -1) return
+      nodes.value[index] = { ...nodes.value[index], displayName: updated.displayName ?? displayName, claimStatus: 'claimed' }
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to claim node'
       throw e
@@ -48,10 +39,7 @@ export const useNodesStore = defineStore('nodes', () => {
 
   async function openProvisionWindow(): Promise<void> {
     try {
-      await ofetch('/api/provision/open', {
-        baseURL: API_BASE,
-        method: 'POST',
-      })
+      await anthos.nodes.openProvisionWindow()
     } catch (e) {
       // Non-fatal — provisioning window failure should not block navigation
       console.warn('Failed to open provision window:', e)

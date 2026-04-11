@@ -1,1 +1,1 @@
-export * from './telemetry.js'
+export * from './telemetry.ts'

@@ -9,4 +9,8 @@ server/api/logs/
 server/api/dist/
 server/db/
 app/dist/
+shared/dist/
 shared/src/*.js
+build/
+coverage/
+*.log

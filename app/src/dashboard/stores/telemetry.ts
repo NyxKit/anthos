@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { TelemetryPayload, NodeHealthPayload, SensorSample } from '@/shared/types/telemetry'
-import { fetchReadings } from '@/dashboard/api/readings'
+import anthos from '@anthos/shared/anthos'
 
 interface Node {
   id: string
@@ -38,7 +38,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     error.value = null
 
     try {
-      const data: TelemetryPayload = await fetchReadings()
+      const data: TelemetryPayload = await anthos.nodes.getLatestTelemetry()
       nodeId.value = data.nodeId
       nodeName.value = data.nodeId
       status.value = 'connected'

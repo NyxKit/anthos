@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ofetch } from 'ofetch'
+import anthos from '@anthos/shared/anthos'
 import { useBleProvisioning, type DiscoveredNode } from '@/composables/useBleProvisioning'
 
 const router = useRouter()
 const { status, discoveredNodes, error, connectedNode, wifiResult, scanForNodes, connectToNode, sendCredentials, reset } = useBleProvisioning()
-
-const HUB_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_HUB_URL) || 'http://anthos.local:8088'
 
 // Credentials form
 const ssid = ref('')
@@ -37,10 +35,7 @@ watch(status, (newStatus) => {
 onMounted(async () => {
   // T027: open pairing window at start of flow (non-blocking)
   try {
-    await ofetch('/api/provision/open', {
-      baseURL: HUB_BASE_URL,
-      method: 'POST',
-    })
+    await anthos.nodes.openProvisionWindow()
   } catch (err) {
     console.error('[ProvisionView] Failed to open pairing window on mount:', err)
   }
@@ -82,10 +77,7 @@ async function handleDisconnectAndReset() {
 
 async function openPairingWindow() {
   try {
-    await ofetch('/api/provision/open', {
-      baseURL: HUB_BASE_URL,
-      method: 'POST',
-    })
+    await anthos.nodes.openProvisionWindow()
   } catch (err) {
     console.error('[ProvisionView] Failed to open pairing window:', err)
   }

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { invoke } from '@tauri-apps/api/core'
-import { ofetch } from 'ofetch'
+import anthos from '@anthos/shared/anthos'
 
 // tauri-plugin-blec exposes its JS API via Tauri invoke commands.
 // The plugin registers these command names on the Rust side.
@@ -37,8 +37,6 @@ const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b'
 const CREDS_CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8'
 const STATUS_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e'
 
-const HUB_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_HUB_URL) || 'http://anthos.local:8088'
-
 export function useBleProvisioning() {
   const status = ref<ProvisionStatus>('idle')
   const discoveredNodes = ref<DiscoveredNode[]>([])
@@ -48,10 +46,7 @@ export function useBleProvisioning() {
 
   async function openPairingWindow(): Promise<void> {
     try {
-      await ofetch('/api/provision/open', {
-        baseURL: HUB_BASE_URL,
-        method: 'POST',
-      })
+      await anthos.nodes.openProvisionWindow()
     } catch (err) {
       console.error('[useBleProvisioning] Failed to open pairing window:', err)
     }
