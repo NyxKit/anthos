@@ -18,7 +18,7 @@ createApp(App)
   .use(NyxKit, {
     defaults: {
       all: {
-        theme: NyxTheme.Primary,
+        theme: NyxTheme.Info,
         size: NyxSize.Medium,
         variant: NyxVariant.Soft,
       },

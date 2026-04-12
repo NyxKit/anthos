@@ -1,5 +1,5 @@
-import type { LogicalNodeRecord, TelemetryPayload } from '../../telemetry.ts'
-import type { Anthos } from './Anthos.ts'
+import type { LogicalNodeRecord, TelemetryPayload } from '../../telemetry.js'
+import type { Anthos } from './Anthos.js'
 
 export class AnthosNodes {
   constructor(private readonly anthos: Anthos) {}

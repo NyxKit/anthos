@@ -11,6 +11,9 @@ export default defineConfig({
     },
   },
   clearScreen: false,
+  test: {
+    environment: 'jsdom',
+  },
   server: {
     port: 1440,
     strictPort: true,
