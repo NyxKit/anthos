@@ -1,4 +1,4 @@
-import type { Anthos } from './Anthos.ts'
+import type { Anthos } from './Anthos.js'
 
 export class AnthosRooms {
   constructor(protected readonly anthos: Anthos) {

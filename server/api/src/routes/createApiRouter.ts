@@ -1,15 +1,18 @@
 import { Router } from 'express'
 
 import { IngestController } from '../controllers/IngestController.js'
+import { LogsController } from '../controllers/LogsController.js'
 import { ProvisionController } from '../controllers/ProvisionController.js'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { PairingWindowService } from '../services/PairingWindowService.js'
+import { LogArchiveService } from '../services/LogArchiveService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 
-export function createApiRouter(telemetry: TelemetryService): Router {
+export function createApiRouter(telemetry: TelemetryService, logArchive: LogArchiveService): Router {
   const router = Router()
 
-  const ingestController = new IngestController(telemetry)
+  const ingestController = new IngestController(telemetry, logArchive)
+  const logsController = new LogsController(logArchive)
 
   const registry = new NodeRegistryService(telemetry.getDb())
   const pairing = new PairingWindowService()
@@ -44,6 +47,9 @@ export function createApiRouter(telemetry: TelemetryService): Router {
 
   router.get('/telemetry/latest', ingestController.getLatestTelemetry)
   router.post('/ingest', ingestController.postTelemetry)
+
+  router.get('/logs', logsController.list)
+  router.get('/logs/stream', logsController.stream)
 
   router.post('/register', provisionCtrl.register)
   router.post('/provision/open', provisionCtrl.openProvisionWindow)

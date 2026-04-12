@@ -2,14 +2,17 @@ import { Bonjour } from 'bonjour-service'
 
 import { createApp } from './app.js'
 import { loadApiConfig } from './config.js'
+import { LogArchiveService } from './services/LogArchiveService.js'
 import { TelemetryService } from './services/TelemetryService.js'
 
 const config = loadApiConfig()
 const telemetry = new TelemetryService()
+const logArchive = new LogArchiveService()
 
 await telemetry.init()
+await logArchive.init()
 
-const app = createApp(telemetry)
+const app = createApp(telemetry, logArchive)
 
 const bonjour = new Bonjour()
 
@@ -22,6 +25,7 @@ app.listen(config.port, config.host, () => {
 process.on('SIGINT', async () => {
   bonjour.unpublishAll()
   bonjour.destroy()
+  await logArchive.close()
   await telemetry.close()
   process.exit(0)
 })

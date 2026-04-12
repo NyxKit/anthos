@@ -1,11 +1,12 @@
-import { Anthos } from './classes/Anthos.ts'
+import { Anthos } from './classes/Anthos.js'
 
 const anthos = new Anthos()
 
 export default anthos
 export { Anthos }
-export { AnthosAlerts } from './classes/AnthosAlerts.ts'
-export { AnthosNodes } from './classes/AnthosNodes.ts'
-export { AnthosRooms } from './classes/AnthosRooms.ts'
-export { AnthosUsers } from './classes/AnthosUsers.ts'
-export type { AnthosResolvedSetup, AnthosSetupArgs } from './types.ts'
+export { AnthosAlerts } from './classes/AnthosAlerts.js'
+export { AnthosLogs } from './classes/AnthosLogs.js'
+export { AnthosNodes } from './classes/AnthosNodes.js'
+export { AnthosRooms } from './classes/AnthosRooms.js'
+export { AnthosUsers } from './classes/AnthosUsers.js'
+export type { AnthosResolvedSetup, AnthosSetupArgs } from './types.js'

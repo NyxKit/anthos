@@ -4,16 +4,17 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { createApiRouter } from './routes/createApiRouter.js'
+import { LogArchiveService } from './services/LogArchiveService.js'
 import { TelemetryService } from './services/TelemetryService.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-export function createApp(telemetry: TelemetryService) {
+export function createApp(telemetry: TelemetryService, logArchive: LogArchiveService) {
   const app = express()
 
   app.use(cors())
   app.use(express.json())
-  app.use('/api', createApiRouter(telemetry))
+  app.use('/api', createApiRouter(telemetry, logArchive))
 
   // Serve the built frontend (app/dist/) — only present in production
   const distPath = join(__dirname, '..', '..', '..', '..', 'app', 'dist')

@@ -1,6 +1,6 @@
 # Anthos Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-06
+Auto-generated from all feature plans. Last updated: 2026-04-12
 
 ## Active Technologies
 
@@ -110,7 +110,7 @@ pnpm --dir app tauri ios dev          # Run on iOS simulator (macOS only)
 ### Vue 3 (Dashboard + App)
 - Composition API only (`<script setup>`)
 - Pinia stores for server state; `ref`/`computed` for local UI state
-- nyx-kit components for UI primitives (dashboard only)
+- nyx-kit components for UI primitives across the app; if a needed primitive is missing, surface it instead of introducing a custom replacement
 
 ## Key Design Invariants
 
@@ -125,6 +125,7 @@ pnpm --dir app tauri ios dev          # Run on iOS simulator (macOS only)
 
 | Feature | Branch | What it added |
 |---|---|---|
+| Log Viewer | `007-logviewer` | Daily log archives, server-served log history, `Anthos.logs`, and a dedicated frontend logs store/viewer |
 | Telemetry Dashboard | `001-telemetry-dashboard` | SQLite `readings` table, `/api/ingest`, `/api/readings`, Vue dashboard with live chart, NTP sync |
 | Generic Node Provisioning | `002-generic-node-provisioning` | BLE GATT provisioning, NVS config, mDNS hub discovery, `/api/register`, pairing window, `hardware_nodes`/`logical_nodes` tables, Unclaimed Nodes UI, Tauri mobile app scaffold |
 | Monorepo Restructure | `003-monorepo-restructure` | `server/shared/` → `shared/` as `@anthos/shared`; merged `server/web/` into `app/`; API serves `app/dist/` as static files; deleted `server/web/` |

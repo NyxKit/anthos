@@ -9,6 +9,7 @@ const route = useRoute()
 const navItems = [
   { name: 'Dashboard', path: '/', icon: 'home' },
   { name: 'Nodes', path: '/nodes', icon: 'leaf' },
+  { name: 'Logs', path: '/logs', icon: 'file-text' },
   { name: 'Alerts', path: '/alerts', icon: 'bell' },
   { name: 'Settings', path: '/settings', icon: 'settings' },
 ] as const

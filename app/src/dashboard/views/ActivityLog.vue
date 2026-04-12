@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { NyxLogViewer, NyxBadge } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
+import { useLogStore } from '@/logs/stores/logs'
 
 interface NyxLogEntry {
   timestamp: string
@@ -10,24 +11,34 @@ interface NyxLogEntry {
   theme?: NyxTheme
 }
 
-const events = ref<NyxLogEntry[]>([
-  { timestamp: '14:02:44', origin: 'NODE_0xFF-4412', value: 'Environmental recalibration successful. Sensor drift < 0.02%', theme: NyxTheme.Success },
-  { timestamp: '14:01:12', origin: 'SYS_ALERT', value: 'Node [Monstera-1] reporting sub-optimal soil moisture (12%). Automation triggered.', theme: NyxTheme.Warning },
-  { timestamp: '13:58:22', origin: 'NODE_0xAB-1109', value: 'Heartbeat received. Signal strength stabilized at -58dBm.', theme: NyxTheme.Success },
-  { timestamp: '13:55:04', origin: 'SYS_CORE', value: 'Main gateway ping 24ms. Anthos laboratory mesh secure.', theme: NyxTheme.Success },
-])
+const store = useLogStore()
+
+const events = computed<NyxLogEntry[]>(() => store.entries.slice(0, 8).map(entry => ({
+  timestamp: new Date(entry.timestampMs).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+  origin: entry.source,
+  value: entry.message,
+  theme: entry.level === 'error' ? NyxTheme.Danger : entry.level === 'warn' ? NyxTheme.Warning : NyxTheme.Info,
+})))
+
+onMounted(() => {
+  void store.start()
+})
 </script>
 
 <template>
   <div class="activity-log">
     <div class="activity-log__header">
-      <h4>Anthos Biometric Sync</h4>
+      <div>
+        <h4>Anthos Log Preview</h4>
+        <p class="activity-log__summary">Latest entries from the live log stream.</p>
+      </div>
       <div class="activity-log__badges">
-        <NyxBadge>REAL-TIME</NyxBadge>
-        <NyxBadge>LOGGING</NyxBadge>
+        <NyxBadge>{{ store.isLive ? 'LIVE' : 'HISTORICAL' }}</NyxBadge>
+        <NyxBadge>{{ store.visibleCount }} ENTRIES</NyxBadge>
       </div>
     </div>
-    <NyxLogViewer v-model="events" timestampFormat="HH:mm:ss" />
+    <NyxLogViewer :model-value="events" :theme="NyxTheme.Primary" timestamp-format="HH:mm:ss" />
+    <router-link class="activity-log__link" to="/logs">Open full logs</router-link>
   </div>
 </template>
 
@@ -56,9 +67,25 @@ const events = ref<NyxLogEntry[]>([
   margin: 0;
 }
 
+.activity-log__summary {
+  margin-top: 0.35rem;
+  color: var(--nyx-c-on-surface-variant, #cfc2d6);
+  font-size: 0.875rem;
+}
+
 .activity-log__badges {
   display: flex;
   gap: 0.5rem;
+}
+
+.activity-log__link {
+  display: inline-flex;
+  margin-top: 1rem;
+  color: var(--nyx-c-primary, #dcb8ff);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
 }
 
 .activity-log__badge {

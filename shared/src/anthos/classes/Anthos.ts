@@ -1,8 +1,9 @@
-import { AnthosAlerts } from './AnthosAlerts.ts'
-import { AnthosNodes } from './AnthosNodes.ts'
-import { AnthosRooms } from './AnthosRooms.ts'
-import { AnthosUsers } from './AnthosUsers.ts'
-import type { AnthosResolvedSetup, AnthosSetupArgs } from '../types.ts'
+import { AnthosAlerts } from './AnthosAlerts.js'
+import { AnthosLogs } from './AnthosLogs.js'
+import { AnthosNodes } from './AnthosNodes.js'
+import { AnthosRooms } from './AnthosRooms.js'
+import { AnthosUsers } from './AnthosUsers.js'
+import type { AnthosResolvedSetup, AnthosSetupArgs } from '../types.js'
 
 const DEFAULT_API_BASE_URL = 'http://localhost:8088'
 
@@ -13,12 +14,14 @@ export class Anthos {
   }
 
   readonly nodes: AnthosNodes
+  readonly logs: AnthosLogs
   readonly rooms: AnthosRooms
   readonly alerts: AnthosAlerts
   readonly users: AnthosUsers
 
   constructor(setup?: AnthosSetupArgs) {
     this.nodes = new AnthosNodes(this)
+    this.logs = new AnthosLogs(this)
     this.rooms = new AnthosRooms(this)
     this.alerts = new AnthosAlerts(this)
     this.users = new AnthosUsers(this)
