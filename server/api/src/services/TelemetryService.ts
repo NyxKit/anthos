@@ -142,6 +142,22 @@ export class TelemetryService {
     return this.latestPayload
   }
 
+  getAverageHumidity(windowMs = 15 * 60 * 1000): number | null {
+    if (!this.db) return null
+
+    const cutoff = Date.now() - windowMs
+    const stmt = this.db.prepare(
+      "SELECT AVG(value) AS avg_value FROM readings WHERE sensor_type='humidity' AND timestamp >= ?"
+    )
+    stmt.bind([cutoff])
+    stmt.step()
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+
+    const value = row['avg_value']
+    return value == null ? null : Number(value)
+  }
+
   async close(): Promise<void> {
     if (this.pendingReadings.length > 0) {
       await this.storePendingReadings()

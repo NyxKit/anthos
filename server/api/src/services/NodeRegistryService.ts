@@ -112,6 +112,38 @@ export class NodeRegistryService {
     return updated
   }
 
+  touchNodeByNodeId(nodeId: string): void {
+    const stmt = this.db.prepare(
+      `
+      UPDATE hardware_nodes
+      SET last_seen = ?
+      WHERE hw_id = (
+        SELECT hw_id FROM logical_nodes WHERE node_id = ?
+      )
+    `
+    )
+    stmt.run([Date.now(), nodeId])
+    stmt.free()
+  }
+
+  countLogicalNodes(): number {
+    const stmt = this.db.prepare('SELECT COUNT(*) AS count FROM logical_nodes')
+    stmt.step()
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+    return Number(row['count'] ?? 0)
+  }
+
+  countActiveNodes(activeWindowMs = 30000): number {
+    const cutoff = Date.now() - activeWindowMs
+    const stmt = this.db.prepare('SELECT COUNT(*) AS count FROM hardware_nodes WHERE last_seen >= ?')
+    stmt.bind([cutoff])
+    stmt.step()
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+    return Number(row['count'] ?? 0)
+  }
+
   getHardwareNodeFirmwareVersion(hwId: string): string | null {
     const stmt = this.db.prepare(
       'SELECT firmware_version FROM hardware_nodes WHERE hw_id=?'

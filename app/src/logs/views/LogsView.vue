@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { NyxBadge, NyxButton, NyxInput, NyxLogViewer, NyxSelect } from 'nyx-kit/components'
-import { NyxInputType, NyxSize, NyxTheme } from 'nyx-kit/types'
+import { NyxButton, NyxInput, NyxLogViewer, NyxSelect } from 'nyx-kit/components'
+import { NyxInputType, NyxTheme } from 'nyx-kit/types'
 import { useLogStore } from '@/logs/stores/logs'
 
 const store = useLogStore()
@@ -12,12 +12,6 @@ const viewerEntries = computed(() => store.entries.map(entry => ({
   value: entry.message,
   theme: entry.level === 'error' ? NyxTheme.Danger : entry.level === 'warn' ? NyxTheme.Warning : entry.level === 'debug' ? NyxTheme.Secondary : undefined,
 })))
-
-const statusTheme = computed(() => {
-  if (store.archiveStatus === 'expired') return NyxTheme.Danger
-  if (store.archiveStatus === 'unavailable') return NyxTheme.Warning
-  return store.isLive ? NyxTheme.Success : NyxTheme.Primary
-})
 
 onMounted(() => {
   void store.start()

@@ -23,4 +23,5 @@ class ApiClient {
   const NodeHealth& health_;
   SensorManager& sensors_;
   unsigned long lastPublishAt_ = 0;
+  unsigned long lastNetworkLatencyMs_ = 0;
 };

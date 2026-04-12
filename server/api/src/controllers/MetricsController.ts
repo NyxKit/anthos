@@ -1,0 +1,25 @@
+import type { RequestHandler } from 'express'
+
+import { NodeRegistryService } from '../services/NodeRegistryService.js'
+import { TelemetryService } from '../services/TelemetryService.js'
+
+export class MetricsController {
+  constructor(
+    private readonly telemetry: TelemetryService,
+    private readonly registry: NodeRegistryService
+  ) {}
+
+  getDashboardMetrics: RequestHandler = (_req, res): void => {
+    const latest = this.telemetry.getLatest()
+    const uptimeMs = latest?.health.uptimeMs ?? null
+    const networkLatencyMs = latest?.health.latencyMs ?? null
+
+    res.json({
+      activeNodes: this.registry.countActiveNodes(),
+      totalNodes: this.registry.countLogicalNodes(),
+      avgHumidity: this.telemetry.getAverageHumidity(),
+      uptimeMs,
+      networkLatencyMs,
+    })
+  }
+}

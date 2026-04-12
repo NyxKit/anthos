@@ -1,6 +1,7 @@
 import { Router } from 'express'
 
 import { IngestController } from '../controllers/IngestController.js'
+import { MetricsController } from '../controllers/MetricsController.js'
 import { LogsController } from '../controllers/LogsController.js'
 import { ProvisionController } from '../controllers/ProvisionController.js'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
@@ -11,11 +12,11 @@ import { TelemetryService } from '../services/TelemetryService.js'
 export function createApiRouter(telemetry: TelemetryService, logArchive: LogArchiveService): Router {
   const router = Router()
 
-  const ingestController = new IngestController(telemetry, logArchive)
-  const logsController = new LogsController(logArchive)
-
   const registry = new NodeRegistryService(telemetry.getDb())
   const pairing = new PairingWindowService()
+  const ingestController = new IngestController(telemetry, logArchive, registry)
+  const metricsController = new MetricsController(telemetry, registry)
+  const logsController = new LogsController(logArchive)
   const provisionCtrl = new ProvisionController(registry, pairing, () => telemetry.saveDbPublic())
 
   router.get('/health', (_req, res) => {
@@ -47,6 +48,8 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
 
   router.get('/telemetry/latest', ingestController.getLatestTelemetry)
   router.post('/ingest', ingestController.postTelemetry)
+
+  router.get('/metrics', metricsController.getDashboardMetrics)
 
   router.get('/logs', logsController.list)
   router.get('/logs/stream', logsController.stream)

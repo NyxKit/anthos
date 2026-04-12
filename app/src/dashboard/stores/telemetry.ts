@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { TelemetryPayload, NodeHealthPayload, SensorSample } from '@/shared/types/telemetry'
+import type { DashboardMetrics } from '@anthos/shared'
 import anthos from '@anthos/shared/anthos'
 
 interface Node {
@@ -17,6 +18,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
   const health = ref<NodeHealthPayload | null>(null)
   const sensors = ref<SensorSample[]>([])
   const timestampMs = ref<number | null>(null)
+  const metrics = ref<DashboardMetrics | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const lastUpdated = ref<number | null>(null)
@@ -56,10 +58,22 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     }
   }
 
+  async function fetchMetrics() {
+    try {
+      metrics.value = await anthos.metrics.getDashboard()
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to fetch dashboard metrics'
+    }
+  }
+
   function startPolling(intervalMs = 5000) {
     stopPolling()
-    fetchData()
-    pollingInterval = setInterval(fetchData, intervalMs)
+    void fetchData()
+    void fetchMetrics()
+    pollingInterval = setInterval(() => {
+      void fetchData()
+      void fetchMetrics()
+    }, intervalMs)
   }
 
   function stopPolling() {
@@ -75,11 +89,13 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     health,
     sensors,
     timestampMs,
+    metrics,
     status,
     isLoading,
     error,
     lastUpdated,
     fetchData,
+    fetchMetrics,
     startPolling,
     stopPolling,
   }

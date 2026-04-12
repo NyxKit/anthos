@@ -1,13 +1,15 @@
 import type { Request, Response } from 'express'
 
 import type { TelemetryPayload } from '@anthos/shared'
+import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
 
 export class IngestController {
   constructor(
     private readonly telemetryService: TelemetryService,
-    private readonly logArchive: LogArchiveService
+    private readonly logArchive: LogArchiveService,
+    private readonly registry: NodeRegistryService
   ) {}
 
   getLatestTelemetry = (_req: Request, res: Response): void => {
@@ -29,6 +31,7 @@ export class IngestController {
     }
 
     await this.telemetryService.ingest(payload)
+    this.registry.touchNodeByNodeId(payload.nodeId)
     await this.logArchive.recordTelemetry(payload).catch(error => {
       console.error('log.archive.record.failed', error)
     })

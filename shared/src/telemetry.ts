@@ -7,6 +7,7 @@ export interface NodeHealthPayload {
   server: string
   target: string
   uptimeMs: number
+  latencyMs?: number
 }
 
 export interface SensorSample {

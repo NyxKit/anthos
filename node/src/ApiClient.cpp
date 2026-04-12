@@ -38,6 +38,7 @@ String ApiClient::buildPayload() const {
   doc["health"]["server"]   = NvsConfig::getServerUrl().length() > 0 ? "configured" : "not_configured";
   doc["health"]["target"]   = NvsConfig::getServerUrl().c_str();
   doc["health"]["uptimeMs"] = snapshot.uptimeMs;
+  doc["health"]["latencyMs"] = lastNetworkLatencyMs_;
 
   String sensorJson = sensors_.readAllJson();
   StaticJsonDocument<512> sensorDoc;
@@ -80,7 +81,9 @@ void ApiClient::publishHeartbeat() {
   }
 
   http.addHeader("Content-Type", "application/json");
+  const unsigned long startedAt = millis();
   const int statusCode = http.POST(buildPayload());
+  lastNetworkLatencyMs_ = millis() - startedAt;
   if (statusCode < 0) {
     Serial.printf("api error=%s target=%s\n", http.errorToString(statusCode).c_str(), url.c_str());
   } else {

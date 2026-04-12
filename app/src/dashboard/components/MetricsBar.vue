@@ -3,49 +3,44 @@ import { computed } from 'vue'
 import { NyxMetricCard } from 'nyx-kit/components'
 import { NyxTheme, NyxVariant } from 'nyx-kit/types'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
-import { useNodesStore } from '@/nodes/stores/nodes'
 
 const telemetryStore = useTelemetryStore()
-const nodesStore = useNodesStore()
 
 const metrics = computed(() => {
-  const connectedNodes = nodesStore.nodes.filter(n => n.claimStatus === 'claimed').length
-  const totalNodes = nodesStore.nodes.length
-  
-  const humidityReadings = telemetryStore.sensors.filter(s => s.type === 'humidity')
-  const avgHumidity = humidityReadings.length > 0
-    ? Math.round(humidityReadings.reduce((sum, s) => sum + s.value, 0) / humidityReadings.length)
-    : 0
-  
-  const uptimeHours = telemetryStore.health?.uptimeMs 
-    ? Math.round(telemetryStore.health.uptimeMs / 3600000)
-    : 0
-  
-  const latency = 24
+  const dashboard = telemetryStore.metrics
+  const uptimeHours = dashboard?.uptimeMs != null
+    ? Math.round(dashboard.uptimeMs / 3600000)
+    : null
+  const avgHumidity = dashboard?.avgHumidity != null
+    ? Math.round(dashboard.avgHumidity)
+    : null
+  const latency = dashboard?.networkLatencyMs != null
+    ? Math.round(dashboard.networkLatencyMs)
+    : null
 
   return [
-    { 
+    {
       title: 'Active Nodes', 
-      value: `${connectedNodes}/${totalNodes}`, 
+      value: dashboard ? `${dashboard.activeNodes}/${dashboard.totalNodes}` : '--', 
       variant: NyxVariant.Soft,
       theme: NyxTheme.Success
     },
     { 
       title: 'Avg. Humidity', 
-      value: String(avgHumidity), 
+      value: avgHumidity == null ? '--' : String(avgHumidity), 
       unit: '%',
       variant: NyxVariant.Soft,
       icon: 'trending-up'
     },
     { 
       title: 'System Uptime', 
-      value: String(uptimeHours), 
+      value: uptimeHours == null ? '--' : String(uptimeHours), 
       unit: 'h',
       variant: NyxVariant.Soft
     },
     { 
       title: 'Network Latency', 
-      value: String(latency), 
+      value: latency == null ? '--' : String(latency), 
       unit: 'ms',
       variant: NyxVariant.Soft,
       theme: NyxTheme.Primary
