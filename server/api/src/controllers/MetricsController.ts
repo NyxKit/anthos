@@ -10,16 +10,12 @@ export class MetricsController {
   ) {}
 
   getDashboardMetrics: RequestHandler = (_req, res): void => {
-    const latest = this.telemetry.getLatest()
-    const uptimeMs = latest?.health.uptimeMs ?? null
-    const networkLatencyMs = latest?.health.latencyMs ?? null
-
     res.json({
       activeNodes: this.registry.countActiveNodes(),
       totalNodes: this.registry.countLogicalNodes(),
       avgHumidity: this.telemetry.getAverageHumidity(),
-      uptimeMs,
-      networkLatencyMs,
+      uptimeMs: Math.round(process.uptime() * 1000),
+      networkLatencyMs: this.telemetry.getLatest()?.health.latencyMs ?? null,
     })
   }
 }

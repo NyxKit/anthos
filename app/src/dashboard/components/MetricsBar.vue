@@ -6,11 +6,21 @@ import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 
 const telemetryStore = useTelemetryStore()
 
+const formatDuration = (ms: number | null): string => {
+  if (ms == null) return '--'
+
+  const totalMinutes = Math.floor(ms / 60000)
+  const days = Math.floor(totalMinutes / (60 * 24))
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60)
+  const minutes = totalMinutes % 60
+
+  if (days > 0) return `${days}d ${hours}h ${minutes}m`
+  if (hours > 0) return `${hours}h ${minutes}m`
+  return `${minutes}m`
+}
+
 const metrics = computed(() => {
   const dashboard = telemetryStore.metrics
-  const uptimeHours = dashboard?.uptimeMs != null
-    ? Math.round(dashboard.uptimeMs / 3600000)
-    : null
   const avgHumidity = dashboard?.avgHumidity != null
     ? Math.round(dashboard.avgHumidity)
     : null
@@ -34,8 +44,7 @@ const metrics = computed(() => {
     },
     { 
       title: 'System Uptime', 
-      value: uptimeHours == null ? '--' : String(uptimeHours), 
-      unit: 'h',
+      value: formatDuration(dashboard?.uptimeMs ?? null), 
       variant: NyxVariant.Soft
     },
     { 
