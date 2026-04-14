@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { NyxCard, NyxIcon } from 'nyx-kit/components'
-import { NyxSize } from 'nyx-kit/types'
+import { computed, ref } from 'vue'
+import { NyxCard, NyxIcon, NyxActionItem, NyxBadge, NyxInput, NyxButton } from 'nyx-kit/components'
+import { NyxInputType, NyxSize, NyxTheme } from 'nyx-kit/types'
+import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { logo } from '@/shared/assets'
 import type { LogicalNodeRecord } from '@anthos/shared'
+
+const PUMP_VOLUME_ML = 100
 
 const props = defineProps<{
   node?: LogicalNodeRecord
 }>()
 
 const store = useTelemetryStore()
+const pumpState = ref<'idle' | 'loading' | 'done' | 'error'>('idle')
+const pumpError = ref<string | null>(null)
+const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
 
 const formattedTimestamp = computed(() => {
   const now = Date.now()
@@ -43,6 +49,9 @@ const nodeDisplayName = computed(() => {
   return props.node?.displayName || props.node?.nodeId || store.nodeId || 'Unknown Node'
 })
 
+const capability = computed(() => props.node?.capability ?? store.node?.capability)
+const capabilityLabel = computed(() => capability.value === 'watering' ? 'Watering' : 'Earth')
+
 const getSensorValue = (type: string) => {
   const sensor = store.sensors.find(s => s.type === type)
   return sensor ? sensor.value.toFixed(1) : '--'
@@ -57,6 +66,23 @@ const isCritical = computed(() => {
   const moisture = store.sensors.find(s => s.type === 'moisture')
   return moisture && moisture.value < 20
 })
+
+const actionNodeId = computed(() => props.node?.nodeId || store.nodeId || '')
+
+async function handlePumpClick() {
+  if (!actionNodeId.value) return
+
+  pumpState.value = 'loading'
+  pumpError.value = null
+
+  try {
+    await anthos.nodes.queuePump(actionNodeId.value, Number(pumpVolumeMl.value))
+    pumpState.value = 'done'
+  } catch (error) {
+    pumpState.value = 'error'
+    pumpError.value = error instanceof Error ? error.message : 'Failed to queue pump command'
+  }
+}
 </script>
 
 <template>
@@ -73,6 +99,7 @@ const isCritical = computed(() => {
             <div class="node-card__status">
               <span class="node-card__status-dot node-card__status-dot--connected"></span>
               <span class="node-card__status-text">Connected</span>
+              <NyxBadge :theme="capability === 'watering' ? NyxTheme.Secondary : NyxTheme.Info" :size="NyxSize.Small">{{ capabilityLabel }}</NyxBadge>
             </div>
           </div>
         </div>
@@ -139,6 +166,33 @@ const isCritical = computed(() => {
         <span class="node-card__updated">Updated {{ formattedTimestamp }}</span>
       </div>
     </div>
+
+      <NyxActionItem
+      title="Pump"
+      :theme="NyxTheme.Secondary"
+      :action="pumpState === 'loading' ? 'Pumping...' : 'Pump'"
+      @click="handlePumpClick"
+    >
+      <span class="node-card__pump-status" :data-state="pumpState">
+        {{ pumpState === 'done' ? 'Command queued' : pumpState === 'error' ? pumpError || 'Failed to queue pump command' : 'Test the pump flow' }}
+      </span>
+      <template #action>
+        <NyxInput
+          class="node-card__pump-volume"
+          :type="NyxInputType.Number"
+          :theme="NyxTheme.Secondary"
+          :size="NyxSize.Small"
+          :min="10"
+          :max="500"
+          :step="10"
+          v-model="pumpVolumeMl"
+        />
+        <span class="node-card__pump-unit">ml</span>
+        <NyxButton :theme="NyxTheme.Secondary" :size="NyxSize.Small" :disabled="pumpState === 'loading'" @click="handlePumpClick">
+          <NyxIcon name="soap-dispenser-droplet" /> {{ pumpState === 'loading' ? 'Pumping...' : 'Pump' }}
+        </NyxButton>
+      </template>
+    </NyxActionItem>
   </NyxCard>
 </template>
 
@@ -206,6 +260,23 @@ const isCritical = computed(() => {
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
+}
+
+.node-card__capability {
+  padding: 0.125rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nyx-c-text-1, #dee3eb);
+  background: rgba(109, 109, 240, 0.12);
+  border: 1px solid rgba(109, 109, 240, 0.25);
+}
+
+.node-card__pump-unit {
+  font-size: 0.75rem;
+  color: var(--nyx-c-on-surface-variant, #cfc2d6);
+  margin-inline: 0.25rem 0.5rem;
 }
 
 .node-card__status-dot {
@@ -338,6 +409,30 @@ const isCritical = computed(() => {
   border-top: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.1));
 }
 
+.node-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.node-card__pump-button {
+  min-width: 5rem;
+}
+
+.node-card__pump-status {
+  font-family: var(--nyx-font-family-mono, monospace);
+  font-size: 0.625rem;
+  color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.45));
+}
+
+.node-card__pump-status[data-state='done'] {
+  color: var(--nyx-c-tertiary, #60de87);
+}
+
+.node-card__pump-status[data-state='error'] {
+  color: var(--nyx-c-error, #ffb4ab);
+}
+
 .node-card__rssi {
   display: flex;
   align-items: center;
@@ -353,5 +448,32 @@ const isCritical = computed(() => {
   color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.3));
   font-style: italic;
   text-transform: uppercase;
+}
+
+.node-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.1));
+}
+
+.node-card__pump-status {
+  font-family: var(--nyx-font-family-mono, monospace);
+  font-size: 0.625rem;
+  color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.45));
+}
+
+.node-card__pump-status[data-state='done'] {
+  color: var(--nyx-c-tertiary, #60de87);
+}
+
+.node-card__pump-status[data-state='error'] {
+  color: var(--nyx-c-error, #ffb4ab);
+}
+
+.node-card__pump-duration {
+  width: 5rem;
+  text-align: center;
 }
 </style>

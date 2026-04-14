@@ -38,6 +38,15 @@ This document captures node setup decisions for `AtomS3 Lite` nodes, including s
 - `G38` and `G39` are not ADC-capable; do not use them for `AO`
 - valid example mapping: `white(AO) -> G5`, `yellow(DO) -> G39`, `black -> GND`, `red -> 5V`
 
+## Watering Unit
+
+- product: `M5Stack Watering Unit - Soil Moisture Sensor and Water Pump`
+- source: `https://www.tinytronics.nl/en/platforms-and-systems/m5stack/unit/m5stack-watering-unit-soil-moisture-sensor-and-water-pump`
+- on `AtomS3 Lite`, the wiring uses the same host pins as the Earth unit: `white(AO) -> G5` and `yellow -> G39`
+- black still goes to `GND` and red still goes to `5V`
+- the difference is behavioral, not wiring: `Earth` treats `G39` as a sensor digital input, while `Watering` treats `G39` as pump enable
+- keep the firmware generic and let the server assign the capability; the node should sync it automatically during registration
+
 ## Battery Options (Atom)
 
 ### TailBat (`T001`)

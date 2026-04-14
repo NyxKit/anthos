@@ -32,6 +32,7 @@ describe('LogArchiveService live stream', () => {
 
     const entry = await service.recordTelemetry({
       nodeId: 'node-001',
+      hwId: 'ABCDEF123456',
       timestampMs: Date.now(),
       health: {
         wifi: 'ok',

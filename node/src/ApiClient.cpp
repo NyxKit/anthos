@@ -4,6 +4,7 @@
 #include <HTTPClient.h>
 
 #include "AppConfig.h"
+#include "BleProvisioning.h"
 #include "NvsConfig.h"
 
 ApiClient::ApiClient(Logger& logger, const NodeHealth& health, SensorManager& sensors)
@@ -14,6 +15,7 @@ void ApiClient::begin() {
 }
 
 void ApiClient::loop() {
+  // Telemetry publishing only; command polling is handled separately.
   if (!shouldPublish()) return;
   publishHeartbeat();
 }
@@ -30,6 +32,7 @@ String ApiClient::buildPayload() const {
 
   StaticJsonDocument<512> doc;
   doc["nodeId"]    = nodeId.length() > 0 ? nodeId.c_str() : "unregistered";
+  doc["hwId"]     = BleProvisioning::getHwId();
   doc["timestampMs"] = millis();
 
   doc["health"]["wifi"]     = snapshot.wifiStatus;
@@ -88,6 +91,23 @@ void ApiClient::publishHeartbeat() {
     Serial.printf("api error=%s target=%s\n", http.errorToString(statusCode).c_str(), url.c_str());
   } else {
     Serial.printf("api status=%d target=%s\n", statusCode, url.c_str());
+
+    if (statusCode >= 200 && statusCode < 300) {
+      const String response = http.getString();
+      if (response.length() > 0) {
+        StaticJsonDocument<128> resp;
+        if (deserializeJson(resp, response) == DeserializationError::Ok) {
+          const String assignedNodeId = resp["nodeId"] | "";
+          if (assignedNodeId.length() > 0 && assignedNodeId != NvsConfig::getNodeId()) {
+            NvsConfig::setNodeId(assignedNodeId);
+            Serial.printf("[API] Synced node_id=%s from ingest response\n", assignedNodeId.c_str());
+          }
+
+          const String capability = resp["capability"] | "earth";
+          NvsConfig::setNodeCapability(capability == "watering" ? "watering" : "earth");
+        }
+      }
+    }
   }
   http.end();
 }

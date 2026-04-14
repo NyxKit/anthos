@@ -5,7 +5,7 @@
 // NvsConfig: runtime configuration backed by ESP32 NVS (Arduino Preferences).
 // All methods are static — no instance needed.
 // NVS namespace: "anthos"
-// Keys: wifi_ssid, wifi_pass, server_url, node_id
+// Keys: wifi_ssid, wifi_pass, server_url, node_id, node_capability
 class NvsConfig {
  public:
   // Credential checks
@@ -17,11 +17,13 @@ class NvsConfig {
   static String getWifiPass();
   static String getServerUrl();  // full URL, e.g. "http://192.168.1.10:3000"
   static String getNodeId();
+  static String getNodeCapability();
 
   // Setters
   static void setWifiCredentials(const String& ssid, const String& pass);
   static void setServerUrl(const String& url);
   static void setNodeId(const String& nodeId);
+  static void setNodeCapability(const String& capability);
 
   // Factory reset: clears all keys in "anthos" namespace then restarts
   static void factoryReset();
@@ -32,4 +34,5 @@ class NvsConfig {
   static constexpr const char* kWifiPass  = "wifi_pass";
   static constexpr const char* kServerUrl = "server_url";
   static constexpr const char* kNodeId    = "node_id";
+  static constexpr const char* kNodeCapability = "node_capability";
 };

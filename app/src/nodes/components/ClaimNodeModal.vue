@@ -6,23 +6,27 @@ import { useNodesStore } from '@/nodes/stores/nodes'
 import type { LogicalNodeRecord } from '@/shared/types/telemetry'
 
 const props = defineProps<{ node: LogicalNodeRecord | null; isOpen: boolean }>()
-const emit = defineEmits<{ close: []; claimed: [nodeId: string, displayName: string] }>()
+const emit = defineEmits<{ close: []; claimed: [nodeId: string, displayName: string, capability: 'earth' | 'watering'] }>()
 
 const store = useNodesStore()
 const displayName = ref('')
+const capability = ref<'earth' | 'watering'>('earth')
 const isSaving = ref(false)
 
 // Reset input when modal opens with a new node
 watch(() => props.isOpen, (open) => {
-  if (open) displayName.value = ''
+  if (open) {
+    displayName.value = ''
+    capability.value = 'earth'
+  }
 })
 
 async function handleSave() {
   if (!props.node || !displayName.value.trim()) return
   isSaving.value = true
   try {
-    await store.claimNode(props.node.nodeId, displayName.value.trim())
-    emit('claimed', props.node.nodeId, displayName.value.trim())
+    await store.claimNode(props.node.nodeId, displayName.value.trim(), capability.value)
+    emit('claimed', props.node.nodeId, displayName.value.trim(), capability.value)
   } catch {
     // error already set in store
   } finally {
@@ -51,6 +55,12 @@ function handleClose() {
           @keydown.enter="handleSave"
           @keydown.esc="handleClose"
         />
+
+        <label class="modal-card__label" for="node-capability">Hardware type</label>
+        <select id="node-capability" v-model="capability" class="modal-card__input">
+          <option value="earth">Earth only</option>
+          <option value="watering">Watering unit</option>
+        </select>
 
         <!-- TODO: plant linking (Phase 3) -->
 
@@ -122,6 +132,14 @@ function handleClose() {
   font-size: 0.9375rem;
   outline: none;
   box-sizing: border-box;
+}
+
+.modal-card__label {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nyx-c-text-muted, #9ca3af);
+  margin-top: 0.25rem;
 }
 
 .modal-card__input:focus {

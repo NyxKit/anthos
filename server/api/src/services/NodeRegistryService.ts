@@ -5,25 +5,33 @@ import type { LogicalNodeRecord } from '@anthos/shared'
 export class NodeRegistryService {
   constructor(private readonly db: Database) {}
 
-  upsertHardwareNode(hwId: string, firmwareVersion: string): void {
+  upsertHardwareNode(hwId: string, firmwareVersion = ''): void {
     const now = Date.now()
+    const hasFirmwareVersion = firmwareVersion.length > 0
 
     const insertStmt = this.db.prepare(
       'INSERT OR IGNORE INTO hardware_nodes (hw_id, first_seen, last_seen, firmware_version) VALUES (?, ?, ?, ?)'
     )
-    insertStmt.run([hwId, now, now, firmwareVersion])
+    insertStmt.run([hwId, now, now, hasFirmwareVersion ? firmwareVersion : null])
     insertStmt.free()
 
-    const updateStmt = this.db.prepare(
-      'UPDATE hardware_nodes SET last_seen=?, firmware_version=? WHERE hw_id=?'
-    )
-    updateStmt.run([now, firmwareVersion, hwId])
+    if (hasFirmwareVersion) {
+      const updateStmt = this.db.prepare(
+        'UPDATE hardware_nodes SET last_seen=?, firmware_version=? WHERE hw_id=?'
+      )
+      updateStmt.run([now, firmwareVersion, hwId])
+      updateStmt.free()
+      return
+    }
+
+    const updateStmt = this.db.prepare('UPDATE hardware_nodes SET last_seen=? WHERE hw_id=?')
+    updateStmt.run([now, hwId])
     updateStmt.free()
   }
 
   findLogicalNodeByHwId(hwId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(
-      'SELECT node_id, hw_id, display_name, claim_status, registered_at FROM logical_nodes WHERE hw_id=?'
+      'SELECT node_id, hw_id, display_name, claim_status, capability, registered_at FROM logical_nodes WHERE hw_id=?'
     )
     stmt.bind([hwId])
     const hasRow = stmt.step()
@@ -54,7 +62,7 @@ export class NodeRegistryService {
     const nodeId = `node-${String(next).padStart(3, '0')}`
 
     const insertStmt = this.db.prepare(
-      "INSERT INTO logical_nodes (node_id, hw_id, display_name, claim_status, registered_at) VALUES (?, ?, NULL, 'unclaimed', ?)"
+      "INSERT INTO logical_nodes (node_id, hw_id, display_name, claim_status, capability, registered_at) VALUES (?, ?, NULL, 'unclaimed', 'earth', ?)"
     )
     insertStmt.run([nodeId, hwId, now])
     insertStmt.free()
@@ -64,7 +72,7 @@ export class NodeRegistryService {
 
   listLogicalNodes(): LogicalNodeRecord[] {
     const results = this.db.exec(
-      'SELECT node_id, hw_id, display_name, claim_status, registered_at FROM logical_nodes ORDER BY registered_at DESC'
+      'SELECT node_id, hw_id, display_name, claim_status, capability, registered_at FROM logical_nodes ORDER BY registered_at DESC'
     )
 
     if (results.length === 0) return []
@@ -79,7 +87,7 @@ export class NodeRegistryService {
 
   getLogicalNode(nodeId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(
-      'SELECT node_id, hw_id, display_name, claim_status, registered_at FROM logical_nodes WHERE node_id=?'
+      'SELECT node_id, hw_id, display_name, claim_status, capability, registered_at FROM logical_nodes WHERE node_id=?'
     )
     stmt.bind([nodeId])
     const hasRow = stmt.step()
@@ -95,17 +103,34 @@ export class NodeRegistryService {
     return this.rowToRecord(row)
   }
 
-  claimNode(nodeId: string, displayName: string): boolean {
+  claimNode(nodeId: string, displayName: string, capability: 'earth' | 'watering' = 'earth'): boolean {
     const stmt = this.db.prepare(
-      "UPDATE logical_nodes SET display_name=?, claim_status='claimed' WHERE node_id=? AND claim_status='unclaimed'"
+      "UPDATE logical_nodes SET display_name=?, claim_status='claimed', capability=? WHERE node_id=? AND claim_status='unclaimed'"
     )
-    stmt.run([displayName, nodeId])
+    stmt.run([displayName, capability, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(
-      "SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND display_name=?"
+      "SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND display_name=? AND capability=?"
     )
-    checkStmt.bind([nodeId, displayName])
+    checkStmt.bind([nodeId, displayName, capability])
+    const updated = checkStmt.step()
+    checkStmt.free()
+
+    return updated
+  }
+
+  updateCapability(nodeId: string, capability: 'earth' | 'watering'): boolean {
+    const stmt = this.db.prepare(
+      "UPDATE logical_nodes SET capability=? WHERE node_id=? AND claim_status='claimed'"
+    )
+    stmt.run([capability, nodeId])
+    stmt.free()
+
+    const checkStmt = this.db.prepare(
+      "SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND capability=?"
+    )
+    checkStmt.bind([nodeId, capability])
     const updated = checkStmt.step()
     checkStmt.free()
 
@@ -166,6 +191,7 @@ export class NodeRegistryService {
       hwId: String(row['hw_id']),
       displayName: row['display_name'] != null ? String(row['display_name']) : null,
       claimStatus: row['claim_status'] as 'unclaimed' | 'claimed',
+      capability: row['capability'] === 'watering' ? 'watering' : 'earth',
       registeredAt: Number(row['registered_at']),
     }
   }

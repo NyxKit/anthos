@@ -2,12 +2,21 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, readdir, writeFile, unlink } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { LogArchiveStatus, LogEntry, LogListFilters, LogListResponse, LogLevel } from '@anthos/shared'
+import { LogEntry, type LogArchiveStatus, type LogListFilters, type LogListResponse, type LogLevel } from '@anthos/shared'
 import type { TelemetryPayload } from '@anthos/shared'
 
 type LogListener = {
   filters: LogListFilters
   onEntry: (entry: LogEntry) => void
+}
+
+type LogEntryInput = {
+  nodeId: string | null
+  level: LogLevel
+  source: string
+  message: string
+  meta?: Record<string, unknown>
+  timestamp?: number
 }
 
 const DEFAULT_LIMIT = 100
@@ -33,6 +42,22 @@ export class LogArchiveService {
     await this.append(entry)
     this.emit(entry)
     return entry
+  }
+
+  async recordEntry(entry: LogEntryInput): Promise<LogEntry> {
+    const fullEntry = new LogEntry({
+      id: randomUUID(),
+      timestamp: entry.timestamp ?? Date.now(),
+      nodeId: entry.nodeId,
+      level: entry.level,
+      source: entry.source,
+      message: entry.message,
+      meta: entry.meta,
+    })
+
+    await this.append(fullEntry)
+    this.emit(fullEntry)
+    return fullEntry
   }
 
   async list(filters: LogListFilters = {}): Promise<LogListResponse> {
@@ -94,9 +119,9 @@ export class LogArchiveService {
       ? 'Telemetry received'
       : `Telemetry received: ${payload.sensors.map(sensor => `${sensor.type}=${sensor.value}${sensor.unit ?? ''}`).join(', ')}`
 
-    return {
+    return new LogEntry({
       id: randomUUID(),
-      timestampMs: Date.now(),
+      timestamp: payload.timestampMs,
       nodeId: payload.nodeId,
       level: 'info',
       source: payload.nodeId,
@@ -105,13 +130,13 @@ export class LogArchiveService {
         health: payload.health,
         sensors: payload.sensors,
       },
-    }
+    })
   }
 
   private async append(entry: LogEntry): Promise<void> {
     await mkdir(this.logDir, { recursive: true })
 
-    const archivePath = this.archivePathForTimestamp(entry.timestampMs)
+    const archivePath = this.archivePathForTimestamp(this.resolveTimestamp(entry))
     await writeFile(archivePath, `${JSON.stringify(entry)}\n`, { flag: 'a' })
   }
 
@@ -171,7 +196,15 @@ export class LogArchiveService {
       try {
         const parsed = JSON.parse(line) as Partial<LogEntry>
         if (!this.isLogEntry(parsed)) return []
-        return [parsed]
+        return [new LogEntry({
+          id: parsed.id,
+          timestamp: this.resolveTimestamp(parsed),
+          nodeId: parsed.nodeId,
+          level: parsed.level,
+          source: parsed.source,
+          message: parsed.message,
+          meta: parsed.meta,
+        })]
       } catch {
         return []
       }
@@ -197,8 +230,9 @@ export class LogArchiveService {
     if (filters.nodeId && entry.nodeId !== filters.nodeId) return false
     if (filters.level && entry.level !== filters.level) return false
     if (filters.source && entry.source !== filters.source) return false
-    if (filters.from !== undefined && entry.timestampMs < filters.from) return false
-    if (filters.to !== undefined && entry.timestampMs > filters.to) return false
+    const timestamp = this.resolveTimestamp(entry)
+    if (filters.from !== undefined && timestamp < filters.from) return false
+    if (filters.to !== undefined && timestamp > filters.to) return false
 
     const query = filters.q?.trim().toLowerCase()
     if (query) {
@@ -211,7 +245,10 @@ export class LogArchiveService {
 
   private isLogEntry(value: Partial<LogEntry>): value is LogEntry {
     return typeof value.id === 'string'
-      && typeof value.timestampMs === 'number'
+      && (typeof value.timestamp === 'number'
+        || typeof value.timestamp === 'string'
+        || value.timestamp instanceof Date
+        || typeof (value as { timestampMs?: unknown }).timestampMs === 'number')
       && (typeof value.nodeId === 'string' || value.nodeId === null)
       && this.isLogLevel(value.level)
       && typeof value.source === 'string'
@@ -223,27 +260,31 @@ export class LogArchiveService {
   }
 
   private compareEntries(left: LogEntry, right: LogEntry): number {
-    if (left.timestampMs !== right.timestampMs) return left.timestampMs - right.timestampMs
+    const leftTimestamp = this.resolveTimestamp(left)
+    const rightTimestamp = this.resolveTimestamp(right)
+    if (leftTimestamp !== rightTimestamp) return leftTimestamp - rightTimestamp
     return left.id.localeCompare(right.id)
   }
 
   private encodeCursor(entry: LogEntry): string {
-    return Buffer.from(JSON.stringify({ timestampMs: entry.timestampMs, id: entry.id }), 'utf8').toString('base64url')
+    return Buffer.from(JSON.stringify({ timestamp: this.resolveTimestamp(entry), id: entry.id }), 'utf8').toString('base64url')
   }
 
-  private decodeCursor(cursor: string): { timestampMs: number; id: string } | null {
+  private decodeCursor(cursor: string): { timestamp: number; id: string } | null {
     try {
-      const parsed = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as { timestampMs?: number; id?: string }
-      if (typeof parsed.timestampMs !== 'number' || typeof parsed.id !== 'string') return null
-      return { timestampMs: parsed.timestampMs, id: parsed.id }
+      const parsed = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as { timestamp?: number; timestampMs?: number; id?: string }
+      const timestamp = typeof parsed.timestamp === 'number' ? parsed.timestamp : parsed.timestampMs
+      if (typeof timestamp !== 'number' || typeof parsed.id !== 'string') return null
+      return { timestamp, id: parsed.id }
     } catch {
       return null
     }
   }
 
-  private isOlderThanCursor(entry: LogEntry, cursor: { timestampMs: number; id: string }): boolean {
-    if (entry.timestampMs !== cursor.timestampMs) {
-      return entry.timestampMs < cursor.timestampMs
+  private isOlderThanCursor(entry: LogEntry, cursor: { timestamp: number; id: string }): boolean {
+    const timestamp = this.resolveTimestamp(entry)
+    if (timestamp !== cursor.timestamp) {
+      return timestamp < cursor.timestamp
     }
 
     return entry.id < cursor.id
@@ -269,15 +310,23 @@ export class LogArchiveService {
     return date.toISOString().slice(0, 10)
   }
 
-  private archivePathForTimestamp(timestampMs: number): string {
-    return this.archivePathForDay(this.dayForTimestamp(timestampMs))
+  private archivePathForTimestamp(timestamp: number): string {
+    return this.archivePathForDay(this.dayForTimestamp(timestamp))
   }
 
   private archivePathForDay(day: string): string {
     return path.join(this.logDir, `${day}.ndjson`)
   }
 
-  private dayForTimestamp(timestampMs: number): string {
-    return new Date(timestampMs).toISOString().slice(0, 10)
+  private dayForTimestamp(timestamp: number): string {
+    return new Date(timestamp).toISOString().slice(0, 10)
+  }
+
+  private resolveTimestamp(entry: Partial<LogEntry> & { timestampMs?: unknown }): number {
+    if (typeof entry.timestamp === 'number') return entry.timestamp
+    if (typeof entry.timestamp === 'string') return new Date(entry.timestamp).getTime()
+    if (entry.timestamp instanceof Date) return entry.timestamp.getTime()
+    if (typeof entry.timestampMs === 'number') return entry.timestampMs
+    return Date.now()
   }
 }

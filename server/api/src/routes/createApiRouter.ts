@@ -1,9 +1,11 @@
 import { Router } from 'express'
 
 import { IngestController } from '../controllers/IngestController.js'
+import { CommandController } from '../controllers/CommandController.js'
 import { MetricsController } from '../controllers/MetricsController.js'
 import { LogsController } from '../controllers/LogsController.js'
 import { ProvisionController } from '../controllers/ProvisionController.js'
+import { CommandQueueService } from '../services/CommandQueueService.js'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { PairingWindowService } from '../services/PairingWindowService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
@@ -14,10 +16,13 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
 
   const registry = new NodeRegistryService(telemetry.getDb())
   const pairing = new PairingWindowService()
-  const ingestController = new IngestController(telemetry, logArchive, registry)
+  const saveDb = () => telemetry.saveDbPublic()
+  const ingestController = new IngestController(telemetry, logArchive, registry, saveDb)
+  const commandService = new CommandQueueService(telemetry.getDb(), saveDb, logArchive)
+  const commandController = new CommandController(commandService, registry, logArchive)
   const metricsController = new MetricsController(telemetry, registry)
   const logsController = new LogsController(logArchive)
-  const provisionCtrl = new ProvisionController(registry, pairing, () => telemetry.saveDbPublic())
+  const provisionCtrl = new ProvisionController(registry, pairing, saveDb)
 
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' })
@@ -51,6 +56,10 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
 
   router.get('/metrics', metricsController.getDashboardMetrics)
 
+  router.get('/nodes/:nodeId/commands', commandController.listPending)
+  router.post('/nodes/:nodeId/commands', commandController.enqueuePump)
+  router.post('/nodes/:nodeId/commands/:commandId/ack', commandController.acknowledge)
+
   router.get('/logs', logsController.list)
   router.get('/logs/stream', logsController.stream)
 
@@ -59,6 +68,7 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   router.get('/provision/status', provisionCtrl.getProvisionStatus)
   router.get('/nodes', provisionCtrl.listNodes)
   router.patch('/nodes/:id', provisionCtrl.claimNode)
+  router.patch('/nodes/:id/capability', provisionCtrl.updateCapability)
 
   return router
 }

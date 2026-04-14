@@ -4,8 +4,7 @@
 
 enum class BootState {
   NO_CREDS,    // No WiFi credentials in NVS → enter BLE provisioning
-  NO_NODE_ID,  // Has WiFi creds, no node_id → connect WiFi → register with hub
-  READY,       // Fully configured → start telemetry loop
+  READY,       // WiFi is configured → start telemetry loop
 };
 
 class ProvisioningManager {
@@ -13,8 +12,7 @@ class ProvisioningManager {
   // Returns the boot state determined from NVS on construction
   BootState bootState() const { return state_; }
 
-  // Call once in setup(). Handles BLE provisioning and hub registration
-  // before the telemetry loop begins. Blocks until state reaches READY.
+  // Call once in setup(). Handles provisioning and then lets telemetry run.
   void begin();
 
   // Call every loop() iteration: polls button for factory reset.
@@ -22,7 +20,6 @@ class ProvisioningManager {
 
  private:
   void runBleProvisioning();
-  void runHubRegistration();
   void runApFallback();
   void checkFactoryReset();
 

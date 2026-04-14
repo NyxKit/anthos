@@ -1,17 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { NyxButton, NyxInput, NyxLogViewer, NyxSelect } from 'nyx-kit/components'
 import { NyxInputType, NyxTheme } from 'nyx-kit/types'
 import { useLogStore } from '@/logs/stores/logs'
 
 const store = useLogStore()
-
-const viewerEntries = computed(() => store.entries.map(entry => ({
-  timestamp: new Date(entry.timestampMs).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-  origin: entry.source,
-  value: entry.message,
-  theme: entry.level === 'error' ? NyxTheme.Danger : entry.level === 'warn' ? NyxTheme.Warning : entry.level === 'debug' ? NyxTheme.Secondary : undefined,
-})))
 
 onMounted(() => {
   void store.start()
@@ -49,7 +42,7 @@ const levelOptions = [
     <p v-if="store.error" class="logs-view__error">{{ store.error }}</p>
 
     <div class="logs-view__body">
-      <NyxLogViewer :model-value="viewerEntries" :theme="NyxTheme.Primary" timestamp-format="HH:mm:ss" />
+      <NyxLogViewer :model-value="store.entries" :theme="NyxTheme.Primary" timestamp-format="HH:mm:ss" />
     </div>
   </section>
 </template>

@@ -62,6 +62,7 @@ export class TelemetryService {
         hw_id         TEXT    NOT NULL REFERENCES hardware_nodes(hw_id),
         display_name  TEXT,
         claim_status  TEXT    NOT NULL DEFAULT 'unclaimed',
+        capability    TEXT    NOT NULL DEFAULT 'earth',
         registered_at INTEGER NOT NULL
       )
     `)
@@ -69,6 +70,32 @@ export class TelemetryService {
     this.db.run(`
       CREATE INDEX IF NOT EXISTS idx_logical_nodes_hw_id
       ON logical_nodes(hw_id)
+    `)
+
+    const logicalNodeColumns = this.db.exec("PRAGMA table_info(logical_nodes)")
+    const hasCapabilityColumn = logicalNodeColumns.length > 0
+      && logicalNodeColumns[0].values.some((row: unknown[]) => row[1] === 'capability')
+    if (!hasCapabilityColumn) {
+      this.db.run("ALTER TABLE logical_nodes ADD COLUMN capability TEXT NOT NULL DEFAULT 'earth'")
+    }
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS commands (
+        command_id TEXT PRIMARY KEY,
+        node_id TEXT NOT NULL,
+        type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        payload_json TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL,
+        acknowledged_at INTEGER,
+        result_message TEXT
+      )
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_commands_node_status_created
+      ON commands(node_id, status, created_at)
     `)
 
     console.log('telemetry.db.init', DB_PATH)

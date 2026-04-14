@@ -10,6 +10,7 @@ class EarthSensor : public SensorBase {
 
  private:
   bool available_ = false;
+  bool wateringProfile_ = false;
   int lastRaw_ = 0;
   int lastDigital_ = 0;
 };

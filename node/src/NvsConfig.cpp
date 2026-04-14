@@ -52,6 +52,14 @@ String NvsConfig::getNodeId() {
   return val;
 }
 
+String NvsConfig::getNodeCapability() {
+  Preferences prefs;
+  prefs.begin(kNamespace, true);
+  String val = prefs.getString(kNodeCapability, "earth");
+  prefs.end();
+  return val;
+}
+
 void NvsConfig::setWifiCredentials(const String& ssid, const String& pass) {
   Preferences prefs;
   prefs.begin(kNamespace, false);
@@ -71,6 +79,13 @@ void NvsConfig::setNodeId(const String& nodeId) {
   Preferences prefs;
   prefs.begin(kNamespace, false);
   prefs.putString(kNodeId, nodeId);
+  prefs.end();
+}
+
+void NvsConfig::setNodeCapability(const String& capability) {
+  Preferences prefs;
+  prefs.begin(kNamespace, false);
+  prefs.putString(kNodeCapability, capability);
   prefs.end();
 }
 

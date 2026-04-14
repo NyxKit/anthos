@@ -20,6 +20,7 @@ struct AppConfig {
   unsigned long healthIntervalMs = 5000;
   unsigned long retryIntervalMs  = 5000;
   unsigned long pushIntervalMs   = 1000;
+  unsigned long commandPollIntervalMs = 3000;
 };
 
 extern const AppConfig kAppConfig;

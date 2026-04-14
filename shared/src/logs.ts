@@ -1,16 +1,9 @@
+import { LogEntry } from './logs/classes/LogEntry.js'
+
+export { LogEntry }
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-
 export type LogArchiveStatus = 'available' | 'unavailable' | 'expired'
-
-export interface LogEntry {
-  id: string
-  timestampMs: number
-  nodeId: string | null
-  level: LogLevel
-  source: string
-  message: string
-  meta?: Record<string, unknown>
-}
 
 export interface LogListFilters {
   nodeId?: string

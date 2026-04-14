@@ -21,16 +21,40 @@ export const useNodesStore = defineStore('nodes', () => {
     }
   }
 
-  async function claimNode(nodeId: string, displayName: string): Promise<void> {
+  async function claimNode(nodeId: string, displayName: string, capability: 'earth' | 'watering'): Promise<void> {
     isLoading.value = true
     error.value = null
     try {
-      const updated = await anthos.nodes.claim(nodeId, displayName)
+      const updated = await anthos.nodes.claim(nodeId, displayName, capability)
       const index = nodes.value.findIndex(n => n.nodeId === nodeId)
       if (index === -1) return
-      nodes.value[index] = { ...nodes.value[index], displayName: updated.displayName ?? displayName, claimStatus: 'claimed' }
+      nodes.value[index] = {
+        ...nodes.value[index],
+        displayName: updated.displayName ?? displayName,
+        claimStatus: 'claimed',
+        capability: updated.capability ?? capability,
+      }
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to claim node'
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function updateCapability(nodeId: string, capability: 'earth' | 'watering'): Promise<void> {
+    isLoading.value = true
+    error.value = null
+    try {
+      const updated = await anthos.nodes.updateCapability(nodeId, capability)
+      const index = nodes.value.findIndex(n => n.nodeId === nodeId)
+      if (index === -1) return
+      nodes.value[index] = {
+        ...nodes.value[index],
+        capability: updated.capability ?? capability,
+      }
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to update node capability'
       throw e
     } finally {
       isLoading.value = false
@@ -46,5 +70,5 @@ export const useNodesStore = defineStore('nodes', () => {
     }
   }
 
-  return { nodes, isLoading, error, fetchNodes, claimNode, openProvisionWindow }
+  return { nodes, isLoading, error, fetchNodes, claimNode, updateCapability, openProvisionWindow }
 })
