@@ -13,7 +13,7 @@ export class CommandController {
 
   enqueuePump: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const nodeId = String(req.params['nodeId'])
-    const { durationMs } = req.body as { durationMs?: number }
+    const { volumeMl } = req.body as { volumeMl?: number }
 
     await this.logArchive.recordEntry({
       nodeId,
@@ -21,7 +21,7 @@ export class CommandController {
       source: 'command-queue',
       message: `Pump command requested for ${nodeId}`,
       meta: {
-        durationMs,
+        volumeMl,
       },
     })
 
@@ -30,18 +30,18 @@ export class CommandController {
       return
     }
 
-    if (!Number.isFinite(durationMs) || Number(durationMs) <= 0) {
+    if (!Number.isFinite(volumeMl) || Number(volumeMl) <= 0) {
       await this.logArchive.recordEntry({
         nodeId,
         level: 'warn',
         source: 'command-queue',
         message: `Pump command rejected for ${nodeId}`,
         meta: {
-          reason: 'invalid_duration',
-          durationMs,
+          reason: 'invalid_volume',
+          volumeMl,
         },
       })
-      res.status(400).json({ error: 'durationMs must be a positive number' })
+      res.status(400).json({ error: 'volumeMl must be a positive number' })
       return
     }
 
@@ -75,7 +75,7 @@ export class CommandController {
       return
     }
 
-    const command = await this.commands.enqueuePumpCommand(nodeId, { durationMs: Number(durationMs) })
+    const command = await this.commands.enqueuePumpCommand(nodeId, { volumeMl: Number(volumeMl) })
     res.status(201).json({ nodeId, commandId: command.commandId, status: command.status })
   }
 

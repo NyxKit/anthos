@@ -134,7 +134,7 @@ As an operator, I want to mark a named node as `earth` or `watering` so the serv
 ## Assumptions
 
 - Pump commands are short-lived actions that activate the pump for a defined run.
-- The test pump action uses a 5-second default duration unless the operator chooses a different duration.
+- The test pump action uses a 100 ml default volume unless the operator chooses a different amount.
 - Pending commands remain available until the node acknowledges them.
 
 ## Dependencies

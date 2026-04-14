@@ -7,7 +7,7 @@ import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { logo } from '@/shared/assets'
 import type { LogicalNodeRecord } from '@anthos/shared'
 
-const PUMP_DURATION_MS = 5000
+const PUMP_VOLUME_ML = 100
 
 const props = defineProps<{
   node?: LogicalNodeRecord
@@ -16,7 +16,7 @@ const props = defineProps<{
 const store = useTelemetryStore()
 const pumpState = ref<'idle' | 'loading' | 'done' | 'error'>('idle')
 const pumpError = ref<string | null>(null)
-const pumpDuration = ref(String(PUMP_DURATION_MS))
+const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
 
 const formattedTimestamp = computed(() => {
   const now = Date.now()
@@ -76,7 +76,7 @@ async function handlePumpClick() {
   pumpError.value = null
 
   try {
-    await anthos.nodes.queuePump(actionNodeId.value, parseInt(pumpDuration.value))
+    await anthos.nodes.queuePump(actionNodeId.value, Number(pumpVolumeMl.value))
     pumpState.value = 'done'
   } catch (error) {
     pumpState.value = 'error'
@@ -167,7 +167,7 @@ async function handlePumpClick() {
       </div>
     </div>
 
-    <NyxActionItem
+      <NyxActionItem
       title="Pump"
       :theme="NyxTheme.Secondary"
       :action="pumpState === 'loading' ? 'Pumping...' : 'Pump'"
@@ -178,17 +178,18 @@ async function handlePumpClick() {
       </span>
       <template #action>
         <NyxInput
-          class="node-card__pump-duration"
+          class="node-card__pump-volume"
           :type="NyxInputType.Number"
           :theme="NyxTheme.Secondary"
           :size="NyxSize.Small"
-          :min="1000"
-          :max="20000"
-          :step="500"
-          v-model="pumpDuration"
+          :min="10"
+          :max="500"
+          :step="10"
+          v-model="pumpVolumeMl"
         />
+        <span class="node-card__pump-unit">ml</span>
         <NyxButton :theme="NyxTheme.Secondary" :size="NyxSize.Small" :disabled="pumpState === 'loading'" @click="handlePumpClick">
-          {{ pumpState === 'loading' ? 'Pumping...' : 'Pump' }}
+          <NyxIcon name="soap-dispenser-droplet" /> {{ pumpState === 'loading' ? 'Pumping...' : 'Pump' }}
         </NyxButton>
       </template>
     </NyxActionItem>
@@ -270,6 +271,12 @@ async function handlePumpClick() {
   color: var(--nyx-c-text-1, #dee3eb);
   background: rgba(109, 109, 240, 0.12);
   border: 1px solid rgba(109, 109, 240, 0.25);
+}
+
+.node-card__pump-unit {
+  font-size: 0.75rem;
+  color: var(--nyx-c-on-surface-variant, #cfc2d6);
+  margin-inline: 0.25rem 0.5rem;
 }
 
 .node-card__status-dot {

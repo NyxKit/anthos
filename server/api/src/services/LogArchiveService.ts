@@ -121,7 +121,7 @@ export class LogArchiveService {
 
     return new LogEntry({
       id: randomUUID(),
-      timestamp: Date.now(),
+      timestamp: payload.timestampMs,
       nodeId: payload.nodeId,
       level: 'info',
       source: payload.nodeId,
@@ -245,7 +245,10 @@ export class LogArchiveService {
 
   private isLogEntry(value: Partial<LogEntry>): value is LogEntry {
     return typeof value.id === 'string'
-      && (typeof value.timestamp === 'number' || typeof (value as { timestampMs?: unknown }).timestampMs === 'number')
+      && (typeof value.timestamp === 'number'
+        || typeof value.timestamp === 'string'
+        || value.timestamp instanceof Date
+        || typeof (value as { timestampMs?: unknown }).timestampMs === 'number')
       && (typeof value.nodeId === 'string' || value.nodeId === null)
       && this.isLogLevel(value.level)
       && typeof value.source === 'string'
@@ -321,6 +324,8 @@ export class LogArchiveService {
 
   private resolveTimestamp(entry: Partial<LogEntry> & { timestampMs?: unknown }): number {
     if (typeof entry.timestamp === 'number') return entry.timestamp
+    if (typeof entry.timestamp === 'string') return new Date(entry.timestamp).getTime()
+    if (entry.timestamp instanceof Date) return entry.timestamp.getTime()
     if (typeof entry.timestampMs === 'number') return entry.timestampMs
     return Date.now()
   }

@@ -40,7 +40,7 @@ describe('CommandQueueService', () => {
   it('queues commands, returns pending commands, and acknowledges them', async () => {
     const service = new CommandQueueService(db, saveDb, logArchive as never)
 
-    const queued = await service.enqueuePumpCommand('node-001', { durationMs: 1500 })
+    const queued = await service.enqueuePumpCommand('node-001', { volumeMl: 100 })
     expect(queued.nodeId).toBe('node-001')
     expect(queued.type).toBe('pump')
     expect(queued.status).toBe('pending')
@@ -54,7 +54,8 @@ describe('CommandQueueService', () => {
     const pending = service.getPendingCommands('node-001')
     expect(pending.nodeId).toBe('node-001')
     expect(pending.commands).toHaveLength(1)
-    expect(pending.commands[0]?.payload.durationMs).toBe(1500)
+    expect(pending.commands[0]?.payload.volumeMl).toBe(100)
+    expect(pending.commands[0]?.payload.durationMs).toBe(20000)
 
     const acked = await service.acknowledgeCommand('node-001', queued.commandId, {
       result: 'completed',

@@ -16,6 +16,7 @@
       "type": "pump",
       "status": "pending",
       "payload": {
+        "volumeMl": 100,
         "durationMs": 5000
       }
     }
@@ -41,7 +42,7 @@
 
 ```json
 {
-  "durationMs": 5000
+  "volumeMl": 100
 }
 ```
 

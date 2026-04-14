@@ -11,6 +11,8 @@ import type { LogArchiveService } from './LogArchiveService.js'
 
 type CommandRow = Record<string, unknown>
 
+const PUMP_MS_PER_ML = 200
+
 export class CommandQueueService {
   constructor(
     private readonly db: Database,
@@ -20,12 +22,13 @@ export class CommandQueueService {
 
   async enqueuePumpCommand(nodeId: string, request: QueuePumpCommandRequest): Promise<QueuedCommand> {
     const now = Date.now()
+    const durationMs = Math.max(1, Math.round(request.volumeMl * PUMP_MS_PER_ML))
     const command: QueuedCommand = {
       commandId: randomUUID(),
       nodeId,
       type: 'pump',
       status: 'pending',
-      payload: { durationMs: request.durationMs },
+      payload: { volumeMl: request.volumeMl, durationMs },
       createdAt: now,
       updatedAt: now,
     }
@@ -56,7 +59,8 @@ export class CommandQueueService {
       message: `Pump command queued for ${nodeId}`,
       meta: {
         commandId: command.commandId,
-        durationMs: request.durationMs,
+        volumeMl: request.volumeMl,
+        durationMs,
       },
     })
 
@@ -155,9 +159,9 @@ export class CommandQueueService {
 
   private rowToCommand(row: CommandRow): QueuedCommand {
     const payloadJson = String(row['payload_json'] ?? '{}')
-    let payload: { durationMs?: number } = {}
+    let payload: { volumeMl?: number; durationMs?: number } = {}
     try {
-      payload = JSON.parse(payloadJson) as { durationMs?: number }
+      payload = JSON.parse(payloadJson) as { volumeMl?: number; durationMs?: number }
     } catch {
       payload = {}
     }
@@ -167,7 +171,10 @@ export class CommandQueueService {
       nodeId: String(row['node_id']),
       type: String(row['type']) as 'pump',
       status: String(row['status']) as 'pending' | 'completed' | 'failed',
-      payload: { durationMs: Number(payload.durationMs ?? 0) },
+      payload: {
+        volumeMl: Number(payload.volumeMl ?? 0),
+        durationMs: Number(payload.durationMs ?? 0),
+      },
       createdAt: Number(row['created_at']),
       updatedAt: Number(row['updated_at']),
     }

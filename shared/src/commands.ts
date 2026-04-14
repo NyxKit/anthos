@@ -3,6 +3,7 @@ export type CommandType = 'pump'
 export type CommandStatus = 'pending' | 'completed' | 'failed'
 
 export interface PumpCommandPayload {
+  volumeMl: number
   durationMs: number
 }
 
@@ -23,7 +24,7 @@ export interface CommandQueueResponse {
 }
 
 export interface QueuePumpCommandRequest {
-  durationMs: number
+  volumeMl: number
 }
 
 export interface CommandAckRequest {

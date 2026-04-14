@@ -33,12 +33,12 @@ export class AnthosNodes {
     return this.anthos.request<TelemetryPayload>('/api/telemetry/latest')
   }
 
-  queuePump(nodeId: string, durationMs: number): Promise<{ nodeId: string; commandId: string; status: 'pending' }> {
+  queuePump(nodeId: string, volumeMl: number): Promise<{ nodeId: string; commandId: string; status: 'pending' }> {
     return this.anthos.request<{ nodeId: string; commandId: string; status: 'pending' }>(
       `/api/nodes/${nodeId}/commands`,
       {
         method: 'POST',
-        body: { durationMs } satisfies QueuePumpCommandRequest,
+        body: { volumeMl } satisfies QueuePumpCommandRequest,
       }
     )
   }
