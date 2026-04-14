@@ -29,3 +29,9 @@
 - Decision: The default pump test action uses a 5-second duration.
 - Rationale: A 1.5-second run was too short to observe reliably during bring-up, while 5 seconds is long enough to confirm end-to-end actuation.
 - Alternatives considered: Hardcoding a shorter duration or requiring an operator-entered value every time. These were less useful during debugging and validation.
+
+## Decision 6: Record pump queue activity in server logs
+
+- Decision: Pump command queueing, completion, failure, and rejection will be written to the server log archive at the queue boundary.
+- Rationale: This keeps the source of truth close to the backend event that created the action and makes future automations possible without UI-specific hooks.
+- Alternatives considered: Logging only in the UI or only on the node. Those approaches are too late in the flow or miss rejected/queued commands entirely.

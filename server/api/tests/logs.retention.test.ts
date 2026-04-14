@@ -28,7 +28,7 @@ describe('LogArchiveService retention', () => {
     expiredDay.setUTCDate(expiredDay.getUTCDate() - 31)
     const expiredName = `${expiredDay.toISOString().slice(0, 10)}.ndjson`
 
-    await writeFile(path.join(logsDir, expiredName), '{"id":"1","timestampMs":1,"nodeId":"node-001","level":"info","source":"node-001","message":"old"}\n')
+    await writeFile(path.join(logsDir, expiredName), '{"id":"1","timestamp":1,"nodeId":"node-001","level":"info","source":"node-001","message":"old"}\n')
 
     const service = new LogArchiveService()
     await service.init()

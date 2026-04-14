@@ -27,20 +27,29 @@ async function createDb(): Promise<Database> {
 describe('CommandQueueService', () => {
   let db: Database
   let saveDb: ReturnType<typeof vi.fn>
+  let logArchive: { recordEntry: ReturnType<typeof vi.fn> }
 
   beforeEach(async () => {
     db = await createDb()
     saveDb = vi.fn().mockResolvedValue(undefined)
+    logArchive = {
+      recordEntry: vi.fn().mockResolvedValue(undefined),
+    }
   })
 
   it('queues commands, returns pending commands, and acknowledges them', async () => {
-    const service = new CommandQueueService(db, saveDb)
+    const service = new CommandQueueService(db, saveDb, logArchive as never)
 
     const queued = await service.enqueuePumpCommand('node-001', { durationMs: 1500 })
     expect(queued.nodeId).toBe('node-001')
     expect(queued.type).toBe('pump')
     expect(queued.status).toBe('pending')
     expect(saveDb).toHaveBeenCalledTimes(1)
+    expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({
+      nodeId: 'node-001',
+      source: 'command-queue',
+      message: 'Pump command queued for node-001',
+    }))
 
     const pending = service.getPendingCommands('node-001')
     expect(pending.nodeId).toBe('node-001')
@@ -53,11 +62,16 @@ describe('CommandQueueService', () => {
 
     expect(acked?.status).toBe('completed')
     expect(saveDb).toHaveBeenCalledTimes(2)
+    expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({
+      nodeId: 'node-001',
+      source: 'command-queue',
+      message: 'Pump command completed for node-001',
+    }))
     expect(service.getPendingCommands('node-001').commands).toHaveLength(0)
   })
 
   it('rejects acknowledgements for unknown commands', async () => {
-    const service = new CommandQueueService(db, saveDb)
+    const service = new CommandQueueService(db, saveDb, logArchive as never)
 
     const acked = await service.acknowledgeCommand('node-001', 'missing-command', {
       result: 'failed',
@@ -66,5 +80,6 @@ describe('CommandQueueService', () => {
 
     expect(acked).toBeNull()
     expect(saveDb).not.toHaveBeenCalled()
+    expect(logArchive.recordEntry).not.toHaveBeenCalled()
   })
 })

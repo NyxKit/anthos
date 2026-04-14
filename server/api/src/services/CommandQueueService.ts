@@ -7,13 +7,15 @@ import type {
   QueuedCommand,
   QueuePumpCommandRequest,
 } from '@anthos/shared'
+import type { LogArchiveService } from './LogArchiveService.js'
 
 type CommandRow = Record<string, unknown>
 
 export class CommandQueueService {
   constructor(
     private readonly db: Database,
-    private readonly saveDb: () => Promise<void>
+    private readonly saveDb: () => Promise<void>,
+    private readonly logArchive: LogArchiveService
   ) {}
 
   async enqueuePumpCommand(nodeId: string, request: QueuePumpCommandRequest): Promise<QueuedCommand> {
@@ -46,6 +48,17 @@ export class CommandQueueService {
     ])
     stmt.free()
     await this.saveDb()
+
+    await this.logArchive.recordEntry({
+      nodeId,
+      level: 'info',
+      source: 'command-queue',
+      message: `Pump command queued for ${nodeId}`,
+      meta: {
+        commandId: command.commandId,
+        durationMs: request.durationMs,
+      },
+    })
 
     return command
   }
@@ -100,6 +113,18 @@ export class CommandQueueService {
     ])
     stmt.free()
     await this.saveDb()
+
+    await this.logArchive.recordEntry({
+      nodeId,
+      level: request.result === 'completed' ? 'info' : 'warn',
+      source: 'command-queue',
+      message: `Pump command ${request.result} for ${nodeId}`,
+      meta: {
+        commandId,
+        result: request.result,
+        message: request.message ?? null,
+      },
+    })
 
     return {
       ...existing,

@@ -106,6 +106,7 @@ As an operator, I want to mark a named node as `earth` or `watering` so the serv
 - **FR-008**: The system MUST associate each command with exactly one target node.
 - **FR-009**: The system MUST store a capability for each claimed node and only allow pump commands for nodes marked `watering`.
 - **FR-010**: The system MUST expose node capability changes through the named nodes management flow.
+- **FR-011**: The system MUST record pump command queueing, completion, and rejection events in the server log archive.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -128,6 +129,7 @@ As an operator, I want to mark a named node as `earth` or `watering` so the serv
 - **SC-003**: At least 99% of successfully executed pump commands are acknowledged exactly once and do not run again.
 - **SC-004**: Operators can determine whether a command is pending, completed, or failed for every queued pump request.
 - **SC-005**: Operators can switch a named node between `earth` and `watering` from the nodes management screen, and the change takes effect without reflashing the node.
+- **SC-006**: Every pump queue attempt produces a searchable server log entry.
 
 ## Assumptions
 

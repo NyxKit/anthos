@@ -19,25 +19,32 @@ describe('CommandController', () => {
     const registry = {
       getLogicalNode: vi.fn().mockReturnValue({ capability: 'watering' }),
     }
-    const controller = new CommandController(commands as never, registry as never)
+    const logArchive = {
+      recordEntry: vi.fn().mockResolvedValue(undefined),
+    }
+    const controller = new CommandController(commands as never, registry as never, logArchive as never)
     const res = createRes()
 
     await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { durationMs: 0 } } as never, res as never)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(commands.enqueuePumpCommand).not.toHaveBeenCalled()
+    expect(logArchive.recordEntry).toHaveBeenCalled()
   })
 
   it('lists pending commands and acknowledges results', async () => {
     const commands = {
       enqueuePumpCommand: vi.fn(),
-      getPendingCommands: vi.fn().mockReturnValue({ nodeId: 'node-001', commands: [] }),
+      getPendingCommands: vi.fn().mockReturnValue({ nodeId: 'node-001', capability: 'watering', commands: [] }),
       acknowledgeCommand: vi.fn().mockResolvedValue({ status: 'completed' }),
     }
     const registry = {
       getLogicalNode: vi.fn().mockReturnValue({ capability: 'watering' }),
     }
-    const controller = new CommandController(commands as never, registry as never)
+    const logArchive = {
+      recordEntry: vi.fn().mockResolvedValue(undefined),
+    }
+    const controller = new CommandController(commands as never, registry as never, logArchive as never)
 
     const listRes = createRes()
     await controller.listPending({ params: { nodeId: 'node-001' } } as never, listRes as never)
@@ -66,12 +73,16 @@ describe('CommandController', () => {
     const registry = {
       getLogicalNode: vi.fn().mockReturnValue({ capability: 'earth' }),
     }
-    const controller = new CommandController(commands as never, registry as never)
+    const logArchive = {
+      recordEntry: vi.fn().mockResolvedValue(undefined),
+    }
+    const controller = new CommandController(commands as never, registry as never, logArchive as never)
     const res = createRes()
 
     await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { durationMs: 1500 } } as never, res as never)
 
     expect(res.status).toHaveBeenCalledWith(403)
     expect(commands.enqueuePumpCommand).not.toHaveBeenCalled()
+    expect(logArchive.recordEntry).toHaveBeenCalled()
   })
 })

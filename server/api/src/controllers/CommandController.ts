@@ -2,16 +2,28 @@ import type { Request, Response, RequestHandler } from 'express'
 
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'
+import { LogArchiveService } from '../services/LogArchiveService.js'
 
 export class CommandController {
   constructor(
     private readonly commands: CommandQueueService,
-    private readonly registry: NodeRegistryService
+    private readonly registry: NodeRegistryService,
+    private readonly logArchive: LogArchiveService
   ) {}
 
   enqueuePump: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const nodeId = String(req.params['nodeId'])
     const { durationMs } = req.body as { durationMs?: number }
+
+    await this.logArchive.recordEntry({
+      nodeId,
+      level: 'info',
+      source: 'command-queue',
+      message: `Pump command requested for ${nodeId}`,
+      meta: {
+        durationMs,
+      },
+    })
 
     if (!nodeId) {
       res.status(400).json({ error: 'nodeId is required' })
@@ -19,17 +31,46 @@ export class CommandController {
     }
 
     if (!Number.isFinite(durationMs) || Number(durationMs) <= 0) {
+      await this.logArchive.recordEntry({
+        nodeId,
+        level: 'warn',
+        source: 'command-queue',
+        message: `Pump command rejected for ${nodeId}`,
+        meta: {
+          reason: 'invalid_duration',
+          durationMs,
+        },
+      })
       res.status(400).json({ error: 'durationMs must be a positive number' })
       return
     }
 
     const node = this.registry.getLogicalNode(nodeId)
     if (!node) {
+      await this.logArchive.recordEntry({
+        nodeId,
+        level: 'warn',
+        source: 'command-queue',
+        message: `Pump command rejected for ${nodeId}`,
+        meta: {
+          reason: 'node_not_found',
+        },
+      })
       res.status(404).json({ error: 'Node not found' })
       return
     }
 
     if (node.capability !== 'watering') {
+      await this.logArchive.recordEntry({
+        nodeId,
+        level: 'warn',
+        source: 'command-queue',
+        message: `Pump command rejected for ${nodeId}`,
+        meta: {
+          reason: 'unsupported_profile',
+          capability: node.capability,
+        },
+      })
       res.status(403).json({ error: 'Node does not support pump commands' })
       return
     }

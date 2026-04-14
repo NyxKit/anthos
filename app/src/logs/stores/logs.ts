@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { LogArchiveStatus, LogEntry, LogLevel, LogListFilters, LogListResponse, LogStreamHandle } from '@anthos/shared'
+import { type LogArchiveStatus, type LogLevel, type LogListFilters, type LogListResponse, type LogStreamHandle } from '@anthos/shared'
+import { LogEntry } from '@anthos/shared/logs/classes/LogEntry'
 import anthos from '@anthos/shared/anthos'
 
 const PAGE_SIZE = 50
@@ -49,22 +50,43 @@ export const useLogStore = defineStore('logs', () => {
     return buffer.slice(0, MAX_ENTRIES)
   }
 
+  function hydrateEntry(entry: LogEntry): LogEntry {
+    const timestamp = typeof entry.timestamp === 'number'
+      ? entry.timestamp
+      : new Date(entry.timestamp).getTime()
+
+    return new LogEntry({
+      id: entry.id,
+      timestamp,
+      nodeId: entry.nodeId,
+      level: entry.level,
+      source: entry.source,
+      message: entry.message,
+      meta: entry.meta,
+    })
+  }
+
+  function hydrateEntries(buffer: LogEntry[]): LogEntry[] {
+    return buffer.map(hydrateEntry)
+  }
+
   function replaceEntries(response: LogListResponse): void {
-    entries.value = trimEntries(response.items)
+    entries.value = trimEntries(hydrateEntries(response.items))
     hasMore.value = response.hasMore
     historyCursor.value = response.nextCursor
     archiveStatus.value = response.archiveStatus ?? 'available'
   }
 
   function mergeLiveEntry(entry: LogEntry): void {
-    const index = entries.value.findIndex(item => item.id === entry.id)
+    const hydrated = hydrateEntry(entry)
+    const index = entries.value.findIndex(item => item.id === hydrated.id)
     if (index === -1) {
-      entries.value = trimEntries([entry, ...entries.value])
+      entries.value = trimEntries([hydrated, ...entries.value])
       return
     }
 
     const next = [...entries.value]
-    next[index] = entry
+    next[index] = hydrated
     entries.value = trimEntries(next)
   }
 
@@ -133,7 +155,10 @@ export const useLogStore = defineStore('logs', () => {
 
     try {
       const response = await anthos.logs.list(buildFilters(historyCursor.value))
-      entries.value = trimEntries([...entries.value, ...response.items.filter(item => !entries.value.some(existing => existing.id === item.id))])
+      entries.value = trimEntries([
+        ...entries.value,
+        ...hydrateEntries(response.items.filter(item => !entries.value.some(existing => existing.id === item.id))),
+      ])
       hasMore.value = response.hasMore
       historyCursor.value = response.nextCursor
       archiveStatus.value = response.archiveStatus ?? archiveStatus.value

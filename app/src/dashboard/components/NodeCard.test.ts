@@ -50,7 +50,7 @@ describe('NodeCard', () => {
 
     await wrapper.find('button').trigger('click')
 
-    expect(queuePump).toHaveBeenCalledWith('node-001', 1500)
+    expect(queuePump).toHaveBeenCalledWith('node-001', 5000)
     expect(wrapper.text()).toContain('Command queued')
   })
 })

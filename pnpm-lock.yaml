@@ -97,7 +97,11 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@25.5.2)(jsdom@26.1.0)(sass@1.99.0)(tsx@4.21.0)(yaml@2.8.3)
 
-  shared: {}
+  shared:
+    dependencies:
+      nyx-kit:
+        specifier: link:../../nyx-kit
+        version: link:../../nyx-kit
 
 packages:
 

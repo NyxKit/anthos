@@ -111,6 +111,7 @@ Earth Unit
 - on `AtomS3 Lite`, `AO` must go to an ADC-capable bottom pin: `G5`, `G6`, `G7`, or `G8`
 - `G38` and `G39` are not ADC pins, so they are not valid for `AO`
 - safe mapping example: `white(AO) -> G5`, `yellow(DO) -> G39`, `black -> GND`, `red -> 5V`
+- pump calibration note: the watering unit pump moves about `100 ml` in `20 s` (roughly `5 ml/s`)
 
 ## Watering Unit Note
 

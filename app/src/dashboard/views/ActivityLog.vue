@@ -1,24 +1,10 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import { NyxLogViewer, NyxBadge } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 import { useLogStore } from '@/logs/stores/logs'
 
-interface NyxLogEntry {
-  timestamp: string
-  origin: string
-  value: string
-  theme?: NyxTheme
-}
-
 const store = useLogStore()
-
-const events = computed<NyxLogEntry[]>(() => store.entries.slice(0, 8).map(entry => ({
-  timestamp: new Date(entry.timestampMs).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-  origin: entry.source,
-  value: entry.message,
-  theme: entry.level === 'error' ? NyxTheme.Danger : entry.level === 'warn' ? NyxTheme.Warning : NyxTheme.Info,
-})))
 
 onMounted(() => {
   void store.start()
@@ -37,7 +23,7 @@ onMounted(() => {
         <NyxBadge>{{ store.visibleCount }} ENTRIES</NyxBadge>
       </div>
     </div>
-    <NyxLogViewer :model-value="events" :theme="NyxTheme.Primary" timestamp-format="HH:mm:ss" />
+    <NyxLogViewer :model-value="store.entries.slice(0, 8)" :theme="NyxTheme.Primary" timestamp-format="HH:mm:ss" />
     <router-link class="activity-log__link" to="/logs">Open full logs</router-link>
   </div>
 </template>
