@@ -18,6 +18,7 @@ export interface SensorSample {
 
 export interface TelemetryPayload {
   nodeId: string
+  hwId: string
   timestampMs: number
   health: NodeHealthPayload
   sensors: SensorSample[]
@@ -31,6 +32,8 @@ export interface HardwareNodeRegistration {
 export interface NodeRegistrationResponse {
   nodeId: string
   status: 'registered' | 'reconnected'
+  capability: 'earth' | 'watering'
+  firmwareUpdated?: boolean
 }
 
 export interface LogicalNodeRecord {
@@ -38,5 +41,6 @@ export interface LogicalNodeRecord {
   hwId: string
   displayName: string | null
   claimStatus: 'unclaimed' | 'claimed'
+  capability: 'earth' | 'watering'
   registeredAt: number
 }

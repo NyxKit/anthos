@@ -13,6 +13,7 @@ const router = useRouter()
 
 const selectedNode = ref<LogicalNodeRecord | null>(null)
 const isModalOpen = ref(false)
+const capabilitySavingNodeId = ref<string | null>(null)
 
 onMounted(() => store.fetchNodes())
 
@@ -35,6 +36,16 @@ async function handleAddNode() {
   router.push('/provision').catch(() => {
     // Route may not exist yet — fail silently
   })
+}
+
+async function handleCapabilityToggle(node: LogicalNodeRecord) {
+  const nextCapability = node.capability === 'watering' ? 'earth' : 'watering'
+  capabilitySavingNodeId.value = node.nodeId
+  try {
+    await store.updateCapability(node.nodeId, nextCapability)
+  } finally {
+    capabilitySavingNodeId.value = null
+  }
 }
 </script>
 
@@ -70,16 +81,30 @@ async function handleAddNode() {
       <h3>Named Nodes</h3>
       <p v-if="!claimedNodes.length" class="nodes-view__empty">No named nodes yet.</p>
       <NyxGrid v-else :columns="2">
-        <NyxCard
-          v-for="n in claimedNodes"
-          :key="n.nodeId"
-          :title="n.displayName || n.nodeId"
-        >
-          <div class="named-node__details">
-            <span class="label">Node ID</span>
-            <span>{{ n.nodeId }}</span>
-          </div>
-        </NyxCard>
+          <NyxCard
+            v-for="n in claimedNodes"
+            :key="n.nodeId"
+            :title="n.displayName || n.nodeId"
+          >
+            <div class="named-node__details">
+              <span class="label">Node ID</span>
+              <span>{{ n.nodeId }}</span>
+              <span class="label">Hardware</span>
+              <span>{{ n.capability === 'watering' ? 'Watering unit' : 'Earth only' }}</span>
+            </div>
+            <div class="named-node__badge" :data-capability="n.capability">
+              {{ n.capability === 'watering' ? 'Watering' : 'Earth' }}
+            </div>
+            <NyxButton
+              class="named-node__toggle"
+              :theme="NyxTheme.Primary"
+              :size="NyxSize.Small"
+              :disabled="capabilitySavingNodeId === n.nodeId"
+              @click="handleCapabilityToggle(n)"
+            >
+              {{ n.capability === 'watering' ? 'Set Earth' : 'Set Watering' }}
+            </NyxButton>
+          </NyxCard>
       </NyxGrid>
     </section>
 
@@ -144,5 +169,27 @@ async function handleAddNode() {
 .named-node__details .label {
   font-size: 0.75rem;
   color: var(--nyx-c-text-muted, #9ca3af);
+}
+
+.named-node__badge {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nyx-c-text-1, #dee3eb);
+  background: rgba(109, 109, 240, 0.12);
+  border: 1px solid rgba(109, 109, 240, 0.25);
+}
+
+.named-node__badge[data-capability='watering'] {
+  background: rgba(96, 222, 135, 0.12);
+  border-color: rgba(96, 222, 135, 0.25);
+}
+
+.named-node__toggle {
+  margin-top: 0.75rem;
 }
 </style>

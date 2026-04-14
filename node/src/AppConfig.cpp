@@ -30,6 +30,7 @@ AppConfig makeAppConfig() {
   config.healthIntervalMs = 5000;
   config.retryIntervalMs  = 5000;
   config.pushIntervalMs   = 1000;
+  config.commandPollIntervalMs = 3000;
   return config;
 }
 }

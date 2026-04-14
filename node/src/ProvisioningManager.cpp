@@ -2,29 +2,17 @@
 
 #include <WebServer.h>
 #include <WiFi.h>
-
-#include <ESPmDNS.h>
-
-#include "AppConfig.h"
 #include "BleProvisioning.h"
-#include "HubClient.h"
 #include "NvsConfig.h"
-
-// Firmware version constant — update on each release
-static constexpr const char* kFirmwareVersion = "1.0.0";
 
 void ProvisioningManager::begin() {
   if (!NvsConfig::hasWifiCredentials()) {
     state_ = BootState::NO_CREDS;
     Serial.println("[BOOT] No credentials. Entering BLE provisioning mode.");
     runBleProvisioning();
-  } else if (!NvsConfig::hasNodeId()) {
-    state_ = BootState::NO_NODE_ID;
-    Serial.println("[BOOT] WiFi credentials found, no node_id. Starting registration.");
-    runHubRegistration();
   } else {
     state_ = BootState::READY;
-    Serial.println("[BOOT] Fully configured. Starting telemetry loop.");
+    Serial.println("[BOOT] WiFi credentials found. Starting telemetry loop.");
   }
 }
 
@@ -37,54 +25,12 @@ void ProvisioningManager::runBleProvisioning() {
   const bool success = ble.begin();
 
   if (success) {
-    Serial.println("[PROV] WiFi provisioning succeeded. Proceeding to hub registration.");
-    state_ = BootState::NO_NODE_ID;
-    runHubRegistration();
+    Serial.println("[PROV] WiFi provisioning succeeded. Starting telemetry loop.");
+    state_ = BootState::READY;
   } else {
     // BLE session ended without success — try AP fallback
     Serial.println("[PROV] BLE failed. Starting AP captive portal.");
     runApFallback();
-  }
-}
-
-void ProvisioningManager::runHubRegistration() {
-  // Wait for WiFi connection first (credentials are in NVS from BLE provisioning)
-  Serial.println("[PROV] Waiting for WiFi...");
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(NvsConfig::getWifiSsid().c_str(), NvsConfig::getWifiPass().c_str());
-
-  const unsigned long wifiStart = millis();
-  while (WiFi.status() != WL_CONNECTED) {
-    if (millis() - wifiStart > 30000) {
-      Serial.println("[PROV] WiFi timeout. Restarting.");
-      ESP.restart();
-    }
-    delay(200);
-  }
-  Serial.printf("[PROV] WiFi connected. IP: %s\n", WiFi.localIP().toString().c_str());
-
-  // Initialize mDNS now that WiFi is up
-  MDNS.begin("anthos-node");
-
-  // Register with hub — retry every 30s, checking factory-reset button between attempts
-  HubClient hub;
-  const String hwId = BleProvisioning::getHwId();
-
-  while (true) {
-    const String nodeId = hub.tryRegisterOnce(hwId, kFirmwareVersion);
-    if (nodeId.length() > 0) {
-      NvsConfig::setNodeId(nodeId);
-      Serial.printf("[PROV] Registered. node_id=%s. Starting telemetry loop.\n", nodeId.c_str());
-      state_ = BootState::READY;
-      return;
-    }
-
-    Serial.println("[REG] Retrying in 30s... (hold button 3s to factory reset)");
-    const unsigned long retryStart = millis();
-    while (millis() - retryStart < 30000) {
-      checkFactoryReset();
-      delay(100);
-    }
   }
 }
 

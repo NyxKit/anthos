@@ -29,6 +29,7 @@ describe('LogArchiveService history', () => {
     const now = Date.now()
     await service.recordTelemetry({
       nodeId: 'node-001',
+      hwId: 'ABCDEF123456',
       timestampMs: now,
       health: { wifi: 'ok', ip: '1.1.1.1', rssi: -40, server: 'anthos', target: 'hub', uptimeMs: 1 },
       sensors: [{ type: 'temperature', value: 21, unit: 'C' }],
@@ -36,6 +37,7 @@ describe('LogArchiveService history', () => {
 
     await service.recordTelemetry({
       nodeId: 'node-002',
+      hwId: 'ABCDEF654321',
       timestampMs: now + 1000,
       health: { wifi: 'ok', ip: '1.1.1.2', rssi: -41, server: 'anthos', target: 'hub', uptimeMs: 2 },
       sensors: [{ type: 'temperature', value: 22, unit: 'C' }],

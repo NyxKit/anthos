@@ -112,6 +112,15 @@ Earth Unit
 - `G38` and `G39` are not ADC pins, so they are not valid for `AO`
 - safe mapping example: `white(AO) -> G5`, `yellow(DO) -> G39`, `black -> GND`, `red -> 5V`
 
+## Watering Unit Note
+
+- product: `M5Stack Watering Unit - Soil Moisture Sensor and Water Pump`
+- source: `https://www.tinytronics.nl/en/platforms-and-systems/m5stack/unit/m5stack-watering-unit-soil-moisture-sensor-and-water-pump`
+- on `AtomS3 Lite`, the wiring uses the same host pins as the Earth unit: `white(AO) -> G5` and `yellow -> G39`
+- black still goes to `GND` and red still goes to `5V`
+- the difference is behavioral, not wiring: `Earth` treats `G39` as a sensor digital input, while `Watering` treats `G39` as pump enable
+- the firmware should treat `earth` and `watering` as separate server-assigned capabilities, not as a manual node setting
+
 ## Key Docs
 
 - `https://docs.m5stack.com/en/core/AtomS3%20Lite` - primary controller doc for the current node hardware

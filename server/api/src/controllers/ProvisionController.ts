@@ -33,6 +33,7 @@ export class ProvisionController {
       const response: Record<string, unknown> = {
         nodeId: existing.nodeId,
         status: 'reconnected',
+        capability: existing.capability,
       }
       if (firmwareUpdated) {
         response['firmwareUpdated'] = true
@@ -51,7 +52,8 @@ export class ProvisionController {
     const nodeId = this.registry.createLogicalNode(hwId)
     await this.saveDb()
 
-    res.json({ nodeId, status: 'registered' })
+    const created = this.registry.getLogicalNode(nodeId)
+    res.json({ nodeId, status: 'registered', capability: created?.capability ?? 'earth' })
   }
 
   openProvisionWindow: RequestHandler = (_req: Request, res: Response): void => {
@@ -70,7 +72,7 @@ export class ProvisionController {
 
   claimNode: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const nodeId = String(req.params['id'])
-    const { displayName } = req.body as { displayName?: string }
+    const { displayName, capability } = req.body as { displayName?: string; capability?: string }
 
     if (!displayName) {
       res.status(400).json({ error: 'displayName is required' })
@@ -82,7 +84,8 @@ export class ProvisionController {
       return
     }
 
-    const claimed = this.registry.claimNode(nodeId, displayName)
+    const normalizedCapability = capability === 'watering' ? 'watering' : 'earth'
+    const claimed = this.registry.claimNode(nodeId, displayName, normalizedCapability)
 
     if (!claimed) {
       res.status(404).json({ error: 'Node not found or already claimed' })
@@ -91,6 +94,23 @@ export class ProvisionController {
 
     await this.saveDb()
 
-    res.json({ nodeId, displayName, claimStatus: 'claimed' })
+    res.json({ nodeId, displayName, claimStatus: 'claimed', capability: normalizedCapability })
+  }
+
+  updateCapability: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const nodeId = String(req.params['id'])
+    const { capability } = req.body as { capability?: string }
+
+    const normalizedCapability = capability === 'watering' ? 'watering' : 'earth'
+    const updated = this.registry.updateCapability(nodeId, normalizedCapability)
+
+    if (!updated) {
+      res.status(404).json({ error: 'Node not found or not claimed' })
+      return
+    }
+
+    await this.saveDb()
+
+    res.json({ nodeId, capability: normalizedCapability })
   }
 }

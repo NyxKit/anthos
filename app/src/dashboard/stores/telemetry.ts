@@ -9,6 +9,7 @@ interface Node {
   name: string
   status: 'connected' | 'disconnected' | 'unknown'
   lastSeen: number
+  capability: 'earth' | 'watering' | null
 }
 
 export const useTelemetryStore = defineStore('telemetry', () => {
@@ -22,6 +23,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const lastUpdated = ref<number | null>(null)
+  const nodeCapability = ref<'earth' | 'watering' | null>(null)
 
   const node = computed<Node | null>(() => {
     if (!nodeId.value) return null
@@ -29,7 +31,8 @@ export const useTelemetryStore = defineStore('telemetry', () => {
       id: nodeId.value,
       name: nodeName.value,
       status: status.value,
-      lastSeen: timestampMs.value || 0
+      lastSeen: timestampMs.value || 0,
+      capability: nodeCapability.value,
     }
   })
 
@@ -40,13 +43,14 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     error.value = null
 
     try {
-      const data: TelemetryPayload = await anthos.nodes.getLatestTelemetry()
+      const data: TelemetryPayload & { capability?: 'earth' | 'watering' } = await anthos.nodes.getLatestTelemetry()
       nodeId.value = data.nodeId
       nodeName.value = data.nodeId
       status.value = 'connected'
       health.value = data.health
       sensors.value = data.sensors
       timestampMs.value = data.timestampMs
+      nodeCapability.value = data.capability ?? null
       lastUpdated.value = Date.now()
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch readings'
@@ -94,6 +98,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     isLoading,
     error,
     lastUpdated,
+    nodeCapability,
     fetchData,
     fetchMetrics,
     startPolling,

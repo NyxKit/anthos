@@ -37,6 +37,10 @@ log_error() {
     echo "ERROR: $1" >&2
 }
 
+log_success() {
+    echo "INFO: $1"
+}
+
 extract_plan_field() {
     local field_pattern="$1"
     local plan_file="$2"

@@ -2,8 +2,13 @@
 
 #include <ArduinoJson.h>
 
+#include "NvsConfig.h"
+
 void EarthSensor::begin(bool forceRetry) {
   (void)forceRetry;
+
+  const String capability = NvsConfig::getNodeCapability();
+  wateringProfile_ = capability == "watering";
 
   if (kAppConfig.portMode == PortMode::I2cSensors) {
     available_ = false;
@@ -11,14 +16,21 @@ void EarthSensor::begin(bool forceRetry) {
     return;
   }
 
-  pinMode(kAppConfig.earthWhitePin, INPUT);
-  pinMode(kAppConfig.earthYellowPin, INPUT);
+  const uint8_t analogPin = kAppConfig.earthWhitePin;
+  const uint8_t digitalPin = kAppConfig.earthYellowPin;
+
+  pinMode(analogPin, INPUT);
+  if (!wateringProfile_) {
+    pinMode(digitalPin, INPUT);
+  }
   analogReadResolution(12);
-  analogSetPinAttenuation(kAppConfig.earthWhitePin, ADC_11db);
+  analogSetPinAttenuation(analogPin, ADC_11db);
   available_ = true;
-  Serial.printf("sensor=earth status=ready analog_pin=%u digital_pin=%u\n",
-                kAppConfig.earthWhitePin,
-                kAppConfig.earthYellowPin);
+  if (wateringProfile_) {
+    Serial.printf("sensor=earth status=ready profile=watering analog_pin=%u pump_pin=%u\n", analogPin, digitalPin);
+  } else {
+    Serial.printf("sensor=earth status=ready profile=earth analog_pin=%u digital_pin=%u\n", analogPin, digitalPin);
+  }
 }
 
 void EarthSensor::read() {
@@ -26,9 +38,11 @@ void EarthSensor::read() {
     return;
   }
 
-  const int rawMv = analogReadMilliVolts(kAppConfig.earthWhitePin);
-  lastRaw_ = analogRead(kAppConfig.earthWhitePin);
-  lastDigital_ = digitalRead(kAppConfig.earthYellowPin);
+  const uint8_t analogPin = kAppConfig.earthWhitePin;
+
+  const int rawMv = analogReadMilliVolts(analogPin);
+  lastRaw_ = analogRead(analogPin);
+  lastDigital_ = wateringProfile_ ? 0 : digitalRead(kAppConfig.earthYellowPin);
   Serial.printf("sensor=earth status=ok raw=%d mv=%d digital=%d\n",
                 lastRaw_, rawMv, lastDigital_);
 }
@@ -45,10 +59,12 @@ String EarthSensor::toJson() const {
   moist["value"] = lastRaw_;
   moist["unit"] = "raw";
 
-  JsonObject probe = arr.add<JsonObject>();
-  probe["type"] = "probe";
-  probe["value"] = lastDigital_;
-  probe["unit"] = "bool";
+  if (!wateringProfile_) {
+    JsonObject probe = arr.add<JsonObject>();
+    probe["type"] = "probe";
+    probe["value"] = lastDigital_;
+    probe["unit"] = "bool";
+  }
 
   String json;
   serializeJson(doc, json);
