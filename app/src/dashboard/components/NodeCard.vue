@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { NyxCard, NyxIcon, NyxActionItem, NyxBadge, NyxInput, NyxButton } from 'nyx-kit/components'
-import { NyxInputType, NyxSize, NyxTheme } from 'nyx-kit/types'
+import { NyxInputNumberControls, NyxInputType, NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
 import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
+import { useLogStore } from '@/logs/stores/logs'
 import { logo } from '@/shared/assets'
 import type { LogicalNodeRecord } from '@anthos/shared'
 
@@ -14,9 +15,11 @@ const props = defineProps<{
 }>()
 
 const store = useTelemetryStore()
-const pumpState = ref<'idle' | 'loading' | 'done' | 'error'>('idle')
+const logStore = useLogStore()
+const pumpState = ref<'idle' | 'loading' | 'error'>('idle')
 const pumpError = ref<string | null>(null)
 const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
+const pendingPumpCommandId = ref<string | null>(null)
 
 const formattedTimestamp = computed(() => {
   const now = Date.now()
@@ -68,6 +71,39 @@ const isCritical = computed(() => {
 })
 
 const actionNodeId = computed(() => props.node?.nodeId || store.nodeId || '')
+const pumpButtonLabel = computed(() => {
+  if (pumpState.value === 'loading' || isPumpPending.value) return 'Pumping...'
+  return 'Pump'
+})
+
+const isPumpPending = computed(() => {
+  return Boolean(pendingPumpCommandId.value) && !hasTerminalPumpLog.value
+})
+
+const hasTerminalPumpLog = computed(() => {
+  if (!pendingPumpCommandId.value || !actionNodeId.value) return false
+
+  return logStore.entries.some(entry => {
+    const meta = entry.meta as { commandId?: string } | undefined
+    return meta?.commandId === pendingPumpCommandId.value
+      && (entry.message.includes('completed') || entry.message.includes('failed') || entry.message.includes('rejected'))
+  })
+})
+
+const isPumpButtonDisabled = computed(() => {
+  return pumpState.value === 'loading' || isPumpPending.value
+})
+
+watch(hasTerminalPumpLog, done => {
+  if (done && pendingPumpCommandId.value) {
+    pendingPumpCommandId.value = null
+    pumpState.value = 'idle'
+  }
+})
+
+onMounted(() => {
+  void logStore.start()
+})
 
 async function handlePumpClick() {
   if (!actionNodeId.value) return
@@ -76,8 +112,9 @@ async function handlePumpClick() {
   pumpError.value = null
 
   try {
-    await anthos.nodes.queuePump(actionNodeId.value, Number(pumpVolumeMl.value))
-    pumpState.value = 'done'
+    const response = await anthos.nodes.queuePump(actionNodeId.value, Number(pumpVolumeMl.value))
+    pendingPumpCommandId.value = response.commandId
+    pumpState.value = 'idle'
   } catch (error) {
     pumpState.value = 'error'
     pumpError.value = error instanceof Error ? error.message : 'Failed to queue pump command'
@@ -86,7 +123,7 @@ async function handlePumpClick() {
 </script>
 
 <template>
-  <NyxCard class="node-card" :class="{ 'node-card--critical': isCritical }">
+  <NyxCard class="node-card" :class="{ 'node-card--critical': isCritical }" :variant="NyxVariant.Text">
     <!-- Header -->
     <template #header>
       <div class="node-card__header">
@@ -167,14 +204,16 @@ async function handlePumpClick() {
       </div>
     </div>
 
-      <NyxActionItem
+    <NyxActionItem
+      v-if="capability === 'watering'"
+      class="node-card__pump-action"
       title="Pump"
       :theme="NyxTheme.Secondary"
       :action="pumpState === 'loading' ? 'Pumping...' : 'Pump'"
       @click="handlePumpClick"
     >
       <span class="node-card__pump-status" :data-state="pumpState">
-        {{ pumpState === 'done' ? 'Command queued' : pumpState === 'error' ? pumpError || 'Failed to queue pump command' : 'Test the pump flow' }}
+        {{ isPumpPending ? 'Command queued' : pumpState === 'error' ? pumpError || 'Failed to queue pump command' : 'Test the pump flow' }}
       </span>
       <template #action>
         <NyxInput
@@ -185,11 +224,12 @@ async function handlePumpClick() {
           :min="10"
           :max="500"
           :step="10"
+          :number-controls="NyxInputNumberControls.None"
           v-model="pumpVolumeMl"
+          suffix="ml"
         />
-        <span class="node-card__pump-unit">ml</span>
-        <NyxButton :theme="NyxTheme.Secondary" :size="NyxSize.Small" :disabled="pumpState === 'loading'" @click="handlePumpClick">
-          <NyxIcon name="soap-dispenser-droplet" /> {{ pumpState === 'loading' ? 'Pumping...' : 'Pump' }}
+        <NyxButton :theme="NyxTheme.Secondary" :size="NyxSize.Small" :disabled="isPumpButtonDisabled" @click="handlePumpClick">
+          <NyxIcon name="soap-dispenser-droplet" :size="NyxSize.Small" /> {{ pumpButtonLabel }}
         </NyxButton>
       </template>
     </NyxActionItem>
@@ -475,5 +515,9 @@ async function handlePumpClick() {
 .node-card__pump-duration {
   width: 5rem;
   text-align: center;
+}
+
+.node-card__pump-action {
+  margin-top: 0.5rem;
 }
 </style>
