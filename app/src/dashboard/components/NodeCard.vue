@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { NyxCard, NyxIcon, NyxActionItem, NyxBadge, NyxInput, NyxButton } from 'nyx-kit/components'
+import { NyxCard, NyxIcon, NyxActionItem, NyxBadge, NyxInput, NyxButton, NyxSelect } from 'nyx-kit/components'
 import { NyxInputNumberControls, NyxInputType, NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
 import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { logo } from '@/shared/assets'
-import type { LogicalNodeRecord } from '@anthos/shared'
+import { PowerProfile, POWER_PROFILES } from '@anthos/shared/power-profiles'
+import type { LogicalNodeRecord, NodePowerProfileState } from '@anthos/shared'
+
+const powerProfileSelectOptions = Object.entries(POWER_PROFILES).map(([profileId, profile]) => ({
+  label: profile.label,
+  value: profileId,
+}))
 
 const PUMP_VOLUME_ML = 100
 
@@ -20,6 +26,10 @@ const pumpState = ref<'idle' | 'loading' | 'error'>('idle')
 const pumpError = ref<string | null>(null)
 const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
 const pendingPumpCommandId = ref<string | null>(null)
+const profileState = ref<NodePowerProfileState | null>(null)
+const profileStateLoading = ref(false)
+const profileError = ref<string | null>(null)
+const selectedProfileId = ref(PowerProfile.Balanced)
 
 const formattedTimestamp = computed(() => {
   const now = Date.now()
@@ -54,6 +64,27 @@ const nodeDisplayName = computed(() => {
 
 const capability = computed(() => props.node?.capability ?? store.node?.capability)
 const capabilityLabel = computed(() => capability.value === 'watering' ? 'Watering' : 'Earth')
+const profileLabel = (profileId?: PowerProfile | null) => {
+  if (!profileId) return 'No profile'
+
+  return POWER_PROFILES[profileId]?.label ?? profileId
+}
+
+const activeProfileLabel = computed(() => {
+  const profileId = profileState.value?.assignment?.profileId ?? profileState.value?.applied?.profileId
+  return profileLabel(profileId)
+})
+
+const appliedProfileLabel = computed(() => {
+  const profileId = profileState.value?.applied?.profileId
+  return profileId ? profileLabel(profileId) : 'Not applied'
+})
+
+const isProfileMismatch = computed(() => {
+  const assigned = profileState.value?.assignment?.profileId
+  const applied = profileState.value?.applied?.profileId
+  return Boolean(assigned && applied && assigned !== applied)
+})
 
 const getSensorValue = (type: string) => {
   const sensor = store.sensors.find(s => s.type === type)
@@ -101,9 +132,49 @@ watch(hasTerminalPumpLog, done => {
   }
 })
 
+watch(actionNodeId, () => {
+  void loadPowerProfile()
+})
+
 onMounted(() => {
   void logStore.start()
+  void loadPowerProfile()
 })
+
+async function loadPowerProfile() {
+  if (!actionNodeId.value) return
+
+  profileStateLoading.value = true
+  profileError.value = null
+
+  try {
+    const state = await anthos.nodes.getPowerProfile(actionNodeId.value)
+    profileState.value = state
+    selectedProfileId.value = state.assignment?.profileId ?? state.applied?.profileId ?? PowerProfile.Balanced
+  } catch (error) {
+    profileState.value = null
+    profileError.value = error instanceof Error ? error.message : 'Failed to load power profile'
+  } finally {
+    profileStateLoading.value = false
+  }
+}
+
+async function handlePowerProfileApply() {
+  if (!actionNodeId.value) return
+
+  profileStateLoading.value = true
+  profileError.value = null
+
+  try {
+    const state = await anthos.nodes.applyPowerProfile(actionNodeId.value, selectedProfileId.value)
+    profileState.value = state
+    selectedProfileId.value = state.assignment?.profileId ?? selectedProfileId.value
+  } catch (error) {
+    profileError.value = error instanceof Error ? error.message : 'Failed to apply power profile'
+  } finally {
+    profileStateLoading.value = false
+  }
+}
 
 async function handlePumpClick() {
   if (!actionNodeId.value) return
@@ -179,6 +250,32 @@ async function handlePumpClick() {
           {{ getSensorValue('moisture') }} <span>{{ getSensorUnit('moisture') }}</span>
         </p>
       </div>
+    </div>
+
+    <div class="node-card__profile">
+      <div class="node-card__profile-header">
+        <span>POWER PROFILE</span>
+        <NyxBadge :theme="NyxTheme.Primary" :size="NyxSize.Small">{{ activeProfileLabel }}</NyxBadge>
+      </div>
+      <div class="node-card__profile-controls">
+        <NyxSelect
+          v-model="selectedProfileId"
+          class="node-card__profile-select"
+          :options="powerProfileSelectOptions"
+          placeholder="Power profile"
+        />
+        <NyxButton :theme="NyxTheme.Primary" :size="NyxSize.Small" :disabled="profileStateLoading || !actionNodeId" @click="handlePowerProfileApply">
+          Apply
+        </NyxButton>
+      </div>
+      <div class="node-card__profile-meta">
+        <span>Assigned: {{ profileState?.assignment ? profileLabel(profileState.assignment.profileId) : 'None' }}</span>
+        <span>Applied: {{ appliedProfileLabel }}</span>
+      </div>
+      <p v-if="isProfileMismatch" class="node-card__profile-warning">
+        Node still applying the selected cadence.
+      </p>
+      <p v-if="profileError" class="node-card__profile-error">{{ profileError }}</p>
     </div>
 
     <!-- Metadata Footer -->
@@ -414,6 +511,65 @@ async function handlePumpClick() {
 }
 
 .node-card__sensor-value--critical {
+  color: var(--nyx-c-error, #ffb4ab);
+}
+
+.node-card__profile {
+  padding: 1rem;
+  border-top: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.1));
+  background: linear-gradient(180deg, rgba(109, 109, 240, 0.05), transparent);
+}
+
+.node-card__profile-header,
+.node-card__profile-controls,
+.node-card__profile-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.node-card__profile-header {
+  font-family: var(--nyx-font-family-mono, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.55));
+  margin-bottom: 0.75rem;
+}
+
+.node-card__profile-controls {
+  margin-bottom: 0.75rem;
+}
+
+.node-card__profile-select {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.2));
+  background: var(--nyx-c-surface-container-high, #252a30);
+  color: var(--nyx-c-on-surface, #dee3eb);
+  padding: 0.55rem 0.75rem;
+  font: inherit;
+}
+
+.node-card__profile-meta {
+  font-family: var(--nyx-font-family-mono, monospace);
+  font-size: 0.675rem;
+  color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.75));
+}
+
+.node-card__profile-warning,
+.node-card__profile-error {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+}
+
+.node-card__profile-warning {
+  color: var(--nyx-c-primary, #dcb8ff);
+}
+
+.node-card__profile-error {
   color: var(--nyx-c-error, #ffb4ab);
 }
 

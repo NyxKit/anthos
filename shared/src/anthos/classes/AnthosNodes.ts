@@ -1,5 +1,11 @@
 import type { LogicalNodeRecord, TelemetryPayload } from '../../telemetry.js'
 import type { QueuePumpCommandRequest } from '../../commands.js'
+import type {
+  ApplyPowerProfileRequest,
+  NodePowerProfileState,
+  PowerProfile,
+} from '../../power-profiles.js'
+import { POWER_PROFILES } from '../../power-profiles.js'
 import type { Anthos } from './Anthos.js'
 
 export class AnthosNodes {
@@ -41,5 +47,25 @@ export class AnthosNodes {
         body: { volumeMl } satisfies QueuePumpCommandRequest,
       }
     )
+  }
+
+  getPowerProfile(nodeId: string): Promise<NodePowerProfileState> {
+    return this.anthos.request<NodePowerProfileState>(`/api/nodes/${nodeId}/power-profile`)
+  }
+
+  applyPowerProfile(nodeId: string, profileId: PowerProfile): Promise<NodePowerProfileState> {
+    const profile = POWER_PROFILES[profileId]
+    if (!profile) {
+      throw new Error(`Unknown power profile: ${profileId}`)
+    }
+
+    return this.anthos.request<NodePowerProfileState>(`/api/nodes/${nodeId}/power-profile`, {
+      method: 'PATCH',
+      body: {
+        profileId: profile.profileId,
+        telemetry_interval_ms: profile.telemetryIntervalMs,
+        queue_interval_ms: profile.queueIntervalMs,
+      } satisfies ApplyPowerProfileRequest,
+    })
   }
 }

@@ -1,4 +1,7 @@
-export type CommandType = 'pump'
+export enum CommandType {
+  Pump = 'pump',
+  PowerProfile = 'power-profile',
+}
 
 export type CommandStatus = 'pending' | 'completed' | 'failed'
 
@@ -7,12 +10,20 @@ export interface PumpCommandPayload {
   durationMs: number
 }
 
+export interface PowerProfileCommandPayload {
+  profileId: string
+  telemetryIntervalMs: number
+  queueIntervalMs: number
+}
+
+export type CommandPayload = PumpCommandPayload | PowerProfileCommandPayload
+
 export interface QueuedCommand {
   commandId: string
   nodeId: string
   type: CommandType
   status: CommandStatus
-  payload: PumpCommandPayload
+  payload: CommandPayload
   createdAt: number
   updatedAt: number
 }
@@ -25,6 +36,12 @@ export interface CommandQueueResponse {
 
 export interface QueuePumpCommandRequest {
   volumeMl: number
+}
+
+export interface QueuePowerProfileCommandRequest {
+  profileId: string
+  telemetryIntervalMs: number
+  queueIntervalMs: number
 }
 
 export interface CommandAckRequest {

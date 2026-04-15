@@ -1,6 +1,12 @@
 import type { Database } from 'sql.js'
 
-import type { LogicalNodeRecord } from '@anthos/shared'
+import type {
+  LogicalNodeRecord,
+  NodePowerProfileState,
+  PowerProfileAssignmentState,
+  PowerProfileAppliedState,
+  PowerProfileDefinition,
+} from '@anthos/shared'
 
 export class NodeRegistryService {
   constructor(private readonly db: Database) {}
@@ -137,6 +143,79 @@ export class NodeRegistryService {
     return updated
   }
 
+  getPowerProfileState(nodeId: string): NodePowerProfileState | null {
+    const stmt = this.db.prepare(
+      `SELECT
+        node_id,
+        power_profile_id,
+        power_profile_telemetry_interval_ms,
+        power_profile_queue_interval_ms,
+        power_profile_assigned_at,
+        power_profile_applied_id,
+        power_profile_applied_telemetry_interval_ms,
+        power_profile_applied_queue_interval_ms,
+        power_profile_applied_at
+      FROM logical_nodes WHERE node_id=?`
+    )
+    stmt.bind([nodeId])
+    const hasRow = stmt.step()
+    if (!hasRow) {
+      stmt.free()
+      return null
+    }
+
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+
+    return this.rowToPowerProfileState(row)
+  }
+
+  setPowerProfileAssignment(nodeId: string, profile: PowerProfileDefinition, updatedAt = Date.now()): boolean {
+    const stmt = this.db.prepare(
+      `UPDATE logical_nodes SET
+        power_profile_id=?,
+        power_profile_telemetry_interval_ms=?,
+        power_profile_queue_interval_ms=?,
+        power_profile_assigned_at=?
+      WHERE node_id=? AND claim_status='claimed'`
+    )
+    stmt.run([profile.profileId, profile.telemetryIntervalMs, profile.queueIntervalMs, updatedAt, nodeId])
+    stmt.free()
+
+    const checkStmt = this.db.prepare(
+      `SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed'
+       AND power_profile_id=? AND power_profile_telemetry_interval_ms=? AND power_profile_queue_interval_ms=?`
+    )
+    checkStmt.bind([nodeId, profile.profileId, profile.telemetryIntervalMs, profile.queueIntervalMs])
+    const updated = checkStmt.step()
+    checkStmt.free()
+
+    return updated
+  }
+
+  setPowerProfileApplied(nodeId: string, profile: PowerProfileDefinition, appliedAt = Date.now()): boolean {
+    const stmt = this.db.prepare(
+      `UPDATE logical_nodes SET
+        power_profile_applied_id=?,
+        power_profile_applied_telemetry_interval_ms=?,
+        power_profile_applied_queue_interval_ms=?,
+        power_profile_applied_at=?
+      WHERE node_id=? AND claim_status='claimed'`
+    )
+    stmt.run([profile.profileId, profile.telemetryIntervalMs, profile.queueIntervalMs, appliedAt, nodeId])
+    stmt.free()
+
+    const checkStmt = this.db.prepare(
+      `SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed'
+       AND power_profile_applied_id=? AND power_profile_applied_telemetry_interval_ms=? AND power_profile_applied_queue_interval_ms=?`
+    )
+    checkStmt.bind([nodeId, profile.profileId, profile.telemetryIntervalMs, profile.queueIntervalMs])
+    const updated = checkStmt.step()
+    checkStmt.free()
+
+    return updated
+  }
+
   touchNodeByNodeId(nodeId: string): void {
     const stmt = this.db.prepare(
       `
@@ -193,6 +272,39 @@ export class NodeRegistryService {
       claimStatus: row['claim_status'] as 'unclaimed' | 'claimed',
       capability: row['capability'] === 'watering' ? 'watering' : 'earth',
       registeredAt: Number(row['registered_at']),
+    }
+  }
+
+  private rowToPowerProfileState(row: Record<string, unknown>): NodePowerProfileState {
+    const assignment = row['power_profile_id'] != null
+      ? this.rowToAssignmentState(row)
+      : null
+    const applied = row['power_profile_applied_id'] != null
+      ? this.rowToAppliedState(row)
+      : null
+
+    return {
+      nodeId: String(row['node_id']),
+      assignment,
+      applied,
+    }
+  }
+
+  private rowToAssignmentState(row: Record<string, unknown>): PowerProfileAssignmentState {
+    return {
+      profileId: String(row['power_profile_id']) as PowerProfileAssignmentState['profileId'],
+      telemetryIntervalMs: Number(row['power_profile_telemetry_interval_ms'] ?? 0),
+      queueIntervalMs: Number(row['power_profile_queue_interval_ms'] ?? 0),
+      updatedAt: Number(row['power_profile_assigned_at'] ?? 0),
+    }
+  }
+
+  private rowToAppliedState(row: Record<string, unknown>): PowerProfileAppliedState {
+    return {
+      profileId: String(row['power_profile_applied_id']) as PowerProfileAppliedState['profileId'],
+      telemetryIntervalMs: Number(row['power_profile_applied_telemetry_interval_ms'] ?? 0),
+      queueIntervalMs: Number(row['power_profile_applied_queue_interval_ms'] ?? 0),
+      appliedAt: Number(row['power_profile_applied_at'] ?? 0),
     }
   }
 }

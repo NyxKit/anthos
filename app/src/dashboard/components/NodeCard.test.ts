@@ -7,6 +7,11 @@ const { queuePump } = vi.hoisted(() => ({
   queuePump: vi.fn(),
 }))
 
+const { getPowerProfile, applyPowerProfile } = vi.hoisted(() => ({
+  getPowerProfile: vi.fn(),
+  applyPowerProfile: vi.fn(),
+}))
+
 const logStore = vi.hoisted(() => ({
   entries: [] as any[],
   start: vi.fn().mockResolvedValue(undefined),
@@ -16,6 +21,8 @@ vi.mock('@anthos/shared/anthos', () => ({
   default: {
     nodes: {
       queuePump,
+      getPowerProfile,
+      applyPowerProfile,
     },
   },
 }))
@@ -45,12 +52,54 @@ describe('NodeCard', () => {
     setActivePinia(createPinia())
     queuePump.mockReset()
     queuePump.mockResolvedValue({ nodeId: 'node-001', commandId: 'cmd-123', status: 'pending' })
+    getPowerProfile.mockReset()
+    getPowerProfile.mockResolvedValue({
+      nodeId: 'node-001',
+      assignment: {
+        profileId: 'balanced',
+        telemetryIntervalMs: 600000,
+        queueIntervalMs: 600000,
+        updatedAt: 1000,
+      },
+      applied: {
+        profileId: 'balanced',
+        telemetryIntervalMs: 600000,
+        queueIntervalMs: 600000,
+        appliedAt: 1000,
+      },
+    })
+    applyPowerProfile.mockReset()
+    applyPowerProfile.mockResolvedValue({
+      nodeId: 'node-001',
+      assignment: {
+        profileId: 'performance',
+        telemetryIntervalMs: 60000,
+        queueIntervalMs: 60000,
+        updatedAt: 2000,
+      },
+      applied: {
+        profileId: 'performance',
+        telemetryIntervalMs: 60000,
+        queueIntervalMs: 60000,
+        appliedAt: 2000,
+      },
+    })
     logStore.entries.splice(0, logStore.entries.length)
     logStore.start.mockClear()
   })
 
   it('queues a pump command and stays pumping until the completion log arrives', async () => {
     const wrapper = mount(NodeCard, {
+      props: {
+        node: {
+          nodeId: 'node-001',
+          hwId: 'hw-001',
+          displayName: 'Sprout Node',
+          claimStatus: 'claimed',
+          capability: 'watering',
+          registeredAt: 1000,
+        },
+      },
       global: {
         stubs: {
           NyxCard: { template: '<div><slot name="header" /><slot /></div>' },
@@ -59,12 +108,31 @@ describe('NodeCard', () => {
           NyxActionItem: { template: '<div><slot name="action" /><slot /></div>' },
           NyxInput: { template: '<input />' },
           NyxBadge: { template: '<span><slot /></span>' },
+          NyxSelect: {
+            props: ['modelValue', 'options'],
+            emits: ['update:modelValue'],
+            template: '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option></select>',
+          },
         },
       },
     })
 
     expect(logStore.start).toHaveBeenCalled()
-    await wrapper.find('button').trigger('click')
+    expect(getPowerProfile).toHaveBeenCalledWith('node-001')
+    await Promise.resolve()
+    await nextTick()
+    expect(wrapper.text()).toContain('POWER PROFILE')
+    expect(wrapper.text()).toContain('balanced')
+
+    await wrapper.find('select').setValue('performance')
+    await nextTick()
+    await wrapper.findAll('button').find(button => button.text() === 'Apply')?.trigger('click')
+    await nextTick()
+
+    expect(applyPowerProfile).toHaveBeenCalledWith('node-001', 'performance')
+    expect(wrapper.text()).toContain('performance')
+
+    await wrapper.findAll('button').find(button => button.text() === 'Pump')?.trigger('click')
 
     expect(queuePump).toHaveBeenCalledWith('node-001', 100)
     expect(wrapper.text()).toContain('Pumping...')

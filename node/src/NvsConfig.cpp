@@ -1,5 +1,6 @@
 #include "NvsConfig.h"
 #include <Preferences.h>
+#include "AppConfig.h"
 
 bool NvsConfig::hasWifiCredentials() {
   Preferences prefs;
@@ -60,6 +61,44 @@ String NvsConfig::getNodeCapability() {
   return val;
 }
 
+String NvsConfig::getAssignedPowerProfileId() {
+  Preferences prefs;
+  prefs.begin(kNamespace, true);
+  String val = prefs.getString(kPowerProfileAssignedId, "");
+  prefs.end();
+  return val;
+}
+
+String NvsConfig::getAppliedPowerProfileId() {
+  Preferences prefs;
+  prefs.begin(kNamespace, true);
+  String val = prefs.getString(kPowerProfileAppliedId, "");
+  prefs.end();
+  return val;
+}
+
+unsigned long NvsConfig::getTelemetryIntervalMs() {
+  Preferences prefs;
+  prefs.begin(kNamespace, true);
+  const unsigned long val = prefs.getULong(
+    kPowerProfileAppliedTelemetry,
+    prefs.getULong(kPowerProfileAssignedTelemetry, kAppConfig.pushIntervalMs)
+  );
+  prefs.end();
+  return val;
+}
+
+unsigned long NvsConfig::getQueueIntervalMs() {
+  Preferences prefs;
+  prefs.begin(kNamespace, true);
+  const unsigned long val = prefs.getULong(
+    kPowerProfileAppliedQueue,
+    prefs.getULong(kPowerProfileAssignedQueue, kAppConfig.commandPollIntervalMs)
+  );
+  prefs.end();
+  return val;
+}
+
 void NvsConfig::setWifiCredentials(const String& ssid, const String& pass) {
   Preferences prefs;
   prefs.begin(kNamespace, false);
@@ -86,6 +125,24 @@ void NvsConfig::setNodeCapability(const String& capability) {
   Preferences prefs;
   prefs.begin(kNamespace, false);
   prefs.putString(kNodeCapability, capability);
+  prefs.end();
+}
+
+void NvsConfig::setPowerProfileAssignment(const String& profileId, unsigned long telemetryIntervalMs, unsigned long queueIntervalMs) {
+  Preferences prefs;
+  prefs.begin(kNamespace, false);
+  prefs.putString(kPowerProfileAssignedId, profileId);
+  prefs.putULong(kPowerProfileAssignedTelemetry, telemetryIntervalMs);
+  prefs.putULong(kPowerProfileAssignedQueue, queueIntervalMs);
+  prefs.end();
+}
+
+void NvsConfig::setPowerProfileApplied(const String& profileId, unsigned long telemetryIntervalMs, unsigned long queueIntervalMs) {
+  Preferences prefs;
+  prefs.begin(kNamespace, false);
+  prefs.putString(kPowerProfileAppliedId, profileId);
+  prefs.putULong(kPowerProfileAppliedTelemetry, telemetryIntervalMs);
+  prefs.putULong(kPowerProfileAppliedQueue, queueIntervalMs);
   prefs.end();
 }
 

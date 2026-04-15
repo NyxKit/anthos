@@ -5,8 +5,10 @@ import type {
   CommandAckRequest,
   CommandQueueResponse,
   QueuedCommand,
+  QueuePowerProfileCommandRequest,
   QueuePumpCommandRequest,
 } from '@anthos/shared'
+import { CommandType } from '@anthos/shared'
 import type { LogArchiveService } from './LogArchiveService.js'
 
 type CommandRow = Record<string, unknown>
@@ -26,7 +28,7 @@ export class CommandQueueService {
     const command: QueuedCommand = {
       commandId: randomUUID(),
       nodeId,
-      type: 'pump',
+      type: CommandType.Pump,
       status: 'pending',
       payload: { volumeMl: request.volumeMl, durationMs },
       createdAt: now,
@@ -61,6 +63,57 @@ export class CommandQueueService {
         commandId: command.commandId,
         volumeMl: request.volumeMl,
         durationMs,
+      },
+    })
+
+    return command
+  }
+
+  async enqueuePowerProfileCommand(nodeId: string, request: QueuePowerProfileCommandRequest): Promise<QueuedCommand> {
+    const now = Date.now()
+    const command: QueuedCommand = {
+      commandId: randomUUID(),
+      nodeId,
+      type: CommandType.PowerProfile,
+      status: 'pending',
+      payload: {
+        profileId: request.profileId,
+        telemetryIntervalMs: request.telemetryIntervalMs,
+        queueIntervalMs: request.queueIntervalMs,
+      },
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    const stmt = this.db.prepare(
+      `
+      INSERT INTO commands (
+        command_id, node_id, type, status, payload_json, created_at, updated_at, acknowledged_at, result_message
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL)
+    `
+    )
+    stmt.run([
+      command.commandId,
+      command.nodeId,
+      command.type,
+      command.status,
+      JSON.stringify(command.payload),
+      command.createdAt,
+      command.updatedAt,
+    ])
+    stmt.free()
+    await this.saveDb()
+
+    await this.logArchive.recordEntry({
+      nodeId,
+      level: 'info',
+      source: 'command-queue',
+      message: `Power profile command queued for ${nodeId}`,
+      meta: {
+        commandId: command.commandId,
+        profileId: request.profileId,
+        telemetryIntervalMs: request.telemetryIntervalMs,
+        queueIntervalMs: request.queueIntervalMs,
       },
     })
 
@@ -122,9 +175,10 @@ export class CommandQueueService {
       nodeId,
       level: request.result === 'completed' ? 'info' : 'warn',
       source: 'command-queue',
-      message: `Pump command ${request.result} for ${nodeId}`,
+      message: `${this.describeCommand(existing.type)} command ${request.result} for ${nodeId}`,
       meta: {
         commandId,
+        type: existing.type,
         result: request.result,
         message: request.message ?? null,
       },
@@ -137,7 +191,7 @@ export class CommandQueueService {
     }
   }
 
-  private getCommand(nodeId: string, commandId: string): QueuedCommand | null {
+  getCommand(nodeId: string, commandId: string): QueuedCommand | null {
     const stmt = this.db.prepare(
       `
       SELECT command_id, node_id, type, status, payload_json, created_at, updated_at
@@ -159,24 +213,48 @@ export class CommandQueueService {
 
   private rowToCommand(row: CommandRow): QueuedCommand {
     const payloadJson = String(row['payload_json'] ?? '{}')
-    let payload: { volumeMl?: number; durationMs?: number } = {}
+    let payload: Record<string, unknown> = {}
     try {
-      payload = JSON.parse(payloadJson) as { volumeMl?: number; durationMs?: number }
+      payload = JSON.parse(payloadJson) as Record<string, unknown>
     } catch {
       payload = {}
     }
 
+    const type = String(row['type']) as CommandType
+
     return {
       commandId: String(row['command_id']),
       nodeId: String(row['node_id']),
-      type: String(row['type']) as 'pump',
+      type,
       status: String(row['status']) as 'pending' | 'completed' | 'failed',
-      payload: {
-        volumeMl: Number(payload.volumeMl ?? 0),
-        durationMs: Number(payload.durationMs ?? 0),
-      },
+      payload: this.normalizePayload(type, payload),
       createdAt: Number(row['created_at']),
       updatedAt: Number(row['updated_at']),
+    }
+  }
+
+  private normalizePayload(type: CommandType, payload: Record<string, unknown>) {
+    if (type === CommandType.PowerProfile) {
+      return {
+        profileId: String(payload.profileId ?? ''),
+        telemetryIntervalMs: Number(payload.telemetryIntervalMs ?? 0),
+        queueIntervalMs: Number(payload.queueIntervalMs ?? 0),
+      }
+    }
+
+    return {
+      volumeMl: Number(payload.volumeMl ?? 0),
+      durationMs: Number(payload.durationMs ?? 0),
+    }
+  }
+
+  private describeCommand(type: CommandType): string {
+    switch (type) {
+      case CommandType.PowerProfile:
+        return 'Power profile'
+      case CommandType.Pump:
+      default:
+        return 'Pump'
     }
   }
 }

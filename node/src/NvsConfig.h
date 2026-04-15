@@ -18,12 +18,18 @@ class NvsConfig {
   static String getServerUrl();  // full URL, e.g. "http://192.168.1.10:3000"
   static String getNodeId();
   static String getNodeCapability();
+  static String getAssignedPowerProfileId();
+  static String getAppliedPowerProfileId();
+  static unsigned long getTelemetryIntervalMs();
+  static unsigned long getQueueIntervalMs();
 
   // Setters
   static void setWifiCredentials(const String& ssid, const String& pass);
   static void setServerUrl(const String& url);
   static void setNodeId(const String& nodeId);
   static void setNodeCapability(const String& capability);
+  static void setPowerProfileAssignment(const String& profileId, unsigned long telemetryIntervalMs, unsigned long queueIntervalMs);
+  static void setPowerProfileApplied(const String& profileId, unsigned long telemetryIntervalMs, unsigned long queueIntervalMs);
 
   // Factory reset: clears all keys in "anthos" namespace then restarts
   static void factoryReset();
@@ -35,4 +41,10 @@ class NvsConfig {
   static constexpr const char* kServerUrl = "server_url";
   static constexpr const char* kNodeId    = "node_id";
   static constexpr const char* kNodeCapability = "node_capability";
+  static constexpr const char* kPowerProfileAssignedId = "power_profile_assigned_id";
+  static constexpr const char* kPowerProfileAssignedTelemetry = "power_profile_assigned_telemetry_ms";
+  static constexpr const char* kPowerProfileAssignedQueue = "power_profile_assigned_queue_ms";
+  static constexpr const char* kPowerProfileAppliedId = "power_profile_applied_id";
+  static constexpr const char* kPowerProfileAppliedTelemetry = "power_profile_applied_telemetry_ms";
+  static constexpr const char* kPowerProfileAppliedQueue = "power_profile_applied_queue_ms";
 };
