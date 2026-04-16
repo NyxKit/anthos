@@ -14,11 +14,12 @@ export class PowerProfileController {
   constructor(
     private readonly registry: NodeRegistryService,
     private readonly logArchive: LogArchiveService,
-    private readonly commands: CommandQueueService
+    private readonly commands: CommandQueueService,
+    private readonly saveDb: () => Promise<void>
   ) {}
 
-  getNodeProfile: RequestHandler = (_req: Request, res: Response): void => {
-    const nodeId = String(_req.params['id'])
+  getNodeProfile: RequestHandler = (req: Request, res: Response): void => {
+    const nodeId = String(req.params['id'])
     const state = this.registry.getPowerProfileState(nodeId)
 
     if (!state) {
@@ -81,10 +82,12 @@ export class PowerProfileController {
     }
 
     await this.commands.enqueuePowerProfileCommand(nodeId, {
-      profileId,
+      readIntervalMs: profile.readIntervalMs,
       telemetryIntervalMs: profile.telemetryIntervalMs,
       queueIntervalMs: profile.queueIntervalMs,
     })
+
+    await this.saveDb()
 
     const state = this.registry.getPowerProfileState(nodeId)
     res.json(state)

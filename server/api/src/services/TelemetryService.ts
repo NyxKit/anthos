@@ -65,10 +65,12 @@ export class TelemetryService {
         capability    TEXT    NOT NULL DEFAULT 'earth',
         registered_at INTEGER NOT NULL,
         power_profile_id TEXT,
+        power_profile_read_interval_ms INTEGER,
         power_profile_telemetry_interval_ms INTEGER,
         power_profile_queue_interval_ms INTEGER,
         power_profile_assigned_at INTEGER,
         power_profile_applied_id TEXT,
+        power_profile_applied_read_interval_ms INTEGER,
         power_profile_applied_telemetry_interval_ms INTEGER,
         power_profile_applied_queue_interval_ms INTEGER,
         power_profile_applied_at INTEGER
@@ -89,10 +91,12 @@ export class TelemetryService {
 
     const profileColumns = [
       ['power_profile_id', 'TEXT'],
+      ['power_profile_read_interval_ms', 'INTEGER'],
       ['power_profile_telemetry_interval_ms', 'INTEGER'],
       ['power_profile_queue_interval_ms', 'INTEGER'],
       ['power_profile_assigned_at', 'INTEGER'],
       ['power_profile_applied_id', 'TEXT'],
+      ['power_profile_applied_read_interval_ms', 'INTEGER'],
       ['power_profile_applied_telemetry_interval_ms', 'INTEGER'],
       ['power_profile_applied_queue_interval_ms', 'INTEGER'],
       ['power_profile_applied_at', 'INTEGER'],

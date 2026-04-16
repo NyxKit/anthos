@@ -2,6 +2,12 @@
 #include <Preferences.h>
 #include "AppConfig.h"
 
+namespace {
+unsigned long sReadIntervalMs = 0;
+unsigned long sTelemetryIntervalMs = 0;
+unsigned long sQueueIntervalMs = 0;
+}
+
 bool NvsConfig::hasWifiCredentials() {
   Preferences prefs;
   if (!prefs.begin(kNamespace, true)) {
@@ -61,42 +67,16 @@ String NvsConfig::getNodeCapability() {
   return val;
 }
 
-String NvsConfig::getAssignedPowerProfileId() {
-  Preferences prefs;
-  prefs.begin(kNamespace, true);
-  String val = prefs.getString(kPowerProfileAssignedId, "");
-  prefs.end();
-  return val;
-}
-
-String NvsConfig::getAppliedPowerProfileId() {
-  Preferences prefs;
-  prefs.begin(kNamespace, true);
-  String val = prefs.getString(kPowerProfileAppliedId, "");
-  prefs.end();
-  return val;
+unsigned long NvsConfig::getReadIntervalMs() {
+  return sReadIntervalMs > 0 ? sReadIntervalMs : kAppConfig.readIntervalMs;
 }
 
 unsigned long NvsConfig::getTelemetryIntervalMs() {
-  Preferences prefs;
-  prefs.begin(kNamespace, true);
-  const unsigned long val = prefs.getULong(
-    kPowerProfileAppliedTelemetry,
-    prefs.getULong(kPowerProfileAssignedTelemetry, kAppConfig.pushIntervalMs)
-  );
-  prefs.end();
-  return val;
+  return sTelemetryIntervalMs > 0 ? sTelemetryIntervalMs : kAppConfig.pushIntervalMs;
 }
 
 unsigned long NvsConfig::getQueueIntervalMs() {
-  Preferences prefs;
-  prefs.begin(kNamespace, true);
-  const unsigned long val = prefs.getULong(
-    kPowerProfileAppliedQueue,
-    prefs.getULong(kPowerProfileAssignedQueue, kAppConfig.commandPollIntervalMs)
-  );
-  prefs.end();
-  return val;
+  return sQueueIntervalMs > 0 ? sQueueIntervalMs : kAppConfig.commandPollIntervalMs;
 }
 
 void NvsConfig::setWifiCredentials(const String& ssid, const String& pass) {
@@ -128,22 +108,16 @@ void NvsConfig::setNodeCapability(const String& capability) {
   prefs.end();
 }
 
-void NvsConfig::setPowerProfileAssignment(const String& profileId, unsigned long telemetryIntervalMs, unsigned long queueIntervalMs) {
-  Preferences prefs;
-  prefs.begin(kNamespace, false);
-  prefs.putString(kPowerProfileAssignedId, profileId);
-  prefs.putULong(kPowerProfileAssignedTelemetry, telemetryIntervalMs);
-  prefs.putULong(kPowerProfileAssignedQueue, queueIntervalMs);
-  prefs.end();
+void NvsConfig::setReadIntervalMs(unsigned long intervalMs) {
+  sReadIntervalMs = intervalMs;
 }
 
-void NvsConfig::setPowerProfileApplied(const String& profileId, unsigned long telemetryIntervalMs, unsigned long queueIntervalMs) {
-  Preferences prefs;
-  prefs.begin(kNamespace, false);
-  prefs.putString(kPowerProfileAppliedId, profileId);
-  prefs.putULong(kPowerProfileAppliedTelemetry, telemetryIntervalMs);
-  prefs.putULong(kPowerProfileAppliedQueue, queueIntervalMs);
-  prefs.end();
+void NvsConfig::setTelemetryIntervalMs(unsigned long intervalMs) {
+  sTelemetryIntervalMs = intervalMs;
+}
+
+void NvsConfig::setQueueIntervalMs(unsigned long intervalMs) {
+  sQueueIntervalMs = intervalMs;
 }
 
 void NvsConfig::factoryReset() {

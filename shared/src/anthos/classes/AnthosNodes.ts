@@ -63,8 +63,6 @@ export class AnthosNodes {
       method: 'PATCH',
       body: {
         profileId: profile.profileId,
-        telemetry_interval_ms: profile.telemetryIntervalMs,
-        queue_interval_ms: profile.queueIntervalMs,
       } satisfies ApplyPowerProfileRequest,
     })
   }

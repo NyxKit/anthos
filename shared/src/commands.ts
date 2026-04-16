@@ -11,7 +11,7 @@ export interface PumpCommandPayload {
 }
 
 export interface PowerProfileCommandPayload {
-  profileId: string
+  readIntervalMs: number
   telemetryIntervalMs: number
   queueIntervalMs: number
 }
@@ -39,7 +39,7 @@ export interface QueuePumpCommandRequest {
 }
 
 export interface QueuePowerProfileCommandRequest {
-  profileId: string
+  readIntervalMs: number
   telemetryIntervalMs: number
   queueIntervalMs: number
 }

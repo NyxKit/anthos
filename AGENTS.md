@@ -110,6 +110,7 @@ pnpm --dir app tauri ios dev          # Run on iOS simulator (macOS only)
 - Vitest for all tests; no Jest
 - Use string enums for named string values that cross module boundaries or appear in shared contracts.
 - Prefer the enum member name in code, not raw string literals, when referencing those values.
+- SQL queries should use multiline template literals with one clause per line; avoid concatenated SQL strings.
 
 ### Vue 3 (Dashboard + App)
 - Composition API only (`<script setup>`)

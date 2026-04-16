@@ -20,7 +20,7 @@ class CommandClient {
   void pollCommands();
   void processCommand(const String& commandId, unsigned long durationMs);
   void processPowerProfileCommand(const String& commandId,
-                                  const String& profileId,
+                                  unsigned long readIntervalMs,
                                   unsigned long telemetryIntervalMs,
                                   unsigned long queueIntervalMs);
   bool acknowledgeCommand(const String& commandId, const char* result, const char* message);

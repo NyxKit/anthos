@@ -1,19 +1,20 @@
 export enum PowerProfile {
   PowerSaver = 'power-saver',
   Balanced = 'balanced',
-  Performance = 'performance',
-  Debug = 'debug',
+  Performance = 'performance'
 }
 
 export interface PowerProfileDefinition {
   profileId: PowerProfile
   label: string
+  readIntervalMs: number
   telemetryIntervalMs: number
   queueIntervalMs: number
 }
 
 export interface PowerProfileAssignmentState {
   profileId: PowerProfile
+  readIntervalMs: number
   telemetryIntervalMs: number
   queueIntervalMs: number
   updatedAt: number
@@ -21,6 +22,7 @@ export interface PowerProfileAssignmentState {
 
 export interface PowerProfileAppliedState {
   profileId: PowerProfile
+  readIntervalMs: number
   telemetryIntervalMs: number
   queueIntervalMs: number
   appliedAt: number
@@ -34,14 +36,10 @@ export interface NodePowerProfileState {
 
 export interface ApplyPowerProfileRequest {
   profileId: PowerProfile
-  telemetry_interval_ms: number
-  queue_interval_ms: number
 }
 
 export interface ReportPowerProfileAppliedRequest {
   profileId: PowerProfile
-  telemetry_interval_ms: number
-  queue_interval_ms: number
   appliedAt?: number
 }
 
@@ -49,24 +47,21 @@ export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = {
   [PowerProfile.PowerSaver]: {
     profileId: PowerProfile.PowerSaver,
     label: 'Power Saver',
+    readIntervalMs: 3600000,
     telemetryIntervalMs: 3600000,
     queueIntervalMs: 3600000,
   },
   [PowerProfile.Balanced]: {
     profileId: PowerProfile.Balanced,
     label: 'Balanced',
+    readIntervalMs: 600000,
     telemetryIntervalMs: 600000,
     queueIntervalMs: 600000,
   },
   [PowerProfile.Performance]: {
     profileId: PowerProfile.Performance,
     label: 'Performance',
-    telemetryIntervalMs: 60000,
-    queueIntervalMs: 60000,
-  },
-  [PowerProfile.Debug]: {
-    profileId: PowerProfile.Debug,
-    label: 'Debug',
+    readIntervalMs: 1000,
     telemetryIntervalMs: 1000,
     queueIntervalMs: 1000,
   },

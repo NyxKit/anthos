@@ -102,7 +102,7 @@ void CommandClient::pollCommands() {
     if (std::strcmp(type, "power-profile") == 0) {
       processPowerProfileCommand(
         commandId,
-        payload["profileId"] | "",
+        payload["readIntervalMs"] | 0,
         payload["telemetryIntervalMs"] | 0,
         payload["queueIntervalMs"] | 0
       );
@@ -120,17 +120,18 @@ void CommandClient::processCommand(const String& commandId, unsigned long durati
 
 void CommandClient::processPowerProfileCommand(
     const String& commandId,
-    const String& profileId,
+    unsigned long readIntervalMs,
     unsigned long telemetryIntervalMs,
     unsigned long queueIntervalMs) {
-  if (profileId.length() == 0 || telemetryIntervalMs == 0 || queueIntervalMs == 0) {
+  if (readIntervalMs == 0 || telemetryIntervalMs == 0 || queueIntervalMs == 0) {
     acknowledgeCommand(commandId, "failed", "invalid power profile payload");
     return;
   }
 
-  NvsConfig::setPowerProfileAssignment(profileId, telemetryIntervalMs, queueIntervalMs);
-  NvsConfig::setPowerProfileApplied(profileId, telemetryIntervalMs, queueIntervalMs);
-  Serial.printf("profile status=applied profile=%s telemetry_ms=%lu queue_ms=%lu\n", profileId.c_str(), telemetryIntervalMs, queueIntervalMs);
+  NvsConfig::setReadIntervalMs(readIntervalMs);
+  NvsConfig::setTelemetryIntervalMs(telemetryIntervalMs);
+  NvsConfig::setQueueIntervalMs(queueIntervalMs);
+  Serial.printf("cadence status=applied read_ms=%lu telemetry_ms=%lu queue_ms=%lu\n", readIntervalMs, telemetryIntervalMs, queueIntervalMs);
   acknowledgeCommand(commandId, "completed", "power profile applied");
 }
 

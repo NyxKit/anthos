@@ -24,7 +24,7 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   const metricsController = new MetricsController(telemetry, registry)
   const logsController = new LogsController(logArchive)
   const provisionCtrl = new ProvisionController(registry, pairing, saveDb)
-  const powerProfileCtrl = new PowerProfileController(registry, logArchive, commandService)
+  const powerProfileCtrl = new PowerProfileController(registry, logArchive, commandService, saveDb)
 
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' })

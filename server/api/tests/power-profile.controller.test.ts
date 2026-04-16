@@ -22,7 +22,7 @@ describe('PowerProfileController', () => {
     const commands = {
       enqueuePowerProfileCommand: vi.fn().mockResolvedValue({ commandId: 'cmd-123' }),
     }
-    const controller = new PowerProfileController(registry as never, logArchive as never, commands as never)
+    const controller = new PowerProfileController(registry as never, logArchive as never, commands as never, vi.fn().mockResolvedValue(undefined) as never)
     const res = createRes()
 
     await controller.applyProfile({
@@ -37,7 +37,7 @@ describe('PowerProfileController', () => {
     }))
     expect(registry.setPowerProfileAssignment).toHaveBeenCalled()
     expect(commands.enqueuePowerProfileCommand).toHaveBeenCalledWith('node-001', expect.objectContaining({
-      profileId: PowerProfile.Balanced,
+      readIntervalMs: 600000,
       telemetryIntervalMs: 600000,
       queueIntervalMs: 600000,
     }))

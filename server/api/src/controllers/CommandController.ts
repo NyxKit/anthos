@@ -1,6 +1,6 @@
 import type { Request, Response, RequestHandler } from 'express'
 
-import { POWER_PROFILES, type PowerProfile, CommandType } from '@anthos/shared'
+import { POWER_PROFILES, CommandType } from '@anthos/shared'
 
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'
@@ -125,10 +125,17 @@ export class CommandController {
     }
 
     if (command.type === CommandType.PowerProfile && result === 'completed') {
-      const profileId = String((command.payload as { profileId?: string }).profileId ?? '') as PowerProfile
-      const profile = POWER_PROFILES[profileId]
-      if (profile) {
-        this.registry.setPowerProfileApplied(nodeId, profile)
+      const payload = command.payload as { readIntervalMs?: number; telemetryIntervalMs?: number; queueIntervalMs?: number }
+      const state = this.registry.getPowerProfileState(nodeId)
+      const assignment = state?.assignment
+      if (assignment && payload.readIntervalMs && payload.telemetryIntervalMs && payload.queueIntervalMs) {
+        const profile = POWER_PROFILES[assignment.profileId]
+        this.registry.setPowerProfileApplied(nodeId, {
+          ...profile,
+          readIntervalMs: payload.readIntervalMs,
+          telemetryIntervalMs: payload.telemetryIntervalMs,
+          queueIntervalMs: payload.queueIntervalMs,
+        })
         await this.saveDb()
       }
     }

@@ -35,13 +35,11 @@ export class CommandQueueService {
       updatedAt: now,
     }
 
-    const stmt = this.db.prepare(
-      `
+    const stmt = this.db.prepare(`
       INSERT INTO commands (
         command_id, node_id, type, status, payload_json, created_at, updated_at, acknowledged_at, result_message
       ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL)
-    `
-    )
+    `)
     stmt.run([
       command.commandId,
       command.nodeId,
@@ -77,7 +75,7 @@ export class CommandQueueService {
       type: CommandType.PowerProfile,
       status: 'pending',
       payload: {
-        profileId: request.profileId,
+        readIntervalMs: request.readIntervalMs,
         telemetryIntervalMs: request.telemetryIntervalMs,
         queueIntervalMs: request.queueIntervalMs,
       },
@@ -85,13 +83,11 @@ export class CommandQueueService {
       updatedAt: now,
     }
 
-    const stmt = this.db.prepare(
-      `
+    const stmt = this.db.prepare(`
       INSERT INTO commands (
         command_id, node_id, type, status, payload_json, created_at, updated_at, acknowledged_at, result_message
       ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL)
-    `
-    )
+    `)
     stmt.run([
       command.commandId,
       command.nodeId,
@@ -111,7 +107,7 @@ export class CommandQueueService {
       message: `Power profile command queued for ${nodeId}`,
       meta: {
         commandId: command.commandId,
-        profileId: request.profileId,
+        readIntervalMs: request.readIntervalMs,
         telemetryIntervalMs: request.telemetryIntervalMs,
         queueIntervalMs: request.queueIntervalMs,
       },
@@ -121,14 +117,12 @@ export class CommandQueueService {
   }
 
   getPendingCommands(nodeId: string, capability: 'earth' | 'watering'): CommandQueueResponse {
-    const stmt = this.db.prepare(
-      `
+    const stmt = this.db.prepare(`
       SELECT command_id, node_id, type, status, payload_json, created_at, updated_at
       FROM commands
       WHERE node_id = ? AND status = 'pending'
       ORDER BY created_at ASC
-    `
-    )
+    `)
     stmt.bind([nodeId])
 
     const commands: QueuedCommand[] = []
@@ -153,13 +147,11 @@ export class CommandQueueService {
     }
 
     const now = Date.now()
-    const stmt = this.db.prepare(
-      `
+    const stmt = this.db.prepare(`
       UPDATE commands
       SET status = ?, updated_at = ?, acknowledged_at = ?, result_message = ?
       WHERE command_id = ? AND node_id = ? AND status = 'pending'
-    `
-    )
+    `)
     stmt.run([
       request.result,
       now,
@@ -192,13 +184,11 @@ export class CommandQueueService {
   }
 
   getCommand(nodeId: string, commandId: string): QueuedCommand | null {
-    const stmt = this.db.prepare(
-      `
+    const stmt = this.db.prepare(`
       SELECT command_id, node_id, type, status, payload_json, created_at, updated_at
       FROM commands
       WHERE node_id = ? AND command_id = ?
-    `
-    )
+    `)
     stmt.bind([nodeId, commandId])
 
     if (!stmt.step()) {
@@ -236,7 +226,7 @@ export class CommandQueueService {
   private normalizePayload(type: CommandType, payload: Record<string, unknown>) {
     if (type === CommandType.PowerProfile) {
       return {
-        profileId: String(payload.profileId ?? ''),
+        readIntervalMs: Number(payload.readIntervalMs ?? 0),
         telemetryIntervalMs: Number(payload.telemetryIntervalMs ?? 0),
         queueIntervalMs: Number(payload.queueIntervalMs ?? 0),
       }
