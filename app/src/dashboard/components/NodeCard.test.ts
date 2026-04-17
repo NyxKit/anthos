@@ -28,10 +28,11 @@ vi.mock('@anthos/shared/anthos', () => ({
 }))
 
 vi.mock('@/dashboard/stores/telemetry', () => ({
-  useTelemetryStore: () => ({
-    nodeId: 'node-001',
-    health: { uptimeMs: 3600000, ip: '192.168.1.2', rssi: -42 },
-    sensors: [
+    useTelemetryStore: () => ({
+      nodeId: 'node-001',
+      status: 'connected',
+      health: { uptimeMs: 3600000, ip: '192.168.1.2', rssi: -42 },
+      sensors: [
       { type: 'lux', value: 100, unit: 'lx' },
       { type: 'temperature', value: 21, unit: 'C' },
       { type: 'humidity', value: 45, unit: '%' },
@@ -108,10 +109,10 @@ describe('NodeCard', () => {
           NyxActionItem: { template: '<div><slot name="action" /><slot /></div>' },
           NyxInput: { template: '<input />' },
           NyxBadge: { template: '<span><slot /></span>' },
-          NyxSelect: {
-            props: ['modelValue', 'options'],
-            emits: ['update:modelValue'],
-            template: '<select :value="modelValue" @change="$emit(\'update:modelValue\', $event.target.value)"><option v-for="option in options" :key="option.value" :value="option.value">{{ option.label }}</option></select>',
+          NyxDropdown: {
+            props: ['options'],
+            emits: ['select'],
+            template: '<div><slot /><button v-for="option in options" :key="option.value" @click="$emit(\'select\', option)">{{ option.label }}</button></div>',
           },
         },
       },
@@ -121,16 +122,13 @@ describe('NodeCard', () => {
     expect(getPowerProfile).toHaveBeenCalledWith('node-001')
     await Promise.resolve()
     await nextTick()
-    expect(wrapper.text()).toContain('POWER PROFILE')
-    expect(wrapper.text()).toContain('balanced')
+    expect(wrapper.text()).toContain('Balanced')
 
-    await wrapper.find('select').setValue('performance')
-    await nextTick()
-    await wrapper.findAll('button').find(button => button.text() === 'Apply')?.trigger('click')
+    await wrapper.findAll('button').find(button => button.text() === 'Performance')?.trigger('click')
     await nextTick()
 
     expect(applyPowerProfile).toHaveBeenCalledWith('node-001', 'performance')
-    expect(wrapper.text()).toContain('performance')
+    expect(wrapper.text()).toContain('Performance')
 
     await wrapper.findAll('button').find(button => button.text() === 'Pump')?.trigger('click')
 

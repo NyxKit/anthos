@@ -8,12 +8,13 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest",
-    "tauri": "tauri --config-dir native"
+    "tauri": "tauri --config-dir native",
+    "clean": "rm -rf pnpm-lock.yaml && rm -rf dist && rm -rf node_modules"
   },
   "dependencies": {
     "@anthos/shared": "workspace:*",
     "@tauri-apps/api": "^2.0.0",
-    "nyx-kit": "^2.0.28",
+    "nyx-kit": "^2.0.33",
     "ofetch": "^1.5.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.13",

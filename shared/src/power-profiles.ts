@@ -7,6 +7,7 @@ export enum PowerProfile {
 export interface PowerProfileDefinition {
   profileId: PowerProfile
   label: string
+  icon: string
   readIntervalMs: number
   telemetryIntervalMs: number
   queueIntervalMs: number
@@ -47,6 +48,7 @@ export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = {
   [PowerProfile.PowerSaver]: {
     profileId: PowerProfile.PowerSaver,
     label: 'Power Saver',
+    icon: 'leaf',
     readIntervalMs: 3600000,
     telemetryIntervalMs: 3600000,
     queueIntervalMs: 3600000,
@@ -54,6 +56,7 @@ export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = {
   [PowerProfile.Balanced]: {
     profileId: PowerProfile.Balanced,
     label: 'Balanced',
+    icon: 'scale',
     readIntervalMs: 600000,
     telemetryIntervalMs: 600000,
     queueIntervalMs: 600000,
@@ -61,6 +64,7 @@ export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = {
   [PowerProfile.Performance]: {
     profileId: PowerProfile.Performance,
     label: 'Performance',
+    icon: 'circle-gauge',
     readIntervalMs: 1000,
     telemetryIntervalMs: 1000,
     queueIntervalMs: 1000,
