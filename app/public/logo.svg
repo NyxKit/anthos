@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   stroke="currentColor"
+   stroke-width="2"
+   stroke-linecap="round"
+   stroke-linejoin="round"
+   class="lucide lucide-leaf-icon lucide-leaf"
+   version="1.1"
+   id="svg2"
+   xmlns="http://www.w3.org/2000/svg">
+  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" style="stroke:#9f50f0;stroke-opacity:1" />
+  <path d="M 2,21 C 2,18 3.85,15.64 7.08,15 9.5,14.52 12.233749,13.493636 15.586822,9.8930784" style="stroke:#9f50f0;stroke-opacity:1" />
+  <circle cx="10.879272" cy="9.6492043" r="0.79582596" style="fill:none;stroke:#9f50f0;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  <circle cx="16.853912" cy="8.355052" r="1.4505416" style="fill:none;stroke:#9f50f0;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  <circle cx="16.61734" cy="13.597172" r="0.79582596" style="fill:none;stroke:#9f50f0;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  <circle cx="12.033056" cy="16.47966" r="0.79582596" style="fill:none;stroke:#9f50f0;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  <path d="M 9.9852263,10.019193 8.870326,10.491323 7.9713565,14.582171" style="fill:none;stroke:#9f50f0;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  <path d="M 11.14793,16.804301 9.9658987,17.173724 6.7517084,15.881549" style="fill:none;stroke:#9f50f0;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+  <path d="M 15.759749,14.197306 14.81549,14.81549 11.125285,13.858765" style="fill:none;stroke:#9f50f0;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
+</svg>
