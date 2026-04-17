@@ -1,20 +1,41 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
+import { useNodesStore } from '@/nodes/stores/nodes'
 import NodeCard from '@/dashboard/components/NodeCard.vue'
 import MetricsBar from '@/dashboard/components/MetricsBar.vue'
 import ActivityLog from './ActivityLog.vue'
 import HealthPanel from './HealthPanel.vue'
 import { NyxGrid } from 'nyx-kit/components'
 
-const store = useTelemetryStore()
+const telemetryStore = useTelemetryStore()
+const nodesStore = useNodesStore()
+
+const dashboardNodes = computed(() => {
+  const claimedNodes = nodesStore.nodes.filter(node => node.claimStatus === 'claimed')
+  const activeNodeId = telemetryStore.nodeId
+
+  if (!activeNodeId) {
+    return claimedNodes.slice(0, 3)
+  }
+
+  const activeIndex = claimedNodes.findIndex(node => node.nodeId === activeNodeId)
+  if (activeIndex === -1) {
+    return claimedNodes.slice(0, 3)
+  }
+
+  const nodes = [...claimedNodes]
+  const [activeNode] = nodes.splice(activeIndex, 1)
+  return [activeNode, ...nodes].slice(0, 3)
+})
 
 onMounted(() => {
-  store.startPolling(5000)
+  telemetryStore.startPolling(5000)
+  void nodesStore.fetchNodes()
 })
 
 onUnmounted(() => {
-  store.stopPolling()
+  telemetryStore.stopPolling()
 })
 </script>
 
@@ -28,9 +49,10 @@ onUnmounted(() => {
     <!-- Node Grid -->
     <section class="dashboard__nodes">
       <h3 class="dashboard__section-title">Biological Nodes</h3>
-      <NyxGrid class="dashboard__grid" :columns="3">
-        <NodeCard />
+      <NyxGrid v-if="dashboardNodes.length" class="dashboard__grid" :columns="3">
+        <NodeCard v-for="node in dashboardNodes" :key="node.nodeId" :node="node" />
       </NyxGrid>
+      <p v-else class="dashboard__nodes-empty">No claimed nodes yet.</p>
     </section>
 
     <!-- Bottom Panels -->

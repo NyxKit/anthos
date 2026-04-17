@@ -19,6 +19,10 @@ class CommandClient {
   String ackUrl(const String& commandId) const;
   void pollCommands();
   void processCommand(const String& commandId, unsigned long durationMs);
+  void processPowerProfileCommand(const String& commandId,
+                                  unsigned long readIntervalMs,
+                                  unsigned long telemetryIntervalMs,
+                                  unsigned long queueIntervalMs);
   bool acknowledgeCommand(const String& commandId, const char* result, const char* message);
 
   Logger& logger_;

@@ -21,6 +21,7 @@ struct AppConfig {
   unsigned long retryIntervalMs  = 5000;
   unsigned long pushIntervalMs   = 1000;
   unsigned long commandPollIntervalMs = 3000;
+  unsigned long profileSyncIntervalMs = 5000;
 };
 
 extern const AppConfig kAppConfig;

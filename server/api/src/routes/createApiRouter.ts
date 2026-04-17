@@ -4,6 +4,7 @@ import { IngestController } from '../controllers/IngestController.js'
 import { CommandController } from '../controllers/CommandController.js'
 import { MetricsController } from '../controllers/MetricsController.js'
 import { LogsController } from '../controllers/LogsController.js'
+import { PowerProfileController } from '../controllers/PowerProfileController.js'
 import { ProvisionController } from '../controllers/ProvisionController.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
@@ -19,10 +20,11 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   const saveDb = () => telemetry.saveDbPublic()
   const ingestController = new IngestController(telemetry, logArchive, registry, saveDb)
   const commandService = new CommandQueueService(telemetry.getDb(), saveDb, logArchive)
-  const commandController = new CommandController(commandService, registry, logArchive)
+  const commandController = new CommandController(commandService, registry, logArchive, saveDb)
   const metricsController = new MetricsController(telemetry, registry)
   const logsController = new LogsController(logArchive)
   const provisionCtrl = new ProvisionController(registry, pairing, saveDb)
+  const powerProfileCtrl = new PowerProfileController(registry, logArchive, commandService, saveDb)
 
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' })
@@ -69,6 +71,8 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   router.get('/nodes', provisionCtrl.listNodes)
   router.patch('/nodes/:id', provisionCtrl.claimNode)
   router.patch('/nodes/:id/capability', provisionCtrl.updateCapability)
+  router.get('/nodes/:id/power-profile', powerProfileCtrl.getNodeProfile)
+  router.patch('/nodes/:id/power-profile', powerProfileCtrl.applyProfile)
 
   return router
 }

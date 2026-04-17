@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import initSqlJs, { Database } from 'sql.js'
+import { CommandType } from '@anthos/shared'
 
 import { CommandQueueService } from '../src/services/CommandQueueService.js'
 
@@ -42,7 +43,7 @@ describe('CommandQueueService', () => {
 
     const queued = await service.enqueuePumpCommand('node-001', { volumeMl: 100 })
     expect(queued.nodeId).toBe('node-001')
-    expect(queued.type).toBe('pump')
+    expect(queued.type).toBe(CommandType.Pump)
     expect(queued.status).toBe('pending')
     expect(saveDb).toHaveBeenCalledTimes(1)
     expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({
@@ -69,6 +70,39 @@ describe('CommandQueueService', () => {
       message: 'Pump command completed for node-001',
     }))
     expect(service.getPendingCommands('node-001').commands).toHaveLength(0)
+  })
+
+  it('queues and acknowledges power profile commands', async () => {
+    const service = new CommandQueueService(db, saveDb, logArchive as never)
+
+    const queued = await service.enqueuePowerProfileCommand('node-001', {
+      readIntervalMs: 600000,
+      telemetryIntervalMs: 600000,
+      queueIntervalMs: 600000,
+    })
+
+    expect(queued.type).toBe(CommandType.PowerProfile)
+    expect(queued.payload).toMatchObject({
+      readIntervalMs: 600000,
+      telemetryIntervalMs: 600000,
+      queueIntervalMs: 600000,
+    })
+    expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({
+      nodeId: 'node-001',
+      source: 'command-queue',
+      message: 'Power profile command queued for node-001',
+    }))
+
+    const acked = await service.acknowledgeCommand('node-001', queued.commandId, {
+      result: 'completed',
+    })
+
+    expect(acked?.status).toBe('completed')
+    expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({
+      nodeId: 'node-001',
+      source: 'command-queue',
+      message: 'Power profile command completed for node-001',
+    }))
   })
 
   it('rejects acknowledgements for unknown commands', async () => {

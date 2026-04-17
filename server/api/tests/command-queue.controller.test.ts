@@ -22,7 +22,7 @@ describe('CommandController', () => {
     const logArchive = {
       recordEntry: vi.fn().mockResolvedValue(undefined),
     }
-    const controller = new CommandController(commands as never, registry as never, logArchive as never)
+    const controller = new CommandController(commands as never, registry as never, logArchive as never, vi.fn().mockResolvedValue(undefined) as never)
     const res = createRes()
 
     await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { volumeMl: 0 } } as never, res as never)
@@ -44,7 +44,7 @@ describe('CommandController', () => {
     const logArchive = {
       recordEntry: vi.fn().mockResolvedValue(undefined),
     }
-    const controller = new CommandController(commands as never, registry as never, logArchive as never)
+    const controller = new CommandController(commands as never, registry as never, logArchive as never, vi.fn().mockResolvedValue(undefined) as never)
 
     const listRes = createRes()
     await controller.listPending({ params: { nodeId: 'node-001' } } as never, listRes as never)
@@ -76,7 +76,7 @@ describe('CommandController', () => {
     const logArchive = {
       recordEntry: vi.fn().mockResolvedValue(undefined),
     }
-    const controller = new CommandController(commands as never, registry as never, logArchive as never)
+    const controller = new CommandController(commands as never, registry as never, logArchive as never, vi.fn().mockResolvedValue(undefined) as never)
     const res = createRes()
 
     await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { volumeMl: 100 } } as never, res as never)

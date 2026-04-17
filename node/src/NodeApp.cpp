@@ -60,7 +60,7 @@ void NodeApp::loop() {
   api_.loop();
 
   const auto now = millis();
-  if (now - lastReadAt_ < kAppConfig.readIntervalMs) {
+  if (now - lastReadAt_ < NvsConfig::getReadIntervalMs()) {
     delay(10);
     return;
   }

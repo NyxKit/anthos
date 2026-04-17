@@ -1,5 +1,7 @@
 import type { Request, Response, RequestHandler } from 'express'
 
+import { POWER_PROFILES, CommandType } from '@anthos/shared'
+
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
@@ -8,7 +10,8 @@ export class CommandController {
   constructor(
     private readonly commands: CommandQueueService,
     private readonly registry: NodeRegistryService,
-    private readonly logArchive: LogArchiveService
+    private readonly logArchive: LogArchiveService,
+    private readonly saveDb: () => Promise<void>
   ) {}
 
   enqueuePump: RequestHandler = async (req: Request, res: Response): Promise<void> => {
@@ -119,6 +122,22 @@ export class CommandController {
     if (!command) {
       res.status(404).json({ error: 'Command not found' })
       return
+    }
+
+    if (command.type === CommandType.PowerProfile && result === 'completed') {
+      const payload = command.payload as { readIntervalMs?: number; telemetryIntervalMs?: number; queueIntervalMs?: number }
+      const state = this.registry.getPowerProfileState(nodeId)
+      const assignment = state?.assignment
+      if (assignment && payload.readIntervalMs && payload.telemetryIntervalMs && payload.queueIntervalMs) {
+        const profile = POWER_PROFILES[assignment.profileId]
+        this.registry.setPowerProfileApplied(nodeId, {
+          ...profile,
+          readIntervalMs: payload.readIntervalMs,
+          telemetryIntervalMs: payload.telemetryIntervalMs,
+          queueIntervalMs: payload.queueIntervalMs,
+        })
+        await this.saveDb()
+      }
     }
 
     res.json({ nodeId, commandId, status: command.status })

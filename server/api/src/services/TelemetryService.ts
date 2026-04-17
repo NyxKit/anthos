@@ -63,7 +63,17 @@ export class TelemetryService {
         display_name  TEXT,
         claim_status  TEXT    NOT NULL DEFAULT 'unclaimed',
         capability    TEXT    NOT NULL DEFAULT 'earth',
-        registered_at INTEGER NOT NULL
+        registered_at INTEGER NOT NULL,
+        power_profile_id TEXT,
+        power_profile_read_interval_ms INTEGER,
+        power_profile_telemetry_interval_ms INTEGER,
+        power_profile_queue_interval_ms INTEGER,
+        power_profile_assigned_at INTEGER,
+        power_profile_applied_id TEXT,
+        power_profile_applied_read_interval_ms INTEGER,
+        power_profile_applied_telemetry_interval_ms INTEGER,
+        power_profile_applied_queue_interval_ms INTEGER,
+        power_profile_applied_at INTEGER
       )
     `)
 
@@ -77,6 +87,27 @@ export class TelemetryService {
       && logicalNodeColumns[0].values.some((row: unknown[]) => row[1] === 'capability')
     if (!hasCapabilityColumn) {
       this.db.run("ALTER TABLE logical_nodes ADD COLUMN capability TEXT NOT NULL DEFAULT 'earth'")
+    }
+
+    const profileColumns = [
+      ['power_profile_id', 'TEXT'],
+      ['power_profile_read_interval_ms', 'INTEGER'],
+      ['power_profile_telemetry_interval_ms', 'INTEGER'],
+      ['power_profile_queue_interval_ms', 'INTEGER'],
+      ['power_profile_assigned_at', 'INTEGER'],
+      ['power_profile_applied_id', 'TEXT'],
+      ['power_profile_applied_read_interval_ms', 'INTEGER'],
+      ['power_profile_applied_telemetry_interval_ms', 'INTEGER'],
+      ['power_profile_applied_queue_interval_ms', 'INTEGER'],
+      ['power_profile_applied_at', 'INTEGER'],
+    ] as const
+
+    for (const [column, type] of profileColumns) {
+      const hasColumn = logicalNodeColumns.length > 0
+        && logicalNodeColumns[0].values.some((row: unknown[]) => row[1] === column)
+      if (!hasColumn) {
+        this.db.run(`ALTER TABLE logical_nodes ADD COLUMN ${column} ${type}`)
+      }
     }
 
     this.db.run(`

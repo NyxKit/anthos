@@ -23,7 +23,7 @@ void ApiClient::loop() {
 bool ApiClient::shouldPublish() const {
   if (NvsConfig::getServerUrl().length() == 0) return false;
   if (!health_.isWifiConnected()) return false;
-  return millis() - lastPublishAt_ >= kAppConfig.pushIntervalMs;
+  return millis() - lastPublishAt_ >= NvsConfig::getTelemetryIntervalMs();
 }
 
 String ApiClient::buildPayload() const {

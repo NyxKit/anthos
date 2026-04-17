@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { NyxCard, NyxIcon, NyxActionItem, NyxBadge, NyxInput, NyxButton } from 'nyx-kit/components'
-import { NyxInputNumberControls, NyxInputType, NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
+import { NyxCard, NyxIcon, NyxActionItem, NyxBadge, NyxInput, NyxButton, NyxDropdown, NyxStatusDot } from 'nyx-kit/components'
+import { NyxInputNumberControls, NyxInputType, NyxSize, NyxTheme, NyxVariant, NyxSelectOption, NyxShape } from 'nyx-kit/types'
 import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { logo } from '@/shared/assets'
-import type { LogicalNodeRecord } from '@anthos/shared'
+import { PowerProfile, POWER_PROFILES } from '@anthos/shared/power-profiles'
+import type { LogicalNodeRecord, NodePowerProfileState } from '@anthos/shared'
+
+const powerProfileSelectOptions: NyxSelectOption[] = Object.values(POWER_PROFILES).map(profile => ({
+  label: profile.label,
+  value: profile.profileId,
+  icon: profile.icon
+}))
 
 const PUMP_VOLUME_ML = 100
 
@@ -20,33 +27,10 @@ const pumpState = ref<'idle' | 'loading' | 'error'>('idle')
 const pumpError = ref<string | null>(null)
 const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
 const pendingPumpCommandId = ref<string | null>(null)
-
-const formattedTimestamp = computed(() => {
-  const now = Date.now()
-  const ts = store.timestampMs ?? 0
-
-  const diff = now - ts
-  const seconds = Math.floor(diff / 1000)
-
-  if (seconds < 10) return 'just now'
-  if (seconds < 60) return `${seconds}s ago`
-
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
-})
-
-const formattedUptime = computed(() => {
-  if (!store.health?.uptimeMs) return '-'
-  const hours = Math.floor(store.health.uptimeMs / 3600000)
-  const mins = Math.floor((store.health.uptimeMs % 3600000) / 60000)
-  return `${hours}h ${mins}m`
-})
+const profileState = ref<NodePowerProfileState | null>(null)
+const profileStateLoading = ref(false)
+const profileError = ref<string | null>(null)
+const selectedProfileId = ref(PowerProfile.Performance)
 
 const nodeDisplayName = computed(() => {
   return props.node?.displayName || props.node?.nodeId || store.nodeId || 'Unknown Node'
@@ -54,23 +38,38 @@ const nodeDisplayName = computed(() => {
 
 const capability = computed(() => props.node?.capability ?? store.node?.capability)
 const capabilityLabel = computed(() => capability.value === 'watering' ? 'Watering' : 'Earth')
+const actionNodeId = computed(() => props.node?.nodeId || store.nodeId || '')
+const isLiveNode = computed(() => Boolean(actionNodeId.value) && actionNodeId.value === store.nodeId && store.status === 'connected')
+const connectionLabel = computed(() => isLiveNode.value ? 'Online' : 'Offline')
+
+const getProfileIcon = (profileId?: PowerProfile | null) => {
+  if (!profileId) return 'question-mark'
+  return POWER_PROFILES[profileId]?.icon ?? 'question-mark'
+}
+
+const getPowerProfileLabel = (profileId?: PowerProfile | null) => {
+  if (!profileId) return 'No profile'
+  return POWER_PROFILES[profileId]?.label ?? profileId
+}
 
 const getSensorValue = (type: string) => {
+  if (!isLiveNode.value) return '--'
   const sensor = store.sensors.find(s => s.type === type)
   return sensor ? sensor.value.toFixed(1) : '--'
 }
 
 const getSensorUnit = (type: string) => {
+  if (!isLiveNode.value) return ''
   const sensor = store.sensors.find(s => s.type === type)
   return sensor?.unit || ''
 }
 
 const isCritical = computed(() => {
+  if (!isLiveNode.value) return false
   const moisture = store.sensors.find(s => s.type === 'moisture')
   return moisture && moisture.value < 20
 })
 
-const actionNodeId = computed(() => props.node?.nodeId || store.nodeId || '')
 const pumpButtonLabel = computed(() => {
   if (pumpState.value === 'loading' || isPumpPending.value) return 'Pumping...'
   return 'Pump'
@@ -94,6 +93,36 @@ const isPumpButtonDisabled = computed(() => {
   return pumpState.value === 'loading' || isPumpPending.value
 })
 
+const formattedTimestamp = computed(() => {
+  if (!isLiveNode.value) return 'offline'
+
+  const now = Date.now()
+  const ts = store.timestampMs ?? 0
+
+  const diff = now - ts
+  const seconds = Math.floor(diff / 1000)
+
+  if (seconds < 10) return 'just now'
+  if (seconds < 60) return `${seconds}s ago`
+
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
+})
+
+const formattedUptime = computed(() => {
+  if (!isLiveNode.value) return '-'
+  if (!store.health?.uptimeMs) return '-'
+  const hours = Math.floor(store.health.uptimeMs / 3600000)
+  const mins = Math.floor((store.health.uptimeMs % 3600000) / 60000)
+  return `${hours}h ${mins}m`
+})
+
 watch(hasTerminalPumpLog, done => {
   if (done && pendingPumpCommandId.value) {
     pendingPumpCommandId.value = null
@@ -101,9 +130,54 @@ watch(hasTerminalPumpLog, done => {
   }
 })
 
+watch(actionNodeId, () => {
+  void loadPowerProfile()
+})
+
 onMounted(() => {
   void logStore.start()
+  void loadPowerProfile()
 })
+
+async function loadPowerProfile() {
+  if (!actionNodeId.value) return
+
+  profileStateLoading.value = true
+  profileError.value = null
+
+  try {
+    const state = await anthos.nodes.getPowerProfile(actionNodeId.value)
+    profileState.value = state
+    selectedProfileId.value = state.assignment?.profileId ?? state.applied?.profileId ?? PowerProfile.Balanced
+  } catch (error) {
+    profileState.value = null
+    profileError.value = error instanceof Error ? error.message : 'Failed to load power profile'
+  } finally {
+    profileStateLoading.value = false
+  }
+}
+
+async function handlePowerProfileApply() {
+  if (!actionNodeId.value) return
+
+  profileStateLoading.value = true
+  profileError.value = null
+
+  try {
+    const state = await anthos.nodes.applyPowerProfile(actionNodeId.value, selectedProfileId.value)
+    profileState.value = state
+    selectedProfileId.value = state.assignment?.profileId ?? selectedProfileId.value
+  } catch (error) {
+    profileError.value = error instanceof Error ? error.message : 'Failed to apply power profile'
+  } finally {
+    profileStateLoading.value = false
+  }
+}
+
+async function handlePowerProfileSelect(option: NyxSelectOption) {
+  selectedProfileId.value = option.value as PowerProfile
+  await handlePowerProfileApply()
+}
 
 async function handlePumpClick() {
   if (!actionNodeId.value) return
@@ -133,16 +207,73 @@ async function handlePumpClick() {
           </div>
           <div>
             <h3>{{ nodeDisplayName }}</h3>
-            <div class="node-card__status">
-              <span class="node-card__status-dot node-card__status-dot--connected"></span>
-              <span class="node-card__status-text">Connected</span>
-              <NyxBadge :theme="capability === 'watering' ? NyxTheme.Secondary : NyxTheme.Info" :size="NyxSize.Small">{{ capabilityLabel }}</NyxBadge>
+            <div class="node-card__meta">
+              <NyxStatusDot
+                class="node-card__status-dot"
+                :theme="isLiveNode ? NyxTheme.Success : NyxTheme.Danger"
+                :size="NyxSize.Small"
+                :label="connectionLabel"
+              />
             </div>
           </div>
         </div>
         <div class="node-card__header-right" v-if="props.node">
-          <p class="node-card__location">Lab A // Bench 04</p>
-          <p class="node-card__id">ID: {{ props.node.hwId }}</p>
+          <NyxDropdown 
+            v-if="capability === 'watering'"
+            :theme="NyxTheme.Secondary"
+            :size="NyxSize.Small"
+          >
+            <NyxButton :theme="NyxTheme.Secondary" :variant="NyxVariant.Subtle" :size="NyxSize.Small" :shape="NyxShape.Square" :disabled="!isLiveNode">
+              <NyxSpinner v-if="pumpState === 'loading'" :theme="NyxTheme.Secondary" :size="NyxSize.Small" />
+              <NyxIcon v-else name="soap-dispenser-droplet" :size="NyxSize.Small" />
+            </NyxButton>
+            <template #dropdown>
+              <NyxActionItem
+                class="node-card__pump-action"
+                title="Pump"
+                :theme="NyxTheme.Secondary"
+                :action="pumpState === 'loading' ? 'Pumping...' : 'Pump'"
+                @click="handlePumpClick"
+              >
+                <span class="node-card__pump-status" :data-state="pumpState">
+                  {{ isPumpPending ? 'Command queued' : pumpState === 'error' ? pumpError || 'Failed to queue pump command' : 'Test the pump flow' }}
+                </span>
+                <template #action>
+                  <NyxInput
+                    class="node-card__pump-volume"
+                    :type="NyxInputType.Number"
+                    :theme="NyxTheme.Secondary"
+                    :size="NyxSize.Small"
+                    :min="10"
+                    :max="500"
+                    :step="10"
+                    :number-controls="NyxInputNumberControls.None"
+                    v-model="pumpVolumeMl"
+                    suffix="ml"
+                  />
+                  <NyxButton
+                    :theme="NyxTheme.Secondary"
+                    :size="NyxSize.Small"
+                    :disabled="isPumpButtonDisabled"
+                    :loading="pumpState === 'loading'"
+                    @click="handlePumpClick"
+                  >
+                    <NyxIcon name="soap-dispenser-droplet" :size="NyxSize.Small" /> {{ pumpButtonLabel }}
+                  </NyxButton>
+                </template>
+              </NyxActionItem>
+            </template>
+          </NyxDropdown>
+          <NyxDropdown
+            :theme="NyxTheme.Primary"
+            :size="NyxSize.Small"
+            :options="powerProfileSelectOptions"
+            @select="handlePowerProfileSelect"
+          >
+            <NyxButton :theme="NyxTheme.Primary" :variant="NyxVariant.Subtle" :size="NyxSize.Small" :shape="NyxShape.Square" :disabled="!isLiveNode">
+              <NyxIcon :name="getProfileIcon(selectedProfileId)" :size="NyxSize.Small" />
+            </NyxButton>
+          </NyxDropdown>
         </div>
       </div>
     </template>
@@ -192,6 +323,18 @@ async function handlePumpClick() {
         <span>{{ store.health?.ip || '192.168.1.x' }}</span>
       </div>
       <div class="node-card__footer-row">
+        <span>NODE ID</span>
+        <span>{{ props.node?.nodeId || '--' }}</span>
+      </div>
+      <div class="node-card__footer-row">
+        <span>HARDWARE ID</span>
+        <span>{{ props.node?.hwId || '--' }}</span>
+      </div>
+      <div class="node-card__footer-row">
+        <span>POWER PROFILE</span>
+        <span>{{ getPowerProfileLabel(selectedProfileId) }}</span>
+      </div>
+      <div class="node-card__footer-row">
         <span>UPTIME</span>
         <span>{{ formattedUptime }}</span>
       </div>
@@ -203,36 +346,6 @@ async function handlePumpClick() {
         <span class="node-card__updated">Updated {{ formattedTimestamp }}</span>
       </div>
     </div>
-
-    <NyxActionItem
-      v-if="capability === 'watering'"
-      class="node-card__pump-action"
-      title="Pump"
-      :theme="NyxTheme.Secondary"
-      :action="pumpState === 'loading' ? 'Pumping...' : 'Pump'"
-      @click="handlePumpClick"
-    >
-      <span class="node-card__pump-status" :data-state="pumpState">
-        {{ isPumpPending ? 'Command queued' : pumpState === 'error' ? pumpError || 'Failed to queue pump command' : 'Test the pump flow' }}
-      </span>
-      <template #action>
-        <NyxInput
-          class="node-card__pump-volume"
-          :type="NyxInputType.Number"
-          :theme="NyxTheme.Secondary"
-          :size="NyxSize.Small"
-          :min="10"
-          :max="500"
-          :step="10"
-          :number-controls="NyxInputNumberControls.None"
-          v-model="pumpVolumeMl"
-          suffix="ml"
-        />
-        <NyxButton :theme="NyxTheme.Secondary" :size="NyxSize.Small" :disabled="isPumpButtonDisabled" @click="handlePumpClick">
-          <NyxIcon name="soap-dispenser-droplet" :size="NyxSize.Small" /> {{ pumpButtonLabel }}
-        </NyxButton>
-      </template>
-    </NyxActionItem>
   </NyxCard>
 </template>
 
@@ -295,11 +408,24 @@ async function handlePumpClick() {
   letter-spacing: -0.025em;
 }
 
-.node-card__status {
+.node-card__meta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
+}
+
+.node-card__status-dot {
+  text-transform: uppercase;
+  font-family: var(--nyx-font-family-mono, monospace);
+  font-size: 0.625rem;
+  color: var(--nyx-c-info);
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.node-card__status-dot.theme-success {
+  color: var(--nyx-c-success);
 }
 
 .node-card__capability {
@@ -319,27 +445,10 @@ async function handlePumpClick() {
   margin-inline: 0.25rem 0.5rem;
 }
 
-.node-card__status-dot {
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 50%;
-}
-
-.node-card__status-dot--connected {
-  background: var(--nyx-c-tertiary, #60de87);
-  box-shadow: 0 0 8px rgba(96, 222, 135, 0.6);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
 .node-card__status-text {
   font-family: var(--nyx-font-family-mono, monospace);
   font-size: 0.625rem;
-  color: var(--nyx-c-tertiary, #60de87);
+  color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.8));
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -415,6 +524,35 @@ async function handlePumpClick() {
 
 .node-card__sensor-value--critical {
   color: var(--nyx-c-error, #ffb4ab);
+}
+
+.node-card__profile {
+  padding: 1rem;
+  border-top: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.1));
+  background: linear-gradient(180deg, rgba(109, 109, 240, 0.05), transparent);
+}
+
+.node-card__profile-header,
+.node-card__profile-controls,
+.node-card__profile-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.node-card__profile-header {
+  font-family: var(--nyx-font-family-mono, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--nyx-c-text-3, rgba(171, 170, 177, 0.55));
+  margin-bottom: 0.75rem;
+}
+
+.node-card__profile-dropdown {
+  min-width: 14rem;
+  flex: 1;
 }
 
 /* Footer */
@@ -518,6 +656,6 @@ async function handlePumpClick() {
 }
 
 .node-card__pump-action {
-  margin-top: 0.5rem;
+  min-width: min(25rem, 95dvw);
 }
 </style>
