@@ -113,4 +113,30 @@ export class ProvisionController {
 
     res.json({ nodeId, capability: normalizedCapability })
   }
+
+  updateDisplayName: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const nodeId = String(req.params['id'])
+    const { displayName } = req.body as { displayName?: string }
+
+    if (!displayName) {
+      res.status(400).json({ error: 'displayName is required' })
+      return
+    }
+
+    if (displayName.trim() === '') {
+      res.status(400).json({ error: 'displayName must not be empty' })
+      return
+    }
+
+    const updated = this.registry.updateDisplayName(nodeId, displayName.trim())
+
+    if (!updated) {
+      res.status(404).json({ error: 'Node not found or not claimed' })
+      return
+    }
+
+    await this.saveDb()
+
+    res.json({ nodeId, displayName: displayName.trim() })
+  }
 }

@@ -29,6 +29,13 @@ export class AnthosNodes {
     })
   }
 
+  updateDisplayName(nodeId: string, displayName: string): Promise<LogicalNodeRecord> {
+    return this.anthos.request<LogicalNodeRecord>(`/api/nodes/${nodeId}/name`, {
+      method: 'PATCH',
+      body: { displayName },
+    })
+  }
+
   openProvisionWindow(): Promise<void> {
     return this.anthos.request<void>('/api/provision/open', {
       method: 'POST',

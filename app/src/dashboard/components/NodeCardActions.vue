@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { NyxActionItem, NyxButton, NyxDropdown, NyxIcon, NyxSpinner, NyxModal, NyxForm, NyxFormField, NyxInput, NyxButtonGroup, NyxSwitch } from 'nyx-kit/components'
+import { NyxActionItem, NyxButton, NyxDropdown, NyxIcon, NyxSpinner, NyxModal, NyxForm, NyxFormField, NyxInput, NyxSwitch } from 'nyx-kit/components'
 import { NyxInputNumberControls, NyxInputType, NyxShape, NyxSize, NyxTheme, NyxVariant, type NyxSelectOption } from 'nyx-kit/types'
 import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
@@ -33,6 +33,20 @@ const pendingPumpCommandId = ref<string | null>(null)
 
 const capability = computed(() => node.value?.capability ?? null)
 const isLiveNode = computed(() => Boolean(nodeId.value) && nodeId.value === telemetryStore.nodeId && telemetryStore.status === 'connected')
+const editDisplayName = ref(node.value.displayName ?? '')
+const isSavingDisplayName = ref(false)
+
+watch(() => node.value.displayName, value => {
+  if (!isEditModalOpen.value) {
+    editDisplayName.value = value ?? ''
+  }
+})
+
+watch(isEditModalOpen, open => {
+  if (open) {
+    editDisplayName.value = node.value.displayName ?? ''
+  }
+})
 
 const hasTerminalPumpLog = computed(() => {
   if (!pendingPumpCommandId.value || !nodeId.value) return false
@@ -96,12 +110,23 @@ async function toggleCapability(isWateringUnit: boolean) {
 }
 
 async function handleEditSubmit(event: Event) {
-  console.log('handleEditSubmit', event)
   event.preventDefault()
   if (!nodeId.value) return
-  // TODO: implement
-  // await anthos.nodes.update(nodeId.value, { displayName: node.value.displayName ?? '' })
-  isEditModalOpen.value = false
+
+  const nextDisplayName = editDisplayName.value.trim()
+  if (!nextDisplayName) return
+
+  isSavingDisplayName.value = true
+
+  try {
+    const updated = await anthos.nodes.updateDisplayName(nodeId.value, nextDisplayName)
+    node.value.displayName = updated.displayName ?? nextDisplayName
+    isEditModalOpen.value = false
+  } catch (error) {
+    console.error('Failed to update node name', error)
+  } finally {
+    isSavingDisplayName.value = false
+  }
 }
 </script>
 
@@ -180,15 +205,10 @@ async function handleEditSubmit(event: Event) {
       <NyxIcon name="pencil" :size="NyxSize.Small" />
     </NyxButton>
 
-    <NyxModal
-      v-model="isEditModalOpen"
-      title="Edit Node"
-      :theme="NyxTheme.Primary"
-      :size="NyxSize.Small"
-    >
+    <NyxModal v-model="isEditModalOpen" title="Edit Node" :theme="NyxTheme.Primary" :size="NyxSize.Small">
       <NyxForm :size="NyxSize.Small" @submit="handleEditSubmit">
         <NyxFormField label="Node name">
-          <NyxInput :model-value="node.displayName ?? ''" :theme="NyxTheme.Primary" :size="NyxSize.Small" />
+          <NyxInput v-model="editDisplayName" :theme="NyxTheme.Primary" :size="NyxSize.Small" />
         </NyxFormField>
         <NyxFormField label="Watering unit">
           <NyxSwitch
@@ -211,6 +231,8 @@ async function handleEditSubmit(event: Event) {
             :theme="NyxTheme.Success"
             :size="NyxSize.Small"
             type="submit"
+            :loading="isSavingDisplayName"
+            :disabled="isSavingDisplayName || !editDisplayName.trim()"
           >
             Save
           </NyxButton>

@@ -154,6 +154,23 @@ export class NodeRegistryService {
     return updated
   }
 
+  updateDisplayName(nodeId: string, displayName: string): boolean {
+    const stmt = this.db.prepare(`
+      UPDATE logical_nodes SET display_name=? WHERE node_id=? AND claim_status='claimed'
+    `)
+    stmt.run([displayName, nodeId])
+    stmt.free()
+
+    const checkStmt = this.db.prepare(`
+      SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND display_name=?
+    `)
+    checkStmt.bind([nodeId, displayName])
+    const updated = checkStmt.step()
+    checkStmt.free()
+
+    return updated
+  }
+
   getPowerProfileState(nodeId: string): NodePowerProfileState | null {
     const stmt = this.db.prepare(`
       SELECT

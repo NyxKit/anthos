@@ -52,4 +52,23 @@ describe('ProvisionController', () => {
     expect(registry.updateCapability).toHaveBeenCalledWith('node-001', 'watering')
     expect(res.json).toHaveBeenCalledWith({ nodeId: 'node-001', capability: 'watering' })
   })
+
+  it('renames a claimed node', async () => {
+    const registry = {
+      updateDisplayName: vi.fn().mockReturnValue(true),
+    }
+    const pairing = {
+      isOpen: vi.fn().mockReturnValue(true),
+      open: vi.fn(),
+      getStatus: vi.fn(),
+    }
+    const saveDb = vi.fn().mockResolvedValue(undefined)
+    const controller = new ProvisionController(registry as never, pairing as never, saveDb)
+    const res = createRes()
+
+    await controller.updateDisplayName({ params: { id: 'node-001' }, body: { displayName: 'Fern v2' } } as never, res as never)
+
+    expect(registry.updateDisplayName).toHaveBeenCalledWith('node-001', 'Fern v2')
+    expect(res.json).toHaveBeenCalledWith({ nodeId: 'node-001', displayName: 'Fern v2' })
+  })
 })
