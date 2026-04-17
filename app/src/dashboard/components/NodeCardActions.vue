@@ -34,6 +34,7 @@ const pendingPumpCommandId = ref<string | null>(null)
 const capability = computed(() => node.value?.capability ?? null)
 const isLiveNode = computed(() => Boolean(nodeId.value) && nodeId.value === telemetryStore.nodeId && telemetryStore.status === 'connected')
 const editDisplayName = ref(node.value.displayName ?? '')
+const editIsWateringUnit = ref(node.value.capability === 'watering')
 const isSavingDisplayName = ref(false)
 
 watch(() => node.value.displayName, value => {
@@ -42,9 +43,16 @@ watch(() => node.value.displayName, value => {
   }
 })
 
+watch(() => node.value.capability, value => {
+  if (!isEditModalOpen.value) {
+    editIsWateringUnit.value = value === 'watering'
+  }
+})
+
 watch(isEditModalOpen, open => {
   if (open) {
     editDisplayName.value = node.value.displayName ?? ''
+    editIsWateringUnit.value = node.value.capability === 'watering'
   }
 })
 
@@ -99,31 +107,30 @@ async function handlePowerProfileSelect(option: NyxSelectOption) {
   await applyPowerProfile(option.value as PowerProfile)
 }
 
-async function toggleCapability(isWateringUnit: boolean) {
-  const capability = isWateringUnit ? 'watering' : 'earth'
-  if (!nodeId.value) return
-  try {
-    await anthos.nodes.updateCapability(nodeId.value, capability)
-  } catch (error) {
-    console.error('Failed to toggle capability', error)
-  }
-}
-
 async function handleEditSubmit(event: Event) {
   event.preventDefault()
   if (!nodeId.value) return
 
   const nextDisplayName = editDisplayName.value.trim()
+  const nextCapability = editIsWateringUnit.value ? 'watering' : 'earth'
   if (!nextDisplayName) return
 
   isSavingDisplayName.value = true
 
   try {
-    const updated = await anthos.nodes.updateDisplayName(nodeId.value, nextDisplayName)
-    node.value.displayName = updated.displayName ?? nextDisplayName
+    if (nextDisplayName !== node.value.displayName) {
+      const updatedName = await anthos.nodes.updateDisplayName(nodeId.value, nextDisplayName)
+      node.value = updatedName
+    }
+
+    if (nextCapability !== node.value.capability) {
+      const updatedCapability = await anthos.nodes.updateCapability(nodeId.value, nextCapability)
+      node.value = updatedCapability
+    }
+
     isEditModalOpen.value = false
   } catch (error) {
-    console.error('Failed to update node name', error)
+    console.error('Failed to update node', error)
   } finally {
     isSavingDisplayName.value = false
   }
@@ -212,10 +219,9 @@ async function handleEditSubmit(event: Event) {
         </NyxFormField>
         <NyxFormField label="Watering unit">
           <NyxSwitch
-            :model-value="node.capability === 'watering'"
+            v-model="editIsWateringUnit"
             :theme="NyxTheme.Secondary"
             :size="NyxSize.Small"
-            @update:model-value="toggleCapability"
           />
         </NyxFormField>
         <NyxFormField class="node-card-actions__edit-modal-footer">

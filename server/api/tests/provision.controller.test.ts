@@ -37,6 +37,14 @@ describe('ProvisionController', () => {
   it('updates capability only from the nodes page path', async () => {
     const registry = {
       updateCapability: vi.fn().mockReturnValue(true),
+      getLogicalNode: vi.fn().mockReturnValue({
+        nodeId: 'node-001',
+        hwId: 'hw-001',
+        displayName: 'Fern',
+        claimStatus: 'claimed',
+        capability: 'watering',
+        registeredAt: 1000,
+      }),
     }
     const pairing = {
       isOpen: vi.fn().mockReturnValue(true),
@@ -50,12 +58,27 @@ describe('ProvisionController', () => {
     await controller.updateCapability({ params: { id: 'node-001' }, body: { capability: 'watering' } } as never, res as never)
 
     expect(registry.updateCapability).toHaveBeenCalledWith('node-001', 'watering')
-    expect(res.json).toHaveBeenCalledWith({ nodeId: 'node-001', capability: 'watering' })
+    expect(res.json).toHaveBeenCalledWith({
+      nodeId: 'node-001',
+      hwId: 'hw-001',
+      displayName: 'Fern',
+      claimStatus: 'claimed',
+      capability: 'watering',
+      registeredAt: 1000,
+    })
   })
 
   it('renames a claimed node', async () => {
     const registry = {
       updateDisplayName: vi.fn().mockReturnValue(true),
+      getLogicalNode: vi.fn().mockReturnValue({
+        nodeId: 'node-001',
+        hwId: 'hw-001',
+        displayName: 'Fern v2',
+        claimStatus: 'claimed',
+        capability: 'earth',
+        registeredAt: 1000,
+      }),
     }
     const pairing = {
       isOpen: vi.fn().mockReturnValue(true),
@@ -69,6 +92,13 @@ describe('ProvisionController', () => {
     await controller.updateDisplayName({ params: { id: 'node-001' }, body: { displayName: 'Fern v2' } } as never, res as never)
 
     expect(registry.updateDisplayName).toHaveBeenCalledWith('node-001', 'Fern v2')
-    expect(res.json).toHaveBeenCalledWith({ nodeId: 'node-001', displayName: 'Fern v2' })
+    expect(res.json).toHaveBeenCalledWith({
+      nodeId: 'node-001',
+      hwId: 'hw-001',
+      displayName: 'Fern v2',
+      claimStatus: 'claimed',
+      capability: 'earth',
+      registeredAt: 1000,
+    })
   })
 })

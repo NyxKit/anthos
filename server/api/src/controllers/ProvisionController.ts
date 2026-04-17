@@ -111,7 +111,7 @@ export class ProvisionController {
 
     await this.saveDb()
 
-    res.json({ nodeId, capability: normalizedCapability })
+    res.json(this.registry.getLogicalNode(nodeId))
   }
 
   updateDisplayName: RequestHandler = async (req: Request, res: Response): Promise<void> => {
@@ -137,6 +137,6 @@ export class ProvisionController {
 
     await this.saveDb()
 
-    res.json({ nodeId, displayName: displayName.trim() })
+    res.json(this.registry.getLogicalNode(nodeId))
   }
 }
