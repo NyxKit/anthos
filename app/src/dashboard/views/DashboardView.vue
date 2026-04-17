@@ -50,7 +50,7 @@ onUnmounted(() => {
     <section class="dashboard__nodes">
       <h3 class="dashboard__section-title">Biological Nodes</h3>
       <NyxGrid v-if="dashboardNodes.length" class="dashboard__grid" :columns="3">
-        <NodeCard v-for="node in dashboardNodes" :key="node.nodeId" :node="node" />
+        <NodeCard v-for="node in dashboardNodes" :key="node.nodeId" :model-value="node" />
       </NyxGrid>
       <p v-else class="dashboard__nodes-empty">No claimed nodes yet.</p>
     </section>

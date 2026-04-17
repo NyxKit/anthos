@@ -17,6 +17,8 @@ const logStore = vi.hoisted(() => ({
   start: vi.fn().mockResolvedValue(undefined),
 }))
 
+let resolveQueuePump: ((value: { nodeId: string; commandId: string; status: string }) => void) | null = null
+
 vi.mock('@anthos/shared/anthos', () => ({
   default: {
     nodes: {
@@ -52,7 +54,10 @@ describe('NodeCard', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     queuePump.mockReset()
-    queuePump.mockResolvedValue({ nodeId: 'node-001', commandId: 'cmd-123', status: 'pending' })
+    resolveQueuePump = null
+    queuePump.mockImplementation(() => new Promise(resolve => {
+      resolveQueuePump = resolve
+    }))
     getPowerProfile.mockReset()
     getPowerProfile.mockResolvedValue({
       nodeId: 'node-001',
@@ -92,7 +97,7 @@ describe('NodeCard', () => {
   it('queues a pump command and stays pumping until the completion log arrives', async () => {
     const wrapper = mount(NodeCard, {
       props: {
-        node: {
+        modelValue: {
           nodeId: 'node-001',
           hwId: 'hw-001',
           displayName: 'Sprout Node',
@@ -106,13 +111,14 @@ describe('NodeCard', () => {
           NyxCard: { template: '<div><slot name="header" /><slot /></div>' },
           NyxIcon: { template: '<span />' },
           NyxButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
+          NyxSpinner: { template: '<span />' },
           NyxActionItem: { template: '<div><slot name="action" /><slot /></div>' },
           NyxInput: { template: '<input />' },
           NyxBadge: { template: '<span><slot /></span>' },
           NyxDropdown: {
             props: ['options'],
             emits: ['select'],
-            template: '<div><slot /><button v-for="option in options" :key="option.value" @click="$emit(\'select\', option)">{{ option.label }}</button></div>',
+            template: '<div><slot /><slot name="dropdown" /><button v-for="option in options" :key="option.value" @click="$emit(\'select\', option)">{{ option.label }}</button></div>',
           },
         },
       },
@@ -125,6 +131,7 @@ describe('NodeCard', () => {
     expect(wrapper.text()).toContain('Balanced')
 
     await wrapper.findAll('button').find(button => button.text() === 'Performance')?.trigger('click')
+    await Promise.resolve()
     await nextTick()
 
     expect(applyPowerProfile).toHaveBeenCalledWith('node-001', 'performance')
@@ -133,6 +140,9 @@ describe('NodeCard', () => {
     await wrapper.findAll('button').find(button => button.text() === 'Pump')?.trigger('click')
 
     expect(queuePump).toHaveBeenCalledWith('node-001', 100)
+    resolveQueuePump?.({ nodeId: 'node-001', commandId: 'cmd-123', status: 'pending' })
+    await Promise.resolve()
+    await nextTick()
     expect(wrapper.text()).toContain('Pumping...')
 
     logStore.entries.push({
