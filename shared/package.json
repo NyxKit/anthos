@@ -5,8 +5,16 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./telemetry": "./src/telemetry.ts",
     "./moisture": "./src/moisture.ts",
     "./anthos": "./src/anthos/index.ts",
+    "./nodes": "./src/nodes/index.ts",
+    "./nodes/utils": "./src/nodes/utils/index.ts",
+    "./nodes/types": "./src/nodes/types/index.ts",
+    "./nodes/types/moisture": "./src/nodes/types/moisture.ts",
+    "./nodes/types/powerProfile": "./src/nodes/types/powerProfile.ts",
+    "./nodes/classes/PlantNode": "./src/nodes/classes/PlantNode.ts",
+    "./nodes/classes/Node": "./src/nodes/classes/PlantNode.ts",
     "./logs": "./src/logs.ts",
     "./logs/classes/LogEntry": "./src/logs/classes/LogEntry.ts",
     "./power-profiles": "./src/power-profiles.ts"

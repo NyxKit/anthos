@@ -1,11 +1,12 @@
-import type { LatestTelemetryResponse, LogicalNodeRecord } from '../../telemetry.js'
+import type { LatestTelemetryResponse, LogicalNodeRecord } from '../../nodes/types/index.js'
+import type { SoilMoistureCapability } from '../../nodes/types/moisture.js'
 import type { QueuePumpCommandRequest } from '../../commands.js'
 import type {
   ApplyPowerProfileRequest,
   NodePowerProfileState,
   PowerProfile,
-} from '../../power-profiles.js'
-import { POWER_PROFILES } from '../../power-profiles.js'
+} from '../../nodes/types/powerProfile.js'
+import { POWER_PROFILES } from '../../nodes/utils/powerProfile.js'
 import type { Anthos } from './Anthos.js'
 
 export class AnthosNodes {
@@ -15,14 +16,14 @@ export class AnthosNodes {
     return this.anthos.request<{ nodes: LogicalNodeRecord[] }>('/api/nodes')
   }
 
-  claim(nodeId: string, displayName: string, capability: 'earth' | 'watering' = 'earth'): Promise<LogicalNodeRecord> {
+  claim(nodeId: string, displayName: string, capability: SoilMoistureCapability = 'earth'): Promise<LogicalNodeRecord> {
     return this.anthos.request<LogicalNodeRecord>(`/api/nodes/${nodeId}`, {
       method: 'PATCH',
       body: { displayName, capability },
     })
   }
 
-  updateCapability(nodeId: string, capability: 'earth' | 'watering'): Promise<LogicalNodeRecord> {
+  updateCapability(nodeId: string, capability: SoilMoistureCapability): Promise<LogicalNodeRecord> {
     return this.anthos.request<LogicalNodeRecord>(`/api/nodes/${nodeId}/capability`, {
       method: 'PATCH',
       body: { capability },
