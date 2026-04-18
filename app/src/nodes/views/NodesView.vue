@@ -1,25 +1,23 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { NyxGrid, NyxButton, NyxCard } from 'nyx-kit/components'
+import { NyxButton } from 'nyx-kit/components'
 import { NyxTheme, NyxSize } from 'nyx-kit/types'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useNodesStore } from '@/nodes/stores/nodes'
 import UnclaimedNodeCard from '@/nodes/components/UnclaimedNodeCard.vue'
 import ClaimNodeModal from '@/nodes/components/ClaimNodeModal.vue'
+import NodesGrid from '@/nodes/components/NodesGrid.vue'
 
 const store = useNodesStore()
 const router = useRouter()
 
 const selectedNode = ref<PlantNode | null>(null)
 const isModalOpen = ref(false)
-const capabilitySavingNodeId = ref<string | null>(null)
 
 onMounted(() => store.fetchNodes())
 
 const unclaimedNodes = computed(() => store.nodes.filter(n => n.claimStatus === 'unclaimed'))
-const claimedNodes = computed(() => store.nodes.filter(n => n.claimStatus === 'claimed'))
-
 function openClaimModal(node: PlantNode) {
   selectedNode.value = node
   isModalOpen.value = true
@@ -36,16 +34,6 @@ async function handleAddNode() {
   router.push('/provision').catch(() => {
     // Route may not exist yet — fail silently
   })
-}
-
-async function handleCapabilityToggle(node: PlantNode) {
-  const nextCapability = node.capability === 'watering' ? 'earth' : 'watering'
-  capabilitySavingNodeId.value = node.id || node.nodeId
-  try {
-    await store.updateCapability(node.id || node.nodeId, nextCapability)
-  } finally {
-    capabilitySavingNodeId.value = null
-  }
 }
 </script>
 
@@ -67,49 +55,18 @@ async function handleCapabilityToggle(node: PlantNode) {
 
     <section v-if="unclaimedNodes.length" class="nodes-view__section">
       <h3>Waiting to be named</h3>
-      <NyxGrid :columns="2">
+      <div class="nodes-view__unclaimed-grid">
         <UnclaimedNodeCard
           v-for="n in unclaimedNodes"
           :key="n.id || n.nodeId"
-          :node="n"
+          :node="n as PlantNode"
           @claim="openClaimModal"
         />
-      </NyxGrid>
+      </div>
     </section>
-
-    <section class="nodes-view__section">
-      <h3>Named Nodes</h3>
-      <p v-if="!claimedNodes.length" class="nodes-view__empty">No named nodes yet.</p>
-      <NyxGrid v-else :columns="2">
-          <NyxCard
-            v-for="n in claimedNodes"
-            :key="n.id || n.nodeId"
-            :title="n.name || n.displayName || n.nodeId"
-          >
-            <div class="named-node__details">
-              <span class="label">Node ID</span>
-              <span>{{ n.id || n.nodeId }}</span>
-              <span class="label">Hardware</span>
-              <span>{{ n.capability === 'watering' ? 'Watering unit' : 'Earth only' }}</span>
-            </div>
-            <div class="named-node__badge" :data-capability="n.capability">
-              {{ n.capability === 'watering' ? 'Watering' : 'Earth' }}
-            </div>
-            <NyxButton
-              class="named-node__toggle"
-              :theme="NyxTheme.Primary"
-              :size="NyxSize.Small"
-              :disabled="capabilitySavingNodeId === (n.id || n.nodeId)"
-              @click="handleCapabilityToggle(n)"
-            >
-              {{ n.capability === 'watering' ? 'Set Earth' : 'Set Watering' }}
-            </NyxButton>
-          </NyxCard>
-      </NyxGrid>
-    </section>
-
+    <NodesGrid class="nodes-view__section" />
     <ClaimNodeModal
-      :node="selectedNode"
+      :node="selectedNode as PlantNode | null"
       :is-open="isModalOpen"
       @close="isModalOpen = false"
       @claimed="handleClaimed"
@@ -119,10 +76,9 @@ async function handleCapabilityToggle(node: PlantNode) {
 
 <style scoped>
 .nodes-view {
-  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1rem;
 }
 
 .nodes-view__header {
@@ -145,51 +101,16 @@ async function handleCapabilityToggle(node: PlantNode) {
   color: var(--nyx-c-text-muted, #9ca3af);
 }
 
-.nodes-view__loading,
-.nodes-view__empty {
-  color: var(--nyx-c-text-muted, #9ca3af);
-  font-size: 0.9375rem;
+.nodes-view__unclaimed-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
 }
 
+.nodes-view__loading,
 .nodes-view__error {
   color: var(--nyx-c-error, #f87171);
   font-size: 0.875rem;
 }
 
-.named-node__details {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem;
-  background-color: var(--nyx-c-bg-mute, #1f1f24);
-  border-radius: var(--nyx-radius-md, 0.375rem);
-  font-size: 0.875rem;
-}
-
-.named-node__details .label {
-  font-size: 0.75rem;
-  color: var(--nyx-c-text-muted, #9ca3af);
-}
-
-.named-node__badge {
-  display: inline-flex;
-  margin-top: 0.75rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 999px;
-  font-size: 0.6875rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--nyx-c-text-1, #dee3eb);
-  background: rgba(109, 109, 240, 0.12);
-  border: 1px solid rgba(109, 109, 240, 0.25);
-}
-
-.named-node__badge[data-capability='watering'] {
-  background: rgba(96, 222, 135, 0.12);
-  border-color: rgba(96, 222, 135, 0.25);
-}
-
-.named-node__toggle {
-  margin-top: 0.75rem;
-}
 </style>

@@ -17,6 +17,13 @@ export enum NodeRegistrationStatus {
   Reconnected = 'reconnected',
 }
 
+export enum NodeStatus {
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+  Idle = 'idle',
+  Error = 'error',
+}
+
 export type SensorName = 'dlight' | 'env' | 'earth'
 
 export interface NodeRegistrationResponse {

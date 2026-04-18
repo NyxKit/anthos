@@ -5,15 +5,15 @@ import { NyxSize } from 'nyx-kit/types'
 import { normalizeSoilMoistureByCapability } from '@anthos/shared/nodes/utils/moisture'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
+import { NodeStatus } from '@anthos/shared'
 
 const node = defineModel<PlantNode | undefined>()
 const telemetryStore = useTelemetryStore()
 
 const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 
-const nodeTelemetry = computed(() => {
-  return nodeId.value ? telemetryStore.getNodeTelemetry(nodeId.value) : null
-})
+const nodeTelemetry = computed(() => nodeId.value ? telemetryStore.getNodeTelemetry(nodeId.value) : null)
+const isLiveNode = computed(() => node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected)
 
 const sensorConfig: Record<string, { icon: string; label: string }> = {
   lux: { icon: 'sun', label: 'Light' },
@@ -25,7 +25,6 @@ const sensorConfig: Record<string, { icon: string; label: string }> = {
 const sensors = computed(() => {
   const telemetry = nodeTelemetry.value
   const capability = telemetry?.capability ?? node.value?.capability ?? null
-  const isLiveNode = Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value)
 
   return Object.entries(sensorConfig).map(([type, { icon, label }]) => {
     const reading = telemetry?.sensors.find(entry => entry.type === type)
@@ -40,17 +39,16 @@ const sensors = computed(() => {
       type,
       icon,
       label,
-      value: isLiveNode && reading ? (type === 'moisture' ? moistureValue?.toFixed(0) ?? '--' : reading.value.toFixed(1)) : '--',
-      unit: isLiveNode ? (type === 'moisture' ? '%' : reading?.unit || '') : '',
-      active: Boolean(isLiveNode && reading),
+      value: isLiveNode.value && reading ? (type === 'moisture' ? moistureValue?.toFixed(0) ?? '--' : reading.value.toFixed(1)) : '--',
+      unit: isLiveNode.value ? (type === 'moisture' ? '%' : reading?.unit || '') : '',
+      active: Boolean(isLiveNode.value && reading),
     }
   })
 })
 
 const isCritical = computed(() => {
   const telemetry = nodeTelemetry.value
-  const isLiveNode = Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value)
-  if (!isLiveNode) return false
+  if (!isLiveNode.value) return false
   const moisture = telemetry?.sensors.find(reading => reading.type === 'moisture')
   if (!moisture || !telemetry?.capability) return false
 

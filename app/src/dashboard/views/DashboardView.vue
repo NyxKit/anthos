@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useNodesStore } from '@/nodes/stores/nodes'
-import NodeCard from '@/dashboard/components/NodeCard.vue'
 import MetricsBar from '@/dashboard/components/MetricsBar.vue'
 import ActivityLog from './ActivityLog.vue'
 import HealthPanel from './HealthPanel.vue'
-import { NyxGrid } from 'nyx-kit/components'
+import NodesGrid from '@/nodes/components/NodesGrid.vue'
 
 const telemetryStore = useTelemetryStore()
 const nodesStore = useNodesStore()
-
-const dashboardNodes = computed(() => {
-  const claimedNodes = nodesStore.nodes.filter(node => node.claimStatus === 'claimed')
-
-  return claimedNodes.slice(0, 3)
-})
 
 onMounted(() => {
   telemetryStore.startPolling(5000)
@@ -30,10 +23,7 @@ onUnmounted(() => {
 <template>
   <div class="dashboard">
     <MetricsBar />
-    <NyxGrid v-if="dashboardNodes.length" class="dashboard__nodes" :columns="3">
-      <NodeCard v-for="node in dashboardNodes" :key="node.id || node.nodeId" :model-value="node" />
-    </NyxGrid>
-    <p v-else class="dashboard__nodes dashboard__nodes--empty">No claimed nodes yet.</p>
+    <NodesGrid :limit="3" />
     <footer class="dashboard__footer">
       <ActivityLog class="dashboard__activity-log" />
       <HealthPanel class="dashboard__health-panel" />
@@ -55,10 +45,11 @@ onUnmounted(() => {
 }
 
 .dashboard__activity-log {
-  flex: 1 0 75%;
+  flex: 0 0 70%;
+  overflow: hidden;
 }
 
 .dashboard__health-panel {
-  flex: 1 0 25%;
+  flex: 0 0 30%;
 }
 </style>

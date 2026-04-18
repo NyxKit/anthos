@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 
 const { queuePump } = vi.hoisted(() => ({
   queuePump: vi.fn(),
@@ -101,14 +102,15 @@ describe('NodeCard', () => {
   it('queues a pump command and stays pumping until the completion log arrives', async () => {
     const wrapper = mount(NodeCard, {
       props: {
-        modelValue: {
+        modelValue: new PlantNode({
           nodeId: 'node-001',
+          id: 'node-001',
           hwId: 'hw-001',
           displayName: 'Sprout Node',
           claimStatus: 'claimed',
           capability: 'watering',
           registeredAt: 1000,
-        },
+        }),
       },
       global: {
         stubs: {

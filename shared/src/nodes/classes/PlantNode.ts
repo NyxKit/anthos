@@ -1,10 +1,12 @@
 import { NyxLoader } from 'nyx-kit/classes'
-import { NodeCapability, NodeClaimStatus } from '../types/plantNode.js'
+import { NodeCapability, NodeClaimStatus, NodeStatus } from '../types/plantNode.js'
 import { POWER_PROFILES } from '../data/powerProfiles.js'
 import { PowerProfile } from '../types/powerProfile.js'
 import PowerProfilePreset from './PowerProfilePreset.js'
 import MoistureCalibration from './MoistureCalibration.js'
 import type { LogicalNodeRecord } from '../types/plantNode.js'
+
+export const OFFLINE_TELEMETRY_INTERVAL_MULTIPLIER = 3
 
 export default class PlantNode implements LogicalNodeRecord {
   private _capability: NodeCapability = NodeCapability.Earth
@@ -48,6 +50,17 @@ export default class PlantNode implements LogicalNodeRecord {
     const preset = POWER_PROFILES[this.powerProfile]
     if (!preset) throw new Error(`Unknown power profile: ${this.powerProfile}`)
     return preset
+  }
+
+  get telemetryOfflineThresholdMs (): number {
+    return this.powerProfilePreset.telemetryIntervalMs * OFFLINE_TELEMETRY_INTERVAL_MULTIPLIER
+  }
+
+  getStatus (lastTelemetryTimestampMs: number | null | undefined): NodeStatus {
+    if (!lastTelemetryTimestampMs) return NodeStatus.Disconnected
+    const isOnline = Date.now() - lastTelemetryTimestampMs <= this.telemetryOfflineThresholdMs
+    if (isOnline) return NodeStatus.Connected
+    return NodeStatus.Error
   }
 
   get capability (): NodeCapability {

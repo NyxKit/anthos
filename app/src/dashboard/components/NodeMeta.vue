@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
+import { NodeStatus } from '@anthos/shared'
 
 const node = defineModel<PlantNode | undefined>()
 
@@ -17,7 +18,7 @@ const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '--')
 const nodeIdValue = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 const hardwareId = computed(() => node.value?.hwId ?? '--')
 const ipAddress = computed(() => nodeTelemetry.value?.health.ip || '192.168.1.x')
-const isLiveNode = computed(() => Boolean(nodeIdValue.value) && telemetryStore.isNodeOnline(nodeIdValue.value))
+const isLiveNode = computed(() => node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected)
 
 const { selectedProfileLabel } = useNodePowerProfile(nodeIdValue)
 

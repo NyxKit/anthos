@@ -8,7 +8,7 @@ import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
-import type { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
+import { NodeStatus, PowerProfile } from '@anthos/shared'
 
 const PUMP_VOLUME_ML = 100
 
@@ -30,7 +30,8 @@ const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
 const pendingPumpCommandId = ref<string | null>(null)
 
 const capability = computed(() => node.value?.capability ?? null)
-const isLiveNode = computed(() => Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value))
+const nodeTelemetry = computed(() => nodeId.value ? telemetryStore.getNodeTelemetry(nodeId.value) : null)
+const isLiveNode = computed(() => node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected)
 const editDisplayName = ref(node.value.displayName ?? '')
 const editIsWateringUnit = ref(node.value.capability === 'watering')
 const editOrder = ref<string>('')

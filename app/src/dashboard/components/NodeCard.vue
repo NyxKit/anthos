@@ -7,19 +7,21 @@ import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import NodeCardActions from './NodeCardActions.vue'
 import NodeMeta from './NodeMeta.vue'
 import NodeSensorGrid from './NodeSensorGrid.vue'
+import { NodeStatus } from '@anthos/shared'
 
 const node = defineModel<PlantNode | undefined>()
 
 const store = useTelemetryStore()
 
 const nodeId = computed(() => node.value?.id ?? '')
+const nodeTelemetry = computed(() => nodeId.value ? store.getNodeTelemetry(nodeId.value) : null)
 
 const nodeDisplayName = computed(() => {
   return node.value?.name || node.value?.displayName || nodeId.value || store.nodeId || 'Unknown Node'
 })
 
 const isLiveNode = computed(() => {
-  return Boolean(nodeId.value) && store.isNodeOnline(nodeId.value)
+  return Boolean(nodeId.value) && node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected
 })
 
 </script>
