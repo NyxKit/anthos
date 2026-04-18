@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { NyxButton, NyxTable, NyxIcon } from 'nyx-kit/components'
+import { NyxButton, NyxModal, NyxTable, NyxIcon } from 'nyx-kit/components'
+import { NyxKit } from 'nyx-kit'
 import { NyxShape, NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
 import { User, UserRole } from '@anthos/shared/users'
 import { useAuthStore } from '@/auth/stores/auth'
@@ -12,7 +13,8 @@ const auth = useAuthStore()
 const usersStore = useUsersStore()
 
 const selectedUser = ref<User | null>(null)
-const formRevision = ref(0)
+const isCreateModalOpen = ref(false)
+const isEditModalOpen = ref(false)
 
 onMounted(() => {
   void usersStore.fetchUsers()
@@ -20,26 +22,20 @@ onMounted(() => {
 
 function beginCreate(): void {
   selectedUser.value = null
-  formRevision.value += 1
+  isEditModalOpen.value = false
+  isCreateModalOpen.value = true
 }
 
 function beginEditById(userId: string): void {
   selectedUser.value = usersStore.users.find((user) => user.id === userId) ?? null
+  if (selectedUser.value) {
+    isCreateModalOpen.value = false
+    isEditModalOpen.value = true
+  }
 }
 
-async function handleSave(payload: Record<string, unknown>): Promise<void> {
+async function handleCreate(payload: Record<string, unknown>): Promise<void> {
   try {
-    if (selectedUser.value) {
-      await usersStore.updateUser(selectedUser.value.id, {
-        username: String(payload.username ?? ''),
-        displayName: String(payload.displayName ?? ''),
-        email: String(payload.email ?? ''),
-        role: String(payload.role ?? UserRole.User) as UserRole,
-      })
-      beginCreate()
-      return
-    }
-
     await usersStore.createUser({
       username: String(payload.username ?? ''),
       displayName: String(payload.displayName ?? ''),
@@ -48,8 +44,23 @@ async function handleSave(payload: Record<string, unknown>): Promise<void> {
       repeatPassword: String(payload.repeatPassword ?? ''),
       role: String(payload.role ?? UserRole.User) as UserRole,
     })
+    isCreateModalOpen.value = false
+  } catch {
+    // Store already records the error state.
+  }
+}
 
-    beginCreate()
+async function handleEdit(payload: Record<string, unknown>): Promise<void> {
+  if (!selectedUser.value) return
+
+  try {
+    await usersStore.updateUser(selectedUser.value.id, {
+      username: String(payload.username ?? ''),
+      displayName: String(payload.displayName ?? ''),
+      email: String(payload.email ?? ''),
+      role: String(payload.role ?? UserRole.User) as UserRole,
+    })
+    isEditModalOpen.value = false
   } catch {
     // Store already records the error state.
   }
@@ -59,7 +70,15 @@ async function handleDelete(userId: string): Promise<void> {
   const user = usersStore.users.find((item) => item.id === userId)
   if (!user) return
 
-  if (!confirm(`Delete ${user.displayName}?`)) return
+  const confirmation = await NyxKit.confirm({
+    title: 'Delete user',
+    message: `Delete ${user.displayName || user.username}?`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+  })
+
+  if (confirmation.isFailure) return
+
   try {
     await usersStore.deleteUser(user.id)
   } catch {
@@ -67,36 +86,17 @@ async function handleDelete(userId: string): Promise<void> {
   }
 }
 
-const formMode = computed(() => (selectedUser.value ? UserFormMode.Edit : UserFormMode.Create))
+const isEditingSelf = computed(() => selectedUser.value?.id === auth.currentUser?.id)
 </script>
 
 <template>
   <section class="users-view">
     <header class="users-view__header">
-      <div>
-        <p class="users-view__eyebrow">Anthos</p>
-        <h1>Users</h1>
-        <p class="users-view__subtitle">Manage user accounts and access.</p>
-      </div>
-
+      <p class="users-view__subtitle">Manage user accounts and access.</p>
       <div class="users-view__actions">
         <NyxButton :theme="NyxTheme.Primary" @click="beginCreate">Add user</NyxButton>
       </div>
     </header>
-
-    <p v-if="auth.currentUser" class="users-view__meta">Signed in as {{ auth.currentUser.displayName || auth.currentUser.username }}</p>
-    <p v-if="usersStore.error" class="users-view__error">{{ usersStore.error }}</p>
-
-    <section class="users-view__form">
-      <UserForm
-        :key="`${selectedUser?.id ?? 'create'}:${formRevision}`"
-        :mode="formMode"
-        :user="selectedUser"
-        :busy="usersStore.isLoading"
-        @submit="handleSave"
-        @cancel="beginCreate"
-      />
-    </section>
 
     <NyxTable
       v-model="usersStore.users"
@@ -118,12 +118,42 @@ const formMode = computed(() => (selectedUser.value ? UserFormMode.Edit : UserFo
           :size="NyxSize.Small"
           :shape="NyxShape.Square"
           :variant="NyxVariant.Subtle"
+          :disabled="String(item.id) === auth.currentUser?.id"
           @click="handleDelete(String(item.id))"
         >
           <NyxIcon name="trash" :size="NyxSize.XSmall" />
         </NyxButton>
       </template>
     </NyxTable>
+
+    <NyxModal v-model="isCreateModalOpen" :size="NyxSize.Medium" :theme="NyxTheme.Primary">
+      <template #header>
+        <h2 class="users-view__modal-title">Create user</h2>
+      </template>
+
+      <UserForm
+        :mode="UserFormMode.Create"
+        :busy="usersStore.isLoading"
+        @submit="handleCreate"
+        @cancel="isCreateModalOpen = false"
+      />
+    </NyxModal>
+
+    <NyxModal v-model="isEditModalOpen" :size="NyxSize.Medium" :theme="NyxTheme.Primary">
+      <template #header>
+        <h2 class="users-view__modal-title">Edit user</h2>
+      </template>
+
+      <UserForm
+        :key="selectedUser?.id ?? 'edit'"
+        :mode="UserFormMode.Edit"
+        :user="selectedUser"
+        :allow-role-selection="!isEditingSelf"
+        :busy="usersStore.isLoading"
+        @submit="handleEdit"
+        @cancel="isEditModalOpen = false"
+      />
+    </NyxModal>
   </section>
 </template>
 
@@ -141,41 +171,12 @@ const formMode = computed(() => (selectedUser.value ? UserFormMode.Edit : UserFo
   align-items: flex-start;
 }
 
-.users-view__eyebrow {
-  font-family: var(--nyx-font-family-mono, monospace);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--nyx-c-primary, #dcb8ff);
-  font-size: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.users-view h1 {
-  font-family: var(--nyx-font-family-headline, 'Space Grotesk', sans-serif);
-  font-size: 2rem;
-  margin: 0;
-}
-
-.users-view__subtitle,
-.users-view__meta {
+.users-view__subtitle {
   color: var(--nyx-c-text-2, rgba(222, 227, 235, 0.8));
 }
 
-.users-view__form {
-  padding: 1rem;
-  border-radius: 0.75rem;
-  background: var(--nyx-c-surface-container, #1b2026);
-  border: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.2));
-}
-
-.users-view__row-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.users-view__error {
-  color: #ff9b9b;
+.users-view__modal-title {
+  margin: 0;
 }
 
 @media (max-width: 768px) {

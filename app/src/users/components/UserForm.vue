@@ -17,11 +17,13 @@ interface UserFormValues {
 interface Props {
   mode: UserFormMode
   user?: User | null
+  allowRoleSelection?: boolean
   busy?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   user: null,
+  allowRoleSelection: true,
   busy: false,
 })
 
@@ -57,7 +59,7 @@ const repeatPassword = ref('')
 const role = ref<UserRole>(UserRole.User)
 const error = ref<string | null>(null)
 
-const isEditMode = computed(() => props.mode === 'edit')
+const isEditMode = computed(() => props.mode === UserFormMode.Edit)
 
 function syncFromUser(user: User | null | undefined): void {
   if (!user) {
@@ -155,7 +157,7 @@ function handleCancel(): void {
 
     <NyxFormField v-if="includeRole" label="Role">
       <template #default="{ id }">
-        <NyxSelect :id="id" v-model="role" :options="roleOptions" placeholder="Choose role" />
+        <NyxSelect :id="id" v-model="role" :options="roleOptions" :disabled="!allowRoleSelection" placeholder="Choose role" />
       </template>
     </NyxFormField>
 
