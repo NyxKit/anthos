@@ -1,4 +1,4 @@
-import { PowerProfile } from '../classes/index.js'
+import PowerProfile from '../classes/PowerProfile.js'
 import { PowerPreset } from '../types/powerProfile.js'
 
 export const POWER_PROFILES: Record<PowerPreset, PowerProfile> = Object.freeze({

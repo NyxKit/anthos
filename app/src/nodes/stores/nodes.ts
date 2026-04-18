@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import anthos from '@anthos/shared/anthos'
 
 export const useNodesStore = defineStore('nodes', () => {
-  const nodes = ref<LogicalNodeRecord[]>([])
+  const nodes = ref<PlantNode[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -13,7 +13,7 @@ export const useNodesStore = defineStore('nodes', () => {
     error.value = null
     try {
       const data = await anthos.nodes.getAll()
-      nodes.value = data.nodes
+      nodes.value = data.nodes.map(node => new PlantNode(node))
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch nodes'
     } finally {
@@ -28,12 +28,7 @@ export const useNodesStore = defineStore('nodes', () => {
       const updated = await anthos.nodes.claim(nodeId, displayName, capability)
       const index = nodes.value.findIndex(n => n.nodeId === nodeId)
       if (index === -1) return
-      nodes.value[index] = {
-        ...nodes.value[index],
-        displayName: updated.displayName ?? displayName,
-        claimStatus: 'claimed',
-        capability: updated.capability ?? capability,
-      }
+      nodes.value[index] = new PlantNode({ ...nodes.value[index], ...updated })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to claim node'
       throw e
@@ -49,10 +44,7 @@ export const useNodesStore = defineStore('nodes', () => {
       const updated = await anthos.nodes.updateCapability(nodeId, capability)
       const index = nodes.value.findIndex(n => n.nodeId === nodeId)
       if (index === -1) return
-      nodes.value[index] = {
-        ...nodes.value[index],
-        capability: updated.capability ?? capability,
-      }
+      nodes.value[index] = new PlantNode({ ...nodes.value[index], ...updated })
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to update node capability'
       throw e

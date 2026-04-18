@@ -3,16 +3,16 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { NyxActionItem, NyxButton, NyxDropdown, NyxIcon, NyxSpinner, NyxModal, NyxForm, NyxFormField, NyxInput, NyxSwitch } from 'nyx-kit/components'
 import { NyxInputNumberControls, NyxInputType, NyxShape, NyxSize, NyxTheme, NyxVariant, type NyxSelectOption } from 'nyx-kit/types'
 import anthos from '@anthos/shared/anthos'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
-import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 import type { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
 const PUMP_VOLUME_ML = 100
 
-const node = defineModel<LogicalNodeRecord>({ required: true })
+const node = defineModel<PlantNode>({ required: true })
 
 const telemetryStore = useTelemetryStore()
 const logStore = useLogStore()
@@ -118,12 +118,12 @@ async function handleEditSubmit(event: Event) {
   try {
     if (nextDisplayName !== node.value.displayName) {
       const updatedName = await anthos.nodes.updateDisplayName(nodeId.value, nextDisplayName)
-      node.value = updatedName
+      node.value = new PlantNode({ ...node.value, ...updatedName })
     }
 
     if (nextCapability !== node.value.capability) {
       const updatedCapability = await anthos.nodes.updateCapability(nodeId.value, nextCapability)
-      node.value = updatedCapability
+      node.value = new PlantNode({ ...node.value, ...updatedCapability })
     }
 
     isEditModalOpen.value = false

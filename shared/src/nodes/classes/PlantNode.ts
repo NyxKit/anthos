@@ -4,8 +4,9 @@ import { POWER_PROFILES } from '../data/powerProfiles.js'
 import { PowerPreset } from '../types/powerProfile.js'
 import PowerProfile from './PowerProfile.js'
 import MoistureCalibration from './MoistureCalibration.js'
+import type { LogicalNodeRecord } from '../types/plantNode.js'
 
-export default class PlantNode {
+export default class PlantNode implements LogicalNodeRecord {
   private _capability: NodeCapability = NodeCapability.Earth
   nodeId: string = ''
   hwId: string = ''

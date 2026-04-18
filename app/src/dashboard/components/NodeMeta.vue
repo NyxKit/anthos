@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
-import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 
-const node = defineModel<LogicalNodeRecord | undefined>()
+const node = defineModel<PlantNode | undefined>()
 
 const telemetryStore = useTelemetryStore()
 

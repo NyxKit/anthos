@@ -2,13 +2,13 @@
 import { computed } from 'vue'
 import { NyxCard, NyxStatusDot } from 'nyx-kit/components'
 import { NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
-import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import NodeCardActions from './NodeCardActions.vue'
 import NodeMeta from './NodeMeta.vue'
 import NodeSensorGrid from './NodeSensorGrid.vue'
 
-const node = defineModel<LogicalNodeRecord | undefined>()
+const node = defineModel<PlantNode | undefined>()
 
 const store = useTelemetryStore()
 

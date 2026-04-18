@@ -3,10 +3,10 @@ import { computed } from 'vue'
 import { NyxIcon } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
 import { normalizeSoilMoistureByCapability } from '@anthos/shared/nodes/utils/moisture'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
-import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 
-const node = defineModel<LogicalNodeRecord | undefined>()
+const node = defineModel<PlantNode | undefined>()
 const telemetryStore = useTelemetryStore()
 
 const nodeId = computed(() => node.value?.nodeId ?? '')
@@ -29,8 +29,11 @@ const sensors = computed(() => {
 
   return Object.entries(sensorConfig).map(([type, { icon, label }]) => {
     const reading = telemetry?.sensors.find(entry => entry.type === type)
+    const moistureCalibration = node.value?.calibration?.moisture ?? null
     const moistureValue = type === 'moisture' && reading && capability
-      ? normalizeSoilMoistureByCapability(reading.value, capability)
+      ? moistureCalibration
+        ? moistureCalibration.normalizeRaw(reading.value)
+        : normalizeSoilMoistureByCapability(reading.value, capability)
       : null
 
     return {
@@ -51,7 +54,12 @@ const isCritical = computed(() => {
   const moisture = telemetry?.sensors.find(reading => reading.type === 'moisture')
   if (!moisture || !telemetry?.capability) return false
 
-  return normalizeSoilMoistureByCapability(moisture.value, telemetry.capability) < 20
+  const moistureCalibration = node.value?.calibration?.moisture ?? null
+  const normalized = moistureCalibration
+    ? moistureCalibration.normalizeRaw(moisture.value)
+    : normalizeSoilMoistureByCapability(moisture.value, telemetry.capability)
+
+  return normalized < 20
 })
 </script>
 

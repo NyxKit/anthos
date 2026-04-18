@@ -2,10 +2,10 @@
 import { ref, watch } from 'vue'
 import { NyxButton } from 'nyx-kit/components'
 import { NyxTheme, NyxVariant } from 'nyx-kit/types'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useNodesStore } from '@/nodes/stores/nodes'
-import type { LogicalNodeRecord } from '@/shared/types/telemetry'
 
-const props = defineProps<{ node: LogicalNodeRecord | null; isOpen: boolean }>()
+const props = defineProps<{ node: PlantNode | null; isOpen: boolean }>()
 const emit = defineEmits<{ close: []; claimed: [nodeId: string, displayName: string, capability: 'earth' | 'watering'] }>()
 
 const store = useNodesStore()

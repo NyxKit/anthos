@@ -3,15 +3,15 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { NyxGrid, NyxButton, NyxCard } from 'nyx-kit/components'
 import { NyxTheme, NyxSize } from 'nyx-kit/types'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useNodesStore } from '@/nodes/stores/nodes'
 import UnclaimedNodeCard from '@/nodes/components/UnclaimedNodeCard.vue'
 import ClaimNodeModal from '@/nodes/components/ClaimNodeModal.vue'
-import type { LogicalNodeRecord } from '@/shared/types/telemetry'
 
 const store = useNodesStore()
 const router = useRouter()
 
-const selectedNode = ref<LogicalNodeRecord | null>(null)
+const selectedNode = ref<PlantNode | null>(null)
 const isModalOpen = ref(false)
 const capabilitySavingNodeId = ref<string | null>(null)
 
@@ -20,7 +20,7 @@ onMounted(() => store.fetchNodes())
 const unclaimedNodes = computed(() => store.nodes.filter(n => n.claimStatus === 'unclaimed'))
 const claimedNodes = computed(() => store.nodes.filter(n => n.claimStatus === 'claimed'))
 
-function openClaimModal(node: LogicalNodeRecord) {
+function openClaimModal(node: PlantNode) {
   selectedNode.value = node
   isModalOpen.value = true
 }
@@ -38,7 +38,7 @@ async function handleAddNode() {
   })
 }
 
-async function handleCapabilityToggle(node: LogicalNodeRecord) {
+async function handleCapabilityToggle(node: PlantNode) {
   const nextCapability = node.capability === 'watering' ? 'earth' : 'watering'
   capabilitySavingNodeId.value = node.nodeId
   try {

@@ -2,10 +2,10 @@
 import { computed } from 'vue'
 import { NyxCard, NyxButton } from 'nyx-kit/components'
 import { NyxTheme, NyxSize, NyxVariant } from 'nyx-kit/types'
-import type { LogicalNodeRecord } from '@/shared/types/telemetry'
+import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 
-const props = defineProps<{ node: LogicalNodeRecord }>()
-const emit = defineEmits<{ claim: [node: LogicalNodeRecord] }>()
+const props = defineProps<{ node: PlantNode }>()
+const emit = defineEmits<{ claim: [node: PlantNode] }>()
 
 const formattedRegisteredAt = computed(() => {
   const now = Date.now()
