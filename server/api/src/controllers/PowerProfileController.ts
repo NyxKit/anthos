@@ -75,9 +75,9 @@ export class PowerProfileController {
         level: 'warn',
         source: 'power-profile',
         message: `Power profile rejected for ${nodeId}`,
-        meta: { reason: 'node_not_found_or_unclaimed', profileId },
+        meta: { reason: 'node_not_found', profileId },
       })
-      res.status(404).json({ error: 'Node not found or not claimed' })
+      res.status(404).json({ error: 'Node not found' })
       return
     }
 

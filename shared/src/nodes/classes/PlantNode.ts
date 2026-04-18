@@ -1,5 +1,5 @@
 import { NyxLoader } from 'nyx-kit/classes'
-import { NodeCapability, NodeClaimStatus, NodeStatus } from '../types/plantNode.js'
+import { NodeCapability, NodeStatus } from '../types/plantNode.js'
 import { POWER_PROFILES } from '../data/powerProfiles.js'
 import { PowerProfile } from '../types/powerProfile.js'
 import PowerProfilePreset from './PowerProfilePreset.js'
@@ -13,7 +13,6 @@ export default class PlantNode implements LogicalNodeRecord {
   id: string = ''
   hwId: string = ''
   displayName: string | null = null
-  claimStatus: NodeClaimStatus = NodeClaimStatus.Unclaimed
   powerProfile: PowerProfile = PowerProfile.Performance
   order: number | null = null
   registeredAt: number = 0
@@ -27,7 +26,6 @@ export default class PlantNode implements LogicalNodeRecord {
     this.id = NyxLoader.loadString(data, ['id', 'nodeId'])
     this.hwId = NyxLoader.loadString(data, 'hwId')
     this.displayName = NyxLoader.loadStringOrNull(data, 'displayName', this.displayName)
-    this.claimStatus = NyxLoader.loadEnum<NodeClaimStatus>(data, 'claimStatus', this.claimStatus, Object.values(NodeClaimStatus))
     this.capability = NyxLoader.loadEnum<NodeCapability>(data, 'capability', this._capability, Object.values(NodeCapability))
     this.order = this.loadNullableNumber(data, 'order')
     this.registeredAt = NyxLoader.loadNumber(data, 'registeredAt', this.registeredAt)

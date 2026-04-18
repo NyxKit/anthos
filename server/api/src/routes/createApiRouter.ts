@@ -69,7 +69,6 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   router.post('/provision/open', provisionCtrl.openProvisionWindow)
   router.get('/provision/status', provisionCtrl.getProvisionStatus)
   router.get('/nodes', provisionCtrl.listNodes)
-  router.patch('/nodes/:id', provisionCtrl.claimNode)
   router.patch('/nodes/:id/capability', provisionCtrl.updateCapability)
   router.patch('/nodes/:id/name', provisionCtrl.updateDisplayName)
   router.patch('/nodes/:id/order', provisionCtrl.updateOrder)

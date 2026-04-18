@@ -107,7 +107,6 @@ describe('NodeCard', () => {
           id: 'node-001',
           hwId: 'hw-001',
           displayName: 'Sprout Node',
-          claimStatus: 'claimed',
           capability: 'watering',
           registeredAt: 1000,
         }),

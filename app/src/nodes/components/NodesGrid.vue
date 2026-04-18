@@ -9,16 +9,14 @@ const props = defineProps<{ limit?: number }>()
 
 const store = useNodesStore()
 
-const claimedNodes = computed(() => store.nodes.filter(node => node.claimStatus === 'claimed'))
-
 const visibleNodes = computed(() => {
-  if (!props.limit || props.limit <= 0) return claimedNodes.value
-  return claimedNodes.value.slice(0, props.limit)
+  if (!props.limit || props.limit <= 0) return store.nodes
+  return store.nodes.slice(0, props.limit)
 })
 </script>
 
 <template>
-  <p v-if="visibleNodes.length === 0" class="nodes-grid__empty">No claimed nodes yet.</p>
+  <p v-if="visibleNodes.length === 0" class="nodes-grid__empty">No nodes yet.</p>
   <NyxGrid v-else class="nodes-grid" :columns="3">
     <NodeCard
       v-for="node in visibleNodes"

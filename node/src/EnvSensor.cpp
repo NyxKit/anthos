@@ -140,7 +140,7 @@ String EnvSensor::toJson() const {
   JsonObject hum = arr.add<JsonObject>();
   hum["type"] = "humidity";
   hum["value"] = lastHumidity_;
-  hum["unit"] = "pct";
+  hum["unit"] = "%";
 
   JsonObject pres = arr.add<JsonObject>();
   pres["type"] = "pressure";

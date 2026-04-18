@@ -6,6 +6,7 @@ import anthos from '@anthos/shared/anthos'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
+import { useNodesStore } from '@/nodes/stores/nodes'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 import { NodeStatus, PowerProfile } from '@anthos/shared'
@@ -16,6 +17,7 @@ const node = defineModel<PlantNode>({ required: true })
 
 const telemetryStore = useTelemetryStore()
 const logStore = useLogStore()
+const nodesStore = useNodesStore()
 const powerProfileSelectOptions: NyxSelectOption<PowerProfile>[] = Object.values(POWER_PROFILES)
   .map(profile => ({ label: profile.label, value: profile.id, icon: profile.icon }))
 
@@ -34,7 +36,7 @@ const nodeTelemetry = computed(() => nodeId.value ? telemetryStore.getNodeTeleme
 const isLiveNode = computed(() => node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected)
 const editDisplayName = ref(node.value.displayName ?? '')
 const editIsWateringUnit = ref(node.value.capability === 'watering')
-const editOrder = ref<string>('')
+const editOrder = ref<string | number>('')
 const isSavingDisplayName = ref(false)
 
 watch(() => node.value.displayName, value => {
@@ -120,7 +122,8 @@ async function handleEditSubmit(event: Event) {
 
   const nextDisplayName = editDisplayName.value.trim()
   const nextCapability = editIsWateringUnit.value ? 'watering' : 'earth'
-  const nextOrder = editOrder.value.trim() === '' ? null : Number(editOrder.value)
+  const nextOrderText = typeof editOrder.value === 'number' ? String(editOrder.value) : editOrder.value
+  const nextOrder = nextOrderText.trim() === '' ? null : Number(nextOrderText)
   if (!nextDisplayName) return
   if (nextOrder !== null && !Number.isFinite(nextOrder)) return
 
@@ -128,18 +131,18 @@ async function handleEditSubmit(event: Event) {
 
   try {
     if (nextDisplayName !== node.value.displayName) {
-      const updatedName = await anthos.nodes.updateDisplayName(nodeId.value, nextDisplayName)
-      node.value = new PlantNode({ ...node.value, ...updatedName })
+      const updatedName = await nodesStore.updateDisplayName(nodeId.value, nextDisplayName)
+      if (updatedName) node.value = updatedName
     }
 
     if (nextCapability !== node.value.capability) {
-      const updatedCapability = await anthos.nodes.updateCapability(nodeId.value, nextCapability)
-      node.value = new PlantNode({ ...node.value, ...updatedCapability })
+      const updatedCapability = await nodesStore.updateCapability(nodeId.value, nextCapability)
+      if (updatedCapability) node.value = updatedCapability
     }
 
     if ((nextOrder ?? null) !== node.value.order) {
-      const updatedOrder = await anthos.nodes.updateOrder(nodeId.value, nextOrder)
-      node.value = new PlantNode({ ...node.value, ...updatedOrder })
+      const updatedOrder = await nodesStore.updateOrder(nodeId.value, nextOrder)
+      if (updatedOrder) node.value = updatedOrder
     }
 
     isEditModalOpen.value = false
