@@ -4,6 +4,14 @@ export enum PowerProfile {
   Performance = 'performance',
 }
 
+export { PowerProfile as PowerPreset }
+
+export interface PowerProfileConfig {
+  readIntervalMs: number
+  telemetryIntervalMs: number
+  queueIntervalMs: number
+}
+
 export interface PowerProfileDefinition {
   profileId: PowerProfile
   label: string

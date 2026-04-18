@@ -1,9 +1,6 @@
-import {
-  PowerProfile,
-  type PowerProfileDefinition,
-} from '../types/powerProfile.js'
+import { PowerProfile, type PowerProfileDefinition } from '../types/powerProfile.js'
 
-export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = {
+export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = Object.freeze({
   [PowerProfile.PowerSaver]: {
     profileId: PowerProfile.PowerSaver,
     label: 'Power Saver',
@@ -28,7 +25,7 @@ export const POWER_PROFILES: Record<PowerProfile, PowerProfileDefinition> = {
     telemetryIntervalMs: 1000,
     queueIntervalMs: 1000,
   },
-}
+})
 
 export function getPowerProfileLabel(profileId: PowerProfile): string {
   return POWER_PROFILES[profileId]?.label ?? profileId

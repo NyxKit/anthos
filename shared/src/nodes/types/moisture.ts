@@ -1,6 +1,6 @@
 export type SoilMoistureCapability = 'earth' | 'watering'
 
-export interface SoilMoistureCalibration {
+export interface SoilMoistureCalibrationConfig {
   dryRaw: number
   wetRaw: number
   curveExponent?: number
