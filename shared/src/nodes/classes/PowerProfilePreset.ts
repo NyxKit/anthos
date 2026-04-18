@@ -1,8 +1,9 @@
 import { NyxLoader } from 'nyx-kit/classes'
 import { PowerProfile, type PowerProfileConfig } from '../types/powerProfile.js'
+import { DEFAULT_POWER_PROFILE } from '../data/powerProfiles.js'
 
 export default class PowerProfilePreset {
-  id: PowerProfile = PowerProfile.Balanced
+  id: PowerProfile = DEFAULT_POWER_PROFILE
   label = ''
   icon = ''
   readIntervalMs = 0

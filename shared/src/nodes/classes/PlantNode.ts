@@ -1,6 +1,6 @@
 import { NyxLoader } from 'nyx-kit/classes'
 import { NodeCapability, NodeStatus } from '../types/plantNode.js'
-import { POWER_PROFILES } from '../data/powerProfiles.js'
+import { DEFAULT_POWER_PROFILE, POWER_PROFILES } from '../data/powerProfiles.js'
 import { PowerProfile } from '../types/powerProfile.js'
 import PowerProfilePreset from './PowerProfilePreset.js'
 import MoistureCalibration from './MoistureCalibration.js'
@@ -13,7 +13,7 @@ export default class PlantNode implements LogicalNodeRecord {
   id: string = ''
   hwId: string = ''
   displayName: string | null = null
-  powerProfile: PowerProfile = PowerProfile.Performance
+  powerProfile: PowerProfile = DEFAULT_POWER_PROFILE
   order: number | null = null
   registeredAt: number = 0
   calibration = {

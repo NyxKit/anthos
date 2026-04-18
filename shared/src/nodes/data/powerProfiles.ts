@@ -1,6 +1,8 @@
 import PowerProfilePreset from '../classes/PowerProfilePreset.js'
 import { PowerProfile } from '../types/powerProfile.js'
 
+export const DEFAULT_POWER_PROFILE = PowerProfile.Performance
+
 export const POWER_PROFILES: Record<PowerProfile, PowerProfilePreset> = Object.freeze({
   [PowerProfile.PowerSaver]: new PowerProfilePreset({
     id: PowerProfile.PowerSaver,

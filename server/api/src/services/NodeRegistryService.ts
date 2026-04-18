@@ -9,6 +9,7 @@ import type {
   SoilMoistureCapability,
 } from '@anthos/shared/nodes/types'
 import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
+import { DEFAULT_POWER_PROFILE } from '@anthos/shared/nodes/data/powerProfiles'
 
 export class NodeRegistryService {
   constructor(private readonly db: Database) {}
@@ -304,7 +305,7 @@ export class NodeRegistryService {
       registeredAt: Number(row['registered_at']),
       powerProfile: row['power_profile_id'] != null
         ? String(row['power_profile_id']) as LogicalNodeRecord['powerProfile']
-        : PowerProfile.Performance,
+        : DEFAULT_POWER_PROFILE,
     }
   }
 
