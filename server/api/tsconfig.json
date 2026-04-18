@@ -11,6 +11,8 @@
     "skipLibCheck": true,
     "paths": {
       "@anthos/shared": ["../../shared/src/index.ts"],
+      "@anthos/shared/users": ["../../shared/src/users/index.ts"],
+      "@anthos/shared/users/*": ["../../shared/src/users/*"],
       "@anthos/shared/nodes": ["../../shared/src/nodes/index.ts"],
       "@anthos/shared/nodes/*": ["../../shared/src/nodes/*"],
       "@anthos/shared/nodes/utils/moisture": ["../../shared/src/nodes/utils/moisture.ts"],

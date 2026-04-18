@@ -49,7 +49,7 @@ export class Anthos {
     return this
   }
 
-  async request<T>(path: string, options: { method?: 'GET' | 'POST' | 'PATCH'; body?: unknown } = {}): Promise<T> {
+  async request<T>(path: string, options: { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown } = {}): Promise<T> {
     const url = new URL(path, this.setupState.apiBaseUrl)
     const headers: Record<string, string> = { ...this.setupState.headers }
 

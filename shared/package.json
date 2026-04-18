@@ -8,6 +8,7 @@
     "./telemetry": "./src/telemetry.ts",
     "./moisture": "./src/moisture.ts",
     "./anthos": "./src/anthos/index.ts",
+    "./anthos/types": "./src/anthos/types/index.ts",
     "./nodes": "./src/nodes/index.ts",
     "./nodes/utils": "./src/nodes/utils/index.ts",
     "./nodes/utils/powerProfile": "./src/nodes/data/powerProfiles.ts",
@@ -19,7 +20,10 @@
     "./nodes/classes/Node": "./src/nodes/classes/PlantNode.ts",
     "./logs": "./src/logs.ts",
     "./logs/classes/LogEntry": "./src/logs/classes/LogEntry.ts",
-    "./power-profiles": "./src/power-profiles.ts"
+    "./power-profiles": "./src/power-profiles.ts",
+    "./users": "./src/users/index.ts",
+    "./users/classes/User": "./src/users/classes/User.ts",
+    "./anthos/classes/AnthosUsers": "./src/anthos/classes/AnthosUsers.ts"
   },
   "dependencies": {
     "nyx-kit": "link:../../nyx-kit"

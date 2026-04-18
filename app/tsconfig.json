@@ -20,6 +20,8 @@
       "@/*": ["src/*"],
       "@anthos/shared": ["../shared/src/index.ts"],
       "@anthos/shared/anthos": ["../shared/src/anthos/index.ts"],
+      "@anthos/shared/users": ["../shared/src/users/index.ts"],
+      "@anthos/shared/users/*": ["../shared/src/users/*"],
       "@anthos/shared/nodes/*": ["../shared/src/nodes/*"]
     }
   },

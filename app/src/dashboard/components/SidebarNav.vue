@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { NyxIcon } from 'nyx-kit/components'
-import { NyxSize } from 'nyx-kit/types'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { NyxButton, NyxIcon } from 'nyx-kit/components'
+import { NyxSize, NyxTheme } from 'nyx-kit/types'
 import { logo } from '@/shared/assets'
+import { useAuthStore } from '@/auth/stores/auth'
 
 const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: 'home' },
+  { name: 'Users', path: '/users', icon: 'users' },
   { name: 'Nodes', path: '/nodes', icon: 'leaf' },
   { name: 'Logs', path: '/logs', icon: 'file-text' },
   { name: 'Alerts', path: '/alerts', icon: 'bell' },
@@ -16,9 +21,16 @@ const navItems = [
 
 const supportItem = { name: 'Support', path: '/support', icon: 'life-buoy' } as const
 
+const currentUserLabel = computed(() => auth.currentUser?.displayName || auth.currentUser?.username || 'Signed in')
+
 const isActive = (path: string) => {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
+}
+
+async function handleSignOut(): Promise<void> {
+  await auth.logout()
+  await router.push('/login')
 }
 </script>
 
@@ -46,6 +58,10 @@ const isActive = (path: string) => {
     </nav>
     
     <div class="sidebar-nav__footer">
+      <p class="sidebar-nav__user">{{ currentUserLabel }}</p>
+      <NyxButton class="sidebar-nav__logout" :theme="NyxTheme.Secondary" :size="NyxSize.Small" @click="handleSignOut">
+        Sign out
+      </NyxButton>
       <router-link :to="supportItem.path" class="sidebar-nav__link">
         <NyxIcon :name="supportItem.icon" :size="NyxSize.Medium" />
         <span>{{ supportItem.name }}</span>
@@ -142,6 +158,19 @@ const isActive = (path: string) => {
   border-top: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.2));
   padding-top: 1rem;
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sidebar-nav__user {
+  font-size: 0.875rem;
+  color: var(--nyx-c-text-2, rgba(222, 227, 235, 0.8));
+  padding: 0 1rem;
+}
+
+.sidebar-nav__logout {
+  margin: 0 1rem;
 }
 
 @media (max-width: 768px) {

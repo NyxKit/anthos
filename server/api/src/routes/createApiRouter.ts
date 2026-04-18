@@ -6,11 +6,15 @@ import { MetricsController } from '../controllers/MetricsController.js'
 import { LogsController } from '../controllers/LogsController.js'
 import { PowerProfileController } from '../controllers/PowerProfileController.js'
 import { ProvisionController } from '../controllers/ProvisionController.js'
+import { AuthController } from '../controllers/AuthController.js'
+import { UserController } from '../controllers/UserController.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { PairingWindowService } from '../services/PairingWindowService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
+import { AuthService } from '../services/AuthService.js'
+import { UserService } from '../services/UserService.js'
 
 export function createApiRouter(telemetry: TelemetryService, logArchive: LogArchiveService): Router {
   const router = Router()
@@ -25,6 +29,10 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   const logsController = new LogsController(logArchive)
   const provisionCtrl = new ProvisionController(registry, pairing, saveDb)
   const powerProfileCtrl = new PowerProfileController(registry, logArchive, commandService, saveDb)
+  const users = new UserService(telemetry.getDb(), saveDb)
+  const auth = new AuthService(telemetry.getDb(), users, saveDb)
+  const authCtrl = new AuthController(auth)
+  const userCtrl = new UserController(users, auth)
 
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' })
@@ -64,6 +72,18 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
 
   router.get('/logs', logsController.list)
   router.get('/logs/stream', logsController.stream)
+
+  router.post('/auth/login', authCtrl.login)
+  router.post('/auth/logout', authCtrl.logout)
+  router.get('/auth/me', authCtrl.me)
+
+  router.get('/users/setup-status', userCtrl.setupStatus)
+  router.get('/users', userCtrl.list)
+  router.get('/users/me', userCtrl.me)
+  router.get('/users/:id', userCtrl.get)
+  router.post('/users', userCtrl.create)
+  router.patch('/users/:id', userCtrl.update)
+  router.delete('/users/:id', userCtrl.delete)
 
   router.post('/register', provisionCtrl.register)
   router.post('/provision/open', provisionCtrl.openProvisionWindow)

@@ -4,6 +4,8 @@ export * from './logs.js'
 export { LogEntry } from './logs.js'
 export * from './dashboard.js'
 export * from './commands.js'
+export * from './users/index.js'
+export * from './anthos/types/index.js'
 export { NodeStatus } from './nodes/types/plantNode.js'
 export {
   PowerProfile,

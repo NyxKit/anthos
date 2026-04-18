@@ -8,9 +8,9 @@
     "app:build": "pnpm --dir app build",
     "app:tauri": "pnpm --dir app tauri",
     "node:build": "pio run --project-dir node",
+    "node:erase": "pio run --project-dir node -t erase",
     "node:flash": "pio run --project-dir node -t upload",
     "node:monitor": "pio device monitor --project-dir node --baud 115200",
     "node:run": "pnpm node:flash && pnpm node:monitor"
   }
 }
-
