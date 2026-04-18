@@ -70,33 +70,6 @@ export class ProvisionController {
     res.json({ nodes })
   }
 
-  claimNode: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-    const nodeId = String(req.params['id'])
-    const { displayName, capability } = req.body as { displayName?: string; capability?: string }
-
-    if (!displayName) {
-      res.status(400).json({ error: 'displayName is required' })
-      return
-    }
-
-    if (displayName.trim() === '') {
-      res.status(400).json({ error: 'displayName must not be empty' })
-      return
-    }
-
-    const normalizedCapability = capability === 'watering' ? 'watering' : 'earth'
-    const claimed = this.registry.claimNode(nodeId, displayName, normalizedCapability)
-
-    if (!claimed) {
-      res.status(404).json({ error: 'Node not found or already claimed' })
-      return
-    }
-
-    await this.saveDb()
-
-    res.json({ nodeId, displayName, claimStatus: 'claimed', capability: normalizedCapability })
-  }
-
   updateCapability: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const nodeId = String(req.params['id'])
     const { capability } = req.body as { capability?: string }
@@ -105,7 +78,7 @@ export class ProvisionController {
     const updated = this.registry.updateCapability(nodeId, normalizedCapability)
 
     if (!updated) {
-      res.status(404).json({ error: 'Node not found or not claimed' })
+      res.status(404).json({ error: 'Node not found' })
       return
     }
 
@@ -131,7 +104,7 @@ export class ProvisionController {
     const updated = this.registry.updateDisplayName(nodeId, displayName.trim())
 
     if (!updated) {
-      res.status(404).json({ error: 'Node not found or not claimed' })
+      res.status(404).json({ error: 'Node not found' })
       return
     }
 
@@ -153,7 +126,7 @@ export class ProvisionController {
     const updated = this.registry.updateOrder(nodeId, normalizedOrder)
 
     if (!updated) {
-      res.status(404).json({ error: 'Node not found or not claimed' })
+      res.status(404).json({ error: 'Node not found' })
       return
     }
 

@@ -18,7 +18,7 @@ class CommandClient {
   String commandsUrl() const;
   String ackUrl(const String& commandId) const;
   void pollCommands();
-  void processCommand(const String& commandId, unsigned long durationMs);
+  bool processCommand(const String& commandId, unsigned long durationMs);
   void processPowerProfileCommand(const String& commandId,
                                   unsigned long readIntervalMs,
                                   unsigned long telemetryIntervalMs,
@@ -29,4 +29,6 @@ class CommandClient {
   const NodeHealth& health_;
   PumpActuator& pump_;
   unsigned long lastPollAt_ = 0;
+  String activePumpCommandId_ = "";
+  bool activePumpAckPending_ = false;
 };

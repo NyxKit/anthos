@@ -11,7 +11,6 @@ describe('offline telemetry threshold', () => {
     const performance = new PlantNode({
       id: 'node-001',
       hwId: 'hw-001',
-      claimStatus: 'claimed',
       capability: 'earth',
       registeredAt: 0,
       powerProfile: PowerProfile.Performance,
@@ -19,7 +18,6 @@ describe('offline telemetry threshold', () => {
     const balanced = new PlantNode({
       id: 'node-002',
       hwId: 'hw-002',
-      claimStatus: 'claimed',
       capability: 'earth',
       registeredAt: 0,
       powerProfile: PowerProfile.Balanced,
@@ -27,7 +25,6 @@ describe('offline telemetry threshold', () => {
     const powerSaver = new PlantNode({
       id: 'node-003',
       hwId: 'hw-003',
-      claimStatus: 'claimed',
       capability: 'earth',
       registeredAt: 0,
       powerProfile: PowerProfile.PowerSaver,

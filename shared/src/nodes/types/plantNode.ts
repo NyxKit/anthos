@@ -7,11 +7,6 @@ export enum NodeCapability {
   Watering = 'watering',
 }
 
-export enum NodeClaimStatus {
-  Unclaimed = 'unclaimed',
-  Claimed = 'claimed',
-}
-
 export enum NodeRegistrationStatus {
   Registered = 'registered',
   Reconnected = 'reconnected',
@@ -63,7 +58,6 @@ export interface LogicalNodeRecord {
   nodeId: string
   hwId: string
   displayName: string | null
-  claimStatus: NodeClaimStatus
   capability: SoilMoistureCapability
   order: number | null
   registeredAt: number

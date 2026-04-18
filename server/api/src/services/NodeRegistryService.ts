@@ -6,7 +6,6 @@ import type {
   PowerProfileAssignmentState,
   PowerProfileAppliedState,
   PowerProfileDefinition,
-  NodeClaimStatus,
   SoilMoistureCapability,
 } from '@anthos/shared/nodes/types'
 import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
@@ -43,7 +42,7 @@ export class NodeRegistryService {
 
   findLogicalNodeByHwId(hwId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(`
-      SELECT node_id, hw_id, display_name, claim_status, capability, registered_at
+      SELECT node_id, hw_id, display_name, capability, registered_at
       FROM logical_nodes WHERE hw_id=?
     `)
     stmt.bind([hwId])
@@ -76,8 +75,8 @@ export class NodeRegistryService {
     const nodeId = `node-${String(next).padStart(3, '0')}`
 
     const insertStmt = this.db.prepare(`
-      INSERT INTO logical_nodes (node_id, hw_id, display_name, node_order, claim_status, capability, registered_at)
-      VALUES (?, ?, NULL, NULL, 'unclaimed', 'earth', ?)
+      INSERT INTO logical_nodes (node_id, hw_id, display_name, node_order, capability, registered_at)
+      VALUES (?, ?, NULL, NULL, 'earth', ?)
     `)
     insertStmt.run([nodeId, hwId, now])
     insertStmt.free()
@@ -87,7 +86,7 @@ export class NodeRegistryService {
 
   listLogicalNodes(): LogicalNodeRecord[] {
     const results = this.db.exec(`
-      SELECT node_id, hw_id, display_name, node_order, claim_status, capability, registered_at
+      SELECT node_id, hw_id, display_name, node_order, capability, registered_at
       FROM logical_nodes
       ORDER BY node_order IS NULL, node_order ASC, registered_at ASC
     `)
@@ -104,7 +103,7 @@ export class NodeRegistryService {
 
   getLogicalNode(nodeId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(`
-      SELECT node_id, hw_id, display_name, node_order, claim_status, capability, registered_at
+      SELECT node_id, hw_id, display_name, node_order, capability, registered_at
       FROM logical_nodes WHERE node_id=?
     `)
     stmt.bind([nodeId])
@@ -121,35 +120,15 @@ export class NodeRegistryService {
     return this.rowToRecord(row)
   }
 
-  claimNode(nodeId: string, displayName: string, capability: 'earth' | 'watering' = 'earth'): boolean {
-    const stmt = this.db.prepare(`
-      UPDATE logical_nodes
-      SET display_name=?, claim_status='claimed', capability=?
-      WHERE node_id=? AND claim_status='unclaimed'
-    `)
-    stmt.run([displayName, capability, nodeId])
-    stmt.free()
-
-    const checkStmt = this.db.prepare(`
-      SELECT 1 FROM logical_nodes
-      WHERE node_id=? AND claim_status='claimed' AND display_name=? AND capability=?
-    `)
-    checkStmt.bind([nodeId, displayName, capability])
-    const updated = checkStmt.step()
-    checkStmt.free()
-
-    return updated
-  }
-
   updateCapability(nodeId: string, capability: 'earth' | 'watering'): boolean {
     const stmt = this.db.prepare(`
-      UPDATE logical_nodes SET capability=? WHERE node_id=? AND claim_status='claimed'
+      UPDATE logical_nodes SET capability=? WHERE node_id=?
     `)
     stmt.run([capability, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
-      SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND capability=?
+      SELECT 1 FROM logical_nodes WHERE node_id=? AND capability=?
     `)
     checkStmt.bind([nodeId, capability])
     const updated = checkStmt.step()
@@ -160,13 +139,13 @@ export class NodeRegistryService {
 
   updateDisplayName(nodeId: string, displayName: string): boolean {
     const stmt = this.db.prepare(`
-      UPDATE logical_nodes SET display_name=? WHERE node_id=? AND claim_status='claimed'
+      UPDATE logical_nodes SET display_name=? WHERE node_id=?
     `)
     stmt.run([displayName, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
-      SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND display_name=?
+      SELECT 1 FROM logical_nodes WHERE node_id=? AND display_name=?
     `)
     checkStmt.bind([nodeId, displayName])
     const updated = checkStmt.step()
@@ -177,13 +156,13 @@ export class NodeRegistryService {
 
   updateOrder(nodeId: string, order: number | null): boolean {
     const stmt = this.db.prepare(`
-      UPDATE logical_nodes SET node_order=? WHERE node_id=? AND claim_status='claimed'
+      UPDATE logical_nodes SET node_order=? WHERE node_id=?
     `)
     stmt.run([order, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
-      SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND node_order ${order === null ? 'IS NULL' : '= ?'}
+      SELECT 1 FROM logical_nodes WHERE node_id=? AND node_order ${order === null ? 'IS NULL' : '= ?'}
     `)
     order === null ? checkStmt.bind([nodeId]) : checkStmt.bind([nodeId, order])
     const updated = checkStmt.step()
@@ -229,14 +208,14 @@ export class NodeRegistryService {
         power_profile_telemetry_interval_ms=?,
         power_profile_queue_interval_ms=?,
         power_profile_assigned_at=?
-      WHERE node_id=? AND claim_status='claimed'
+      WHERE node_id=?
     `)
     stmt.run([profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, updatedAt, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
       SELECT 1 FROM logical_nodes
-      WHERE node_id=? AND claim_status='claimed' AND power_profile_id=?
+      WHERE node_id=? AND power_profile_id=?
         AND power_profile_read_interval_ms=? AND power_profile_telemetry_interval_ms=? AND power_profile_queue_interval_ms=?
     `)
     checkStmt.bind([nodeId, profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
@@ -254,14 +233,14 @@ export class NodeRegistryService {
         power_profile_applied_telemetry_interval_ms=?,
         power_profile_applied_queue_interval_ms=?,
         power_profile_applied_at=?
-      WHERE node_id=? AND claim_status='claimed'
+      WHERE node_id=?
     `)
     stmt.run([profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, appliedAt, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
       SELECT 1 FROM logical_nodes
-      WHERE node_id=? AND claim_status='claimed'
+      WHERE node_id=?
        AND power_profile_applied_id=? AND power_profile_applied_read_interval_ms=? AND power_profile_applied_telemetry_interval_ms=? AND power_profile_applied_queue_interval_ms=?`
     )
     checkStmt.bind([nodeId, profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
@@ -320,7 +299,6 @@ export class NodeRegistryService {
       nodeId: String(row['node_id']),
       hwId: String(row['hw_id']),
       displayName: row['display_name'] != null ? String(row['display_name']) : null,
-      claimStatus: row['claim_status'] as NodeClaimStatus,
       capability: row['capability'] as SoilMoistureCapability,
       order: row['node_order'] != null ? Number(row['node_order']) : null,
       registeredAt: Number(row['registered_at']),

@@ -16,13 +16,6 @@ export class AnthosNodes {
     return this.anthos.request<{ nodes: LogicalNodeRecord[] }>('/api/nodes')
   }
 
-  claim(nodeId: string, displayName: string, capability: SoilMoistureCapability = 'earth'): Promise<LogicalNodeRecord> {
-    return this.anthos.request<LogicalNodeRecord>(`/api/nodes/${nodeId}`, {
-      method: 'PATCH',
-      body: { displayName, capability },
-    })
-  }
-
   updateCapability(nodeId: string, capability: SoilMoistureCapability): Promise<LogicalNodeRecord> {
     return this.anthos.request<LogicalNodeRecord>(`/api/nodes/${nodeId}/capability`, {
       method: 'PATCH',

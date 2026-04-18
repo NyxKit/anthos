@@ -76,7 +76,6 @@ export class TelemetryService {
         hw_id         TEXT    NOT NULL REFERENCES hardware_nodes(hw_id),
         display_name  TEXT,
         node_order    INTEGER,
-        claim_status  TEXT    NOT NULL DEFAULT 'unclaimed',
         capability    TEXT    NOT NULL DEFAULT 'earth',
         registered_at INTEGER NOT NULL,
         power_profile_id TEXT,

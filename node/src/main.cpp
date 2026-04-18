@@ -4,6 +4,7 @@ namespace {
 NodeApp app;
 }
 
+#ifndef UNIT_TEST
 void setup() {
   app.begin();
 }
@@ -11,3 +12,4 @@ void setup() {
 void loop() {
   app.loop();
 }
+#endif

@@ -37,34 +37,55 @@ export const useNodesStore = defineStore('nodes', () => {
     }
   }
 
-  async function claimNode(nodeId: string, displayName: string, capability: 'earth' | 'watering'): Promise<void> {
+  function replaceNode(nodeId: string, updated: PlantNode): void {
+    const index = nodes.value.findIndex(n => n.id === nodeId)
+    if (index === -1) return
+    nodes.value[index] = updated
+    nodes.value = sortNodes(nodes.value)
+  }
+
+  async function updateDisplayName(nodeId: string, displayName: string): Promise<PlantNode | null> {
     isLoading.value = true
     error.value = null
     try {
-      const updated = await anthos.nodes.claim(nodeId, displayName, capability)
-      const index = nodes.value.findIndex(n => n.id === nodeId)
-      if (index === -1) return
-      nodes.value[index] = new PlantNode({ ...nodes.value[index], ...updated })
-      nodes.value = sortNodes(nodes.value)
+      const updated = await anthos.nodes.updateDisplayName(nodeId, displayName)
+      const node = new PlantNode(updated)
+      replaceNode(nodeId, node)
+      return node
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to claim node'
+      error.value = e instanceof Error ? e.message : 'Failed to update node name'
       throw e
     } finally {
       isLoading.value = false
     }
   }
 
-  async function updateCapability(nodeId: string, capability: 'earth' | 'watering'): Promise<void> {
+  async function updateCapability(nodeId: string, capability: 'earth' | 'watering'): Promise<PlantNode | null> {
     isLoading.value = true
     error.value = null
     try {
       const updated = await anthos.nodes.updateCapability(nodeId, capability)
-      const index = nodes.value.findIndex(n => n.id === nodeId)
-      if (index === -1) return
-      nodes.value[index] = new PlantNode({ ...nodes.value[index], ...updated })
-      nodes.value = sortNodes(nodes.value)
+      const node = new PlantNode(updated)
+      replaceNode(nodeId, node)
+      return node
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to update node capability'
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function updateOrder(nodeId: string, order: number | null): Promise<PlantNode | null> {
+    isLoading.value = true
+    error.value = null
+    try {
+      const updated = await anthos.nodes.updateOrder(nodeId, order)
+      const node = new PlantNode(updated)
+      replaceNode(nodeId, node)
+      return node
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to update node order'
       throw e
     } finally {
       isLoading.value = false
@@ -80,5 +101,5 @@ export const useNodesStore = defineStore('nodes', () => {
     }
   }
 
-  return { nodes, isLoading, error, fetchNodes, claimNode, updateCapability, openProvisionWindow }
+  return { nodes, isLoading, error, fetchNodes, updateDisplayName, updateCapability, updateOrder, openProvisionWindow }
 })

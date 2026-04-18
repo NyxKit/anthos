@@ -17,6 +17,19 @@ void CommandClient::begin() {
 }
 
 void CommandClient::loop() {
+  pump_.loop();
+
+  if (activePumpCommandId_.length() > 0 && pump_.consumeCompletion()) {
+    activePumpAckPending_ = true;
+  }
+
+  if (activePumpAckPending_ && activePumpCommandId_.length() > 0 && !pump_.isRunning()) {
+    if (acknowledgeCommand(activePumpCommandId_, "completed", "pump completed")) {
+      activePumpCommandId_ = "";
+      activePumpAckPending_ = false;
+    }
+  }
+
   if (!shouldPoll()) return;
   pollCommands();
 }
@@ -95,7 +108,16 @@ void CommandClient::pollCommands() {
     }
 
     if (std::strcmp(type, "pump") == 0) {
-      processCommand(commandId, payload["durationMs"] | 0);
+      if (activePumpCommandId_.length() > 0 && activePumpCommandId_ != commandId) {
+        continue;
+      }
+
+      if (activePumpCommandId_.length() == 0 && !pump_.isRunning()) {
+        if (processCommand(commandId, payload["durationMs"] | 0)) {
+          activePumpCommandId_ = commandId;
+          activePumpAckPending_ = true;
+        }
+      }
       continue;
     }
 
@@ -113,9 +135,14 @@ void CommandClient::pollCommands() {
   }
 }
 
-void CommandClient::processCommand(const String& commandId, unsigned long durationMs) {
-  const bool success = pump_.run(durationMs);
-  acknowledgeCommand(commandId, success ? "completed" : "failed", success ? "" : "pump run failed");
+bool CommandClient::processCommand(const String& commandId, unsigned long durationMs) {
+  const bool success = pump_.start(durationMs);
+  if (!success) {
+    acknowledgeCommand(commandId, "failed", "pump start failed");
+    return false;
+  }
+
+  return true;
 }
 
 void CommandClient::processPowerProfileCommand(
