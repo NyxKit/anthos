@@ -59,7 +59,7 @@ const metrics = computed(() => {
 </script>
 
 <template>
-  <div class="metrics-bar">
+  <section class="metrics-bar">
     <NyxMetricCard
       v-for="(metric, index) in metrics"
       :key="index"
@@ -70,7 +70,7 @@ const metrics = computed(() => {
       :theme="metric.theme"
       :icon="metric.icon"
     />
-  </div>
+  </section>
 </template>
 
 <style scoped>

@@ -41,27 +41,15 @@ onUnmounted(() => {
 
 <template>
   <div class="dashboard">
-    <!-- Summary Metrics -->
-    <section class="dashboard__metrics">
-      <MetricsBar />
-    </section>
-
-    <!-- Node Grid -->
-    <section class="dashboard__nodes">
-      <h3 class="dashboard__section-title">Biological Nodes</h3>
-      <NyxGrid v-if="dashboardNodes.length" class="dashboard__grid" :columns="3">
-        <NodeCard v-for="node in dashboardNodes" :key="node.nodeId" :model-value="node" />
-      </NyxGrid>
-      <p v-else class="dashboard__nodes-empty">No claimed nodes yet.</p>
-    </section>
-
-    <!-- Bottom Panels -->
-    <section class="dashboard__panels">
-      <div class="dashboard__panels-grid">
-        <ActivityLog class="dashboard__activity-log" />
-        <HealthPanel class="dashboard__health-panel" />
-      </div>
-    </section>
+    <MetricsBar />
+    <NyxGrid v-if="dashboardNodes.length" class="dashboard__nodes" :columns="3">
+      <NodeCard v-for="node in dashboardNodes" :key="node.nodeId" :model-value="node" />
+    </NyxGrid>
+    <p v-else class="dashboard__nodes dashboard__nodes--empty">No claimed nodes yet.</p>
+    <footer class="dashboard__footer">
+      <ActivityLog class="dashboard__activity-log" />
+      <HealthPanel class="dashboard__health-panel" />
+    </footer>
   </div>
 </template>
 
@@ -72,37 +60,17 @@ onUnmounted(() => {
   gap: 2rem;
 }
 
-.dashboard__section-title {
-  font-family: var(--nyx-font-family-headline, 'Space Grotesk', sans-serif);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--nyx-c-on-surface-variant, #cfc2d6);
-  margin-bottom: 1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.dashboard__nodes {
-  margin-bottom: 1rem;
-}
-
-.dashboard__grid {
-  gap: 1.5rem;
-}
-
-.dashboard__panels {
+.dashboard__footer {
   margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
 }
 
-.dashboard__panels-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+.dashboard__activity-log {
+  flex: 1 0 75%;
 }
 
-@media (min-width: 1024px) {
-  .dashboard__panels-grid {
-    grid-template-columns: 2fr 1fr;
-  }
+.dashboard__health-panel {
+  flex: 1 0 25%;
 }
 </style>

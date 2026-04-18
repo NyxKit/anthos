@@ -13,7 +13,7 @@ struct AppConfig {
   uint8_t  portYellowPin = 2;
   uint8_t  portWhitePin  = 1;
   uint8_t  earthYellowPin = 39;
-  uint8_t  earthWhitePin  = 5;
+  uint8_t  earthWhitePin  = 8;
   uint8_t  dlightAddress = 0x23;
   uint32_t i2cClockHz    = 50000;
   unsigned long readIntervalMs   = 1000;

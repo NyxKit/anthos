@@ -1,4 +1,4 @@
-import type { LogicalNodeRecord, TelemetryPayload } from '../../telemetry.js'
+import type { LogicalNodeRecord, NodeTelemetryPayload } from '../../telemetry.js'
 import type { QueuePumpCommandRequest } from '../../commands.js'
 import type {
   ApplyPowerProfileRequest,
@@ -42,8 +42,8 @@ export class AnthosNodes {
     })
   }
 
-  getLatestTelemetry(): Promise<TelemetryPayload> {
-    return this.anthos.request<TelemetryPayload>('/api/telemetry/latest')
+  getLatestTelemetry(): Promise<NodeTelemetryPayload> {
+    return this.anthos.request<NodeTelemetryPayload>('/api/telemetry/latest')
   }
 
   queuePump(nodeId: string, volumeMl: number): Promise<{ nodeId: string; commandId: string; status: 'pending' }> {

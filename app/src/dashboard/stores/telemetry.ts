@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { TelemetryPayload, NodeHealthPayload, SensorSample } from '@/shared/types/telemetry'
+import type { NodeTelemetryPayload, NodeHealthPayload, SensorSample } from '@/shared/types/telemetry'
 import type { DashboardMetrics } from '@anthos/shared'
 import anthos from '@anthos/shared/anthos'
 
@@ -43,14 +43,14 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     error.value = null
 
     try {
-      const data: TelemetryPayload & { capability?: 'earth' | 'watering' } = await anthos.nodes.getLatestTelemetry()
+      const data: NodeTelemetryPayload = await anthos.nodes.getLatestTelemetry()
       nodeId.value = data.nodeId
       nodeName.value = data.nodeId
       status.value = 'connected'
       health.value = data.health
       sensors.value = data.sensors
       timestampMs.value = data.timestampMs
-      nodeCapability.value = data.capability ?? null
+      nodeCapability.value = data.capability
       lastUpdated.value = Date.now()
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch readings'

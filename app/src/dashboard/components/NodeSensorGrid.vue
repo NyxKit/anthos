@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { NyxIcon } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
+import { normalizeSoilMoistureByCapability } from '@anthos/shared/moisture'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import type { LogicalNodeRecord } from '@anthos/shared'
 
@@ -16,16 +17,21 @@ const sensorConfig: Record<string, { icon: string; label: string }> = {
 }
 
 const sensors = computed(() => {
+  const capability = telemetryStore.nodeCapability
+
   return Object.entries(sensorConfig).map(([type, { icon, label }]) => {
     const reading = telemetryStore.sensors.find(entry => entry.type === type)
     const isLiveNode = Boolean(node.value?.nodeId) && node.value?.nodeId === telemetryStore.nodeId && telemetryStore.status === 'connected'
+    const moistureValue = type === 'moisture' && reading && capability
+      ? normalizeSoilMoistureByCapability(reading.value, capability)
+      : null
 
     return {
       type,
       icon,
       label,
-      value: isLiveNode && reading ? reading.value.toFixed(1) : '--',
-      unit: isLiveNode ? reading?.unit || '' : '',
+      value: isLiveNode && reading ? (type === 'moisture' ? moistureValue?.toFixed(0) ?? '--' : reading.value.toFixed(1)) : '--',
+      unit: isLiveNode ? (type === 'moisture' ? '%' : reading?.unit || '') : '',
       active: Boolean(isLiveNode && reading),
     }
   })
@@ -35,7 +41,9 @@ const isCritical = computed(() => {
   const isLiveNode = Boolean(node.value?.nodeId) && node.value?.nodeId === telemetryStore.nodeId && telemetryStore.status === 'connected'
   if (!isLiveNode) return false
   const moisture = telemetryStore.sensors.find(reading => reading.type === 'moisture')
-  return Boolean(moisture && moisture.value < 20)
+  if (!moisture || !telemetryStore.nodeCapability) return false
+
+  return normalizeSoilMoistureByCapability(moisture.value, telemetryStore.nodeCapability) < 20
 })
 </script>
 

@@ -42,10 +42,34 @@ This document captures node setup decisions for `AtomS3 Lite` nodes, including s
 
 - product: `M5Stack Watering Unit - Soil Moisture Sensor and Water Pump`
 - source: `https://www.tinytronics.nl/en/platforms-and-systems/m5stack/unit/m5stack-watering-unit-soil-moisture-sensor-and-water-pump`
-- on `AtomS3 Lite`, the wiring uses the same host pins as the Earth unit: `white(AO) -> G5` and `yellow -> G39`
+- on `AtomS3 Lite`, the watering unit uses `white(AO) -> G8` and `yellow -> G39`
 - black still goes to `GND` and red still goes to `5V`
 - the difference is behavioral, not wiring: `Earth` treats `G39` as a sensor digital input, while `Watering` treats `G39` as pump enable
 - keep the firmware generic and let the server assign the capability; the node should sync it automatically during registration
+
+### Observed Raw Ranges
+
+- watering unit:
+  - air: `~2100`
+  - current soil: `~1800-1900`
+  - water: `~1500-1560`
+- earth unit:
+  - air: `4095`
+  - current soil: `~2400-2700`
+  - water: `~1500`
+- these are empirical reference values only, not calibration targets
+
+### Moisture Normalization
+
+- use a per-capability linear map from raw ADC to `0-100%`
+- formula: `percent = clamp((dryRaw - raw) / (dryRaw - wetRaw) * 100)`
+- current defaults:
+  - earth: `dryRaw=4095`, `wetRaw=1500`
+  - watering: `dryRaw=2100`, `wetRaw=1500`, `curveExponent=0.33`
+- the UI must pick the curve from the node capability, not from a shared default
+- the earth unit swings a lot for the same soil, so use a short sample window and median/trimmed average before mapping if you need steadier output
+- the watering unit needs a curved response because its useful range is compressed; the exponent lifts the midrange wet readings toward the earth unit's more realistic percent
+- keep the raw ADC value too; the percent is for UI and thresholds, not for losing the source signal
 
 ## Battery Options (Atom)
 

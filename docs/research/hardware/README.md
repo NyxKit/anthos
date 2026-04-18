@@ -117,10 +117,11 @@ Earth Unit
 
 - product: `M5Stack Watering Unit - Soil Moisture Sensor and Water Pump`
 - source: `https://www.tinytronics.nl/en/platforms-and-systems/m5stack/unit/m5stack-watering-unit-soil-moisture-sensor-and-water-pump`
-- on `AtomS3 Lite`, the wiring uses the same host pins as the Earth unit: `white(AO) -> G5` and `yellow -> G39`
+- on `AtomS3 Lite`, the watering unit uses `white(AO) -> G8` and `yellow -> G39`
 - black still goes to `GND` and red still goes to `5V`
 - the difference is behavioral, not wiring: `Earth` treats `G39` as a sensor digital input, while `Watering` treats `G39` as pump enable
 - the firmware should treat `earth` and `watering` as separate server-assigned capabilities, not as a manual node setting
+- moisture percent should be derived from capability-specific raw calibration, not shared across both units
 
 ## Key Docs
 

@@ -6,25 +6,22 @@ import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
-import { PowerProfile } from '@anthos/shared/power-profiles'
+import { POWER_PROFILES, PowerProfile } from '@anthos/shared/power-profiles'
 import type { LogicalNodeRecord } from '@anthos/shared'
+
+const PUMP_VOLUME_ML = 100
 
 const node = defineModel<LogicalNodeRecord>({ required: true })
 
 const telemetryStore = useTelemetryStore()
 const logStore = useLogStore()
-const powerProfileSelectOptions: NyxSelectOption[] = [
-  { label: 'Power Saver', value: 'power-saver', icon: 'leaf' },
-  { label: 'Balanced', value: 'balanced', icon: 'scale' },
-  { label: 'Performance', value: 'performance', icon: 'circle-gauge' },
-]
+const powerProfileSelectOptions: NyxSelectOption[] = Object.entries(POWER_PROFILES)
+  .map(([profileId, profile]) => ({ label: profile.label, value: profileId, icon: profile.icon }))
 
 const isEditModalOpen = ref(false)
 
 const nodeId = computed(() => node.value.nodeId)
 const { profileStateLoading, selectedProfileOption, applyPowerProfile } = useNodePowerProfile(nodeId)
-
-const PUMP_VOLUME_ML = 100
 
 const pumpState = ref<'idle' | 'loading' | 'error'>('idle')
 const pumpError = ref<string | null>(null)
@@ -212,22 +209,29 @@ async function handleEditSubmit(event: Event) {
       <NyxIcon name="pencil" :size="NyxSize.Small" />
     </NyxButton>
 
-    <NyxModal v-model="isEditModalOpen" title="Edit Node" :theme="NyxTheme.Primary" :size="NyxSize.Small">
+    <NyxModal
+      v-model="isEditModalOpen"
+      :theme="NyxTheme.Primary"
+      :size="NyxSize.Small"
+    >
+      <template #header>
+        <h1 class="node-card-actions__edit-modal-title">Edit node: <span>{{ node.displayName }}</span></h1>
+      </template>
       <NyxForm :size="NyxSize.Small" @submit="handleEditSubmit">
         <NyxFormField label="Node name">
-          <NyxInput v-model="editDisplayName" :theme="NyxTheme.Primary" :size="NyxSize.Small" />
+          <NyxInput v-model="editDisplayName" :theme="NyxTheme.Info" :size="NyxSize.Medium" />
         </NyxFormField>
         <NyxFormField label="Watering unit">
           <NyxSwitch
             v-model="editIsWateringUnit"
             :theme="NyxTheme.Secondary"
-            :size="NyxSize.Small"
+            :size="NyxSize.Medium"
           />
         </NyxFormField>
         <NyxFormField class="node-card-actions__edit-modal-footer">
           <NyxButton
             :theme="NyxTheme.Info"
-            :size="NyxSize.Small"
+            :size="NyxSize.Medium"
             :variant="NyxVariant.Subtle"
             @click="isEditModalOpen = false"
           >
@@ -235,7 +239,7 @@ async function handleEditSubmit(event: Event) {
           </NyxButton>
           <NyxButton
             :theme="NyxTheme.Success"
-            :size="NyxSize.Small"
+            :size="NyxSize.Medium"
             type="submit"
             :loading="isSavingDisplayName"
             :disabled="isSavingDisplayName || !editDisplayName.trim()"
@@ -279,14 +283,21 @@ async function handleEditSubmit(event: Event) {
   min-width: min(25rem, 95dvw);
 }
 
-.node-card-actions__profile-error {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--nyx-c-error, #ffb4ab);
-}
-
 .node-card-actions__edit-modal-footer {
   display: flex;
   justify-content: flex-end;
+}
+
+.node-card-actions__edit-modal-title {
+  font-size: var(--nyx-font-size-lg);
+  font-weight: 600;
+  color: var(--nyx-c-text-1);
+  margin: 0;
+}
+
+.node-card-actions__edit-modal-title span {
+  font-family: var(--nyx-font-family-headline, 'Space Grotesk', sans-serif);
+  color: var(--nyx-c-primary);
+  font-weight: 500;
 }
 </style>

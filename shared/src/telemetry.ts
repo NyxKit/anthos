@@ -1,3 +1,5 @@
+import type { SoilMoistureCapability } from './moisture.js'
+
 export type SensorName = 'dlight' | 'env' | 'earth'
 
 export interface NodeHealthPayload {
@@ -24,6 +26,10 @@ export interface TelemetryPayload {
   sensors: SensorSample[]
 }
 
+export interface NodeTelemetryPayload extends TelemetryPayload {
+  capability: SoilMoistureCapability
+}
+
 export interface HardwareNodeRegistration {
   hwId: string
   firmwareVersion: string
@@ -32,7 +38,7 @@ export interface HardwareNodeRegistration {
 export interface NodeRegistrationResponse {
   nodeId: string
   status: 'registered' | 'reconnected'
-  capability: 'earth' | 'watering'
+  capability: SoilMoistureCapability
   firmwareUpdated?: boolean
 }
 
@@ -41,6 +47,6 @@ export interface LogicalNodeRecord {
   hwId: string
   displayName: string | null
   claimStatus: 'unclaimed' | 'claimed'
-  capability: 'earth' | 'watering'
+  capability: SoilMoistureCapability
   registeredAt: number
 }

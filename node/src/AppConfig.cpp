@@ -23,7 +23,7 @@ AppConfig makeAppConfig() {
   config.portYellowPin = 2;
   config.portWhitePin  = 1;
   config.earthYellowPin = 39;
-  config.earthWhitePin  = 5;
+  config.earthWhitePin  = 8;
   config.dlightAddress = 0x23;
   config.i2cClockHz    = 50000;
   config.readIntervalMs   = 1000;

@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./moisture": "./src/moisture.ts",
     "./anthos": "./src/anthos/index.ts",
     "./logs": "./src/logs.ts",
     "./logs/classes/LogEntry": "./src/logs/classes/LogEntry.ts",
