@@ -1,2 +1,2 @@
 export * from './moisture.js'
-export * from './powerProfile.js'
+export * from '../data/powerProfiles.js'

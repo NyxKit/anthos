@@ -4,7 +4,7 @@ import type {
   ApplyPowerProfileRequest,
 } from '@anthos/shared/nodes/types/powerProfile'
 import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
-import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
+import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 
 import { LogArchiveService } from '../services/LogArchiveService.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'

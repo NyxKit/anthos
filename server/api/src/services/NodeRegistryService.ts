@@ -6,7 +6,10 @@ import type {
   PowerProfileAssignmentState,
   PowerProfileAppliedState,
   PowerProfileDefinition,
+  NodeClaimStatus,
+  SoilMoistureCapability,
 } from '@anthos/shared/nodes/types'
+import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
 export class NodeRegistryService {
   constructor(private readonly db: Database) {}
@@ -228,7 +231,7 @@ export class NodeRegistryService {
         power_profile_assigned_at=?
       WHERE node_id=? AND claim_status='claimed'
     `)
-    stmt.run([profile.profileId, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, updatedAt, nodeId])
+    stmt.run([profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, updatedAt, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
@@ -236,7 +239,7 @@ export class NodeRegistryService {
       WHERE node_id=? AND claim_status='claimed' AND power_profile_id=?
         AND power_profile_read_interval_ms=? AND power_profile_telemetry_interval_ms=? AND power_profile_queue_interval_ms=?
     `)
-    checkStmt.bind([nodeId, profile.profileId, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
+    checkStmt.bind([nodeId, profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
     const updated = checkStmt.step()
     checkStmt.free()
 
@@ -253,7 +256,7 @@ export class NodeRegistryService {
         power_profile_applied_at=?
       WHERE node_id=? AND claim_status='claimed'
     `)
-    stmt.run([profile.profileId, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, appliedAt, nodeId])
+    stmt.run([profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, appliedAt, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
@@ -261,7 +264,7 @@ export class NodeRegistryService {
       WHERE node_id=? AND claim_status='claimed'
        AND power_profile_applied_id=? AND power_profile_applied_read_interval_ms=? AND power_profile_applied_telemetry_interval_ms=? AND power_profile_applied_queue_interval_ms=?`
     )
-    checkStmt.bind([nodeId, profile.profileId, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
+    checkStmt.bind([nodeId, profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
     const updated = checkStmt.step()
     checkStmt.free()
 
@@ -317,10 +320,13 @@ export class NodeRegistryService {
       nodeId: String(row['node_id']),
       hwId: String(row['hw_id']),
       displayName: row['display_name'] != null ? String(row['display_name']) : null,
-      claimStatus: row['claim_status'] as 'unclaimed' | 'claimed',
-      capability: row['capability'] === 'watering' ? 'watering' : 'earth',
+      claimStatus: row['claim_status'] as NodeClaimStatus,
+      capability: row['capability'] as SoilMoistureCapability,
       order: row['node_order'] != null ? Number(row['node_order']) : null,
       registeredAt: Number(row['registered_at']),
+      powerProfile: row['power_profile_id'] != null
+        ? String(row['power_profile_id']) as LogicalNodeRecord['powerProfile']
+        : PowerProfile.Performance,
     }
   }
 

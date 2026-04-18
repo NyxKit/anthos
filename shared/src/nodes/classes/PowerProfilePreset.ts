@@ -1,8 +1,8 @@
 import { NyxLoader } from 'nyx-kit/classes'
-import { PowerPreset, type PowerProfileConfig } from '../types/powerProfile.js'
+import { PowerProfile, type PowerProfileConfig } from '../types/powerProfile.js'
 
-export default class PowerProfile {
-  profileId: PowerPreset = PowerPreset.Balanced
+export default class PowerProfilePreset {
+  id: PowerProfile = PowerProfile.Balanced
   label = ''
   icon = ''
   readIntervalMs = 0
@@ -12,7 +12,7 @@ export default class PowerProfile {
   constructor (data?: unknown) {
     if (!data) throw new Error('Power profile data is required')
 
-    this.profileId = NyxLoader.loadEnum<PowerPreset>(data, 'profileId', this.profileId, Object.values(PowerPreset))
+    this.id = NyxLoader.loadEnum<PowerProfile>(data, 'id', this.id, Object.values(PowerProfile))
     this.label = NyxLoader.loadString(data, 'label', this.label)
     this.icon = NyxLoader.loadString(data, 'icon', this.icon)
     this.readIntervalMs = NyxLoader.loadNumber(data, 'readIntervalMs', this.readIntervalMs)

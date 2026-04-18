@@ -1,7 +1,7 @@
 import type { Request, Response, RequestHandler } from 'express'
 
 import { CommandType } from '@anthos/shared'
-import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
+import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'

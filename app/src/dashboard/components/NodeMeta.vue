@@ -81,7 +81,7 @@ const updatedAt = computed(() => {
       <div class="node-meta__rssi">
         <span>RSSI: {{ nodeTelemetry?.health?.rssi ?? '--' }}dBm</span>
       </div>
-      <span class="node-meta__updated">Updated {{ updatedAt }}</span>
+      <span class="node-meta__updated">{{ updatedAt === 'offline' ? updatedAt : `Updated ${updatedAt}` }}</span>
     </div>
   </div>
 </template>

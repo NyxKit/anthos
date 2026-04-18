@@ -1,5 +1,6 @@
 import type { SensorSample } from './sensor.js'
 import type { SoilMoistureCapability } from './moisture.js'
+import { PowerProfile } from './powerProfile.js'
 
 export enum NodeCapability {
   Earth = 'earth',
@@ -11,11 +12,16 @@ export enum NodeClaimStatus {
   Claimed = 'claimed',
 }
 
+export enum NodeRegistrationStatus {
+  Registered = 'registered',
+  Reconnected = 'reconnected',
+}
+
 export type SensorName = 'dlight' | 'env' | 'earth'
 
 export interface NodeRegistrationResponse {
   nodeId: string
-  status: 'registered' | 'reconnected'
+  status: NodeRegistrationStatus
   capability: SoilMoistureCapability
   firmwareUpdated?: boolean
 }
@@ -50,10 +56,11 @@ export interface LogicalNodeRecord {
   nodeId: string
   hwId: string
   displayName: string | null
-  claimStatus: 'unclaimed' | 'claimed'
+  claimStatus: NodeClaimStatus
   capability: SoilMoistureCapability
   order: number | null
   registeredAt: number
+  powerProfile: PowerProfile
 }
 
 export interface HardwareNodeRegistration {

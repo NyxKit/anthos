@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { NyxLogViewer, NyxBadge } from 'nyx-kit/components'
-import { NyxTheme } from 'nyx-kit/types'
 import { useLogStore } from '@/logs/stores/logs'
 
 const store = useLogStore()
@@ -16,15 +15,17 @@ onMounted(() => {
     <div class="activity-log__header">
       <div>
         <h4>Anthos Log Preview</h4>
-        <p class="activity-log__summary">Latest entries from the live log stream.</p>
       </div>
       <div class="activity-log__badges">
         <NyxBadge>{{ store.isLive ? 'LIVE' : 'HISTORICAL' }}</NyxBadge>
         <NyxBadge>{{ store.visibleCount }} ENTRIES</NyxBadge>
       </div>
     </div>
-    <NyxLogViewer :model-value="store.entries.slice(0, 8)" :theme="NyxTheme.Primary" timestamp-format="HH:mm:ss" />
-    <router-link class="activity-log__link" to="/logs">Open full logs</router-link>
+    <NyxLogViewer
+      class="activity-log__log-viewer"
+      :model-value="store.entries.slice(0, 8)"
+      timestamp-format="HH:mm:ss"
+    />
   </div>
 </template>
 
@@ -34,6 +35,10 @@ onMounted(() => {
   border-radius: 0.75rem;
   border: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.1));
   padding: 1.5rem;
+}
+
+.activity-log__log-viewer {
+  margin: -0.5rem;
 }
 
 .activity-log__header {

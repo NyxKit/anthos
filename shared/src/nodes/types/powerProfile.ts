@@ -3,9 +3,6 @@ export enum PowerProfile {
   Balanced = 'balanced',
   Performance = 'performance',
 }
-
-export { PowerProfile as PowerPreset }
-
 export interface PowerProfileConfig {
   readIntervalMs: number
   telemetryIntervalMs: number
@@ -13,7 +10,7 @@ export interface PowerProfileConfig {
 }
 
 export interface PowerProfileDefinition {
-  profileId: PowerProfile
+  id: PowerProfile
   label: string
   icon: string
   readIntervalMs: number

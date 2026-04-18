@@ -1,6 +1,6 @@
 import { computed, reactive, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import anthos from '@anthos/shared/anthos'
-import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
+import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 import type { NodePowerProfileState } from '@anthos/shared/nodes/types/powerProfile'
 import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
@@ -35,7 +35,7 @@ export function useNodePowerProfile(nodeIdSource: MaybeRefOrGetter<string | unde
 
   const selectedProfileOption = computed(() => {
     const profile = POWER_PROFILES[selectedProfileId.value]
-    return profile ? { label: profile.label, value: profile.profileId, icon: profile.icon } : null
+    return profile ? { label: profile.label, value: profile.id, icon: profile.icon } : null
   })
 
   watch(nodeId, () => {

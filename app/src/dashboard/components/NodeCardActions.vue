@@ -7,7 +7,7 @@ import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
-import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
+import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 import type { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
 const PUMP_VOLUME_ML = 100
@@ -16,8 +16,8 @@ const node = defineModel<PlantNode>({ required: true })
 
 const telemetryStore = useTelemetryStore()
 const logStore = useLogStore()
-const powerProfileSelectOptions: NyxSelectOption[] = Object.entries(POWER_PROFILES)
-  .map(([profileId, profile]) => ({ label: profile.label, value: profileId, icon: profile.icon }))
+const powerProfileSelectOptions: NyxSelectOption<PowerProfile>[] = Object.values(POWER_PROFILES)
+  .map(profile => ({ label: profile.label, value: profile.id, icon: profile.icon }))
 
 const isEditModalOpen = ref(false)
 
@@ -108,9 +108,9 @@ async function handlePumpClick() {
   }
 }
 
-async function handlePowerProfileSelect(option: NyxSelectOption) {
+async function handlePowerProfileSelect(option: NyxSelectOption<PowerProfile>) {
   if (!nodeId.value) return
-  await applyPowerProfile(option.value as PowerProfile)
+  await applyPowerProfile(option.value)
 }
 
 async function handleEditSubmit(event: Event) {

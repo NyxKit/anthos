@@ -6,7 +6,7 @@ import type {
   NodePowerProfileState,
   PowerProfile,
 } from '../../nodes/types/powerProfile.js'
-import { POWER_PROFILES } from '../../nodes/utils/powerProfile.js'
+import { POWER_PROFILES } from '../../nodes/data/powerProfiles.js'
 import type { Anthos } from './Anthos.js'
 
 export class AnthosNodes {
@@ -77,7 +77,7 @@ export class AnthosNodes {
     return this.anthos.request<NodePowerProfileState>(`/api/nodes/${nodeId}/power-profile`, {
       method: 'PATCH',
       body: {
-        profileId: profile.profileId,
+        profileId: profile.id,
       } satisfies ApplyPowerProfileRequest,
     })
   }

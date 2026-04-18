@@ -128,6 +128,6 @@ const isCritical = computed(() => {
 }
 
 .node-sensor-grid__sensor-value--critical {
-  color: var(--nyx-c-error, #ffb4ab);
+  color: var(--nyx-c-danger, #ffb4ab);
 }
 </style>

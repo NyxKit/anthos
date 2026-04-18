@@ -1,25 +1,25 @@
-import PowerProfile from '../classes/PowerProfile.js'
-import { PowerPreset } from '../types/powerProfile.js'
+import PowerProfilePreset from '../classes/PowerProfilePreset.js'
+import { PowerProfile } from '../types/powerProfile.js'
 
-export const POWER_PROFILES: Record<PowerPreset, PowerProfile> = Object.freeze({
-  [PowerPreset.PowerSaver]: new PowerProfile({
-    profileId: PowerPreset.PowerSaver,
+export const POWER_PROFILES: Record<PowerProfile, PowerProfilePreset> = Object.freeze({
+  [PowerProfile.PowerSaver]: new PowerProfilePreset({
+    id: PowerProfile.PowerSaver,
     label: 'Power Saver',
     icon: 'leaf',
     readIntervalMs: 3600000,
     telemetryIntervalMs: 3600000,
     queueIntervalMs: 3600000,
   }),
-  [PowerPreset.Balanced]: new PowerProfile({
-    profileId: PowerPreset.Balanced,
+  [PowerProfile.Balanced]: new PowerProfilePreset({
+    id: PowerProfile.Balanced,
     label: 'Balanced',
     icon: 'scale',
     readIntervalMs: 600000,
     telemetryIntervalMs: 600000,
     queueIntervalMs: 600000,
   }),
-  [PowerPreset.Performance]: new PowerProfile({
-    profileId: PowerPreset.Performance,
+  [PowerProfile.Performance]: new PowerProfilePreset({
+    id: PowerProfile.Performance,
     label: 'Performance',
     icon: 'circle-gauge',
     readIntervalMs: 1000,
