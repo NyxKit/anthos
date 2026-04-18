@@ -53,7 +53,7 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
     })
   })
 
-  router.get('/telemetry/latest', ingestController.getLatestTelemetry)
+  router.get('/telemetry/latest-by-node', ingestController.getLatestTelemetryByNode)
   router.post('/ingest', ingestController.postTelemetry)
 
   router.get('/metrics', metricsController.getDashboardMetrics)

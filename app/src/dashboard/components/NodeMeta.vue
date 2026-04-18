@@ -8,18 +8,23 @@ const node = defineModel<LogicalNodeRecord | undefined>()
 
 const telemetryStore = useTelemetryStore()
 
-const nodeId = computed(() => node.value?.nodeId ?? '--')
-const hardwareId = computed(() => node.value?.hwId ?? '--')
-const ipAddress = computed(() => telemetryStore.health?.ip || '192.168.1.x')
-const isLiveNode = computed(() => Boolean(node.value?.nodeId) && node.value.nodeId === telemetryStore.nodeId && telemetryStore.status === 'connected')
+const nodeTelemetry = computed(() => {
+  return node.value?.nodeId ? telemetryStore.getNodeTelemetry(node.value.nodeId) : null
+})
 
-const { selectedProfileLabel } = useNodePowerProfile(computed(() => node.value?.nodeId))
+const nodeId = computed(() => node.value?.nodeId ?? '--')
+const nodeIdValue = computed(() => node.value?.nodeId ?? '')
+const hardwareId = computed(() => node.value?.hwId ?? '--')
+const ipAddress = computed(() => nodeTelemetry.value?.health.ip || '192.168.1.x')
+const isLiveNode = computed(() => Boolean(nodeIdValue.value) && telemetryStore.isNodeOnline(nodeIdValue.value))
+
+const { selectedProfileLabel } = useNodePowerProfile(nodeIdValue)
 
 const formattedUptime = computed(() => {
   if (!isLiveNode.value) return '-'
-  if (!telemetryStore.health?.uptimeMs) return '-'
-  const hours = Math.floor(telemetryStore.health.uptimeMs / 3600000)
-  const mins = Math.floor((telemetryStore.health.uptimeMs % 3600000) / 60000)
+  if (!nodeTelemetry.value?.health.uptimeMs) return '-'
+  const hours = Math.floor(nodeTelemetry.value.health.uptimeMs / 3600000)
+  const mins = Math.floor((nodeTelemetry.value.health.uptimeMs % 3600000) / 60000)
   return `${hours}h ${mins}m`
 })
 
@@ -27,7 +32,7 @@ const updatedAt = computed(() => {
   if (!isLiveNode.value) return 'offline'
 
   const now = Date.now()
-  const ts = telemetryStore.timestampMs ?? 0
+  const ts = nodeTelemetry.value?.timestampMs ?? 0
   const diff = now - ts
   const seconds = Math.floor(diff / 1000)
 
@@ -73,7 +78,7 @@ const updatedAt = computed(() => {
     </div>
     <div class="node-meta__bottom">
       <div class="node-meta__rssi">
-        <span>RSSI: {{ telemetryStore.health?.rssi || '--' }}dBm</span>
+        <span>RSSI: {{ nodeTelemetry?.health?.rssi ?? '--' }}dBm</span>
       </div>
       <span class="node-meta__updated">Updated {{ updatedAt }}</span>
     </div>

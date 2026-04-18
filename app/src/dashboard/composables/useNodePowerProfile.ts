@@ -1,4 +1,4 @@
-import { computed, reactive, unref, watch, type MaybeRefOrGetter } from 'vue'
+import { computed, reactive, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import anthos from '@anthos/shared/anthos'
 import { PowerProfile, POWER_PROFILES } from '@anthos/shared/power-profiles'
 import type { NodePowerProfileState } from '@anthos/shared'
@@ -8,7 +8,7 @@ const profileLoadingCache = reactive(new Map<string, boolean>())
 const profileErrorCache = reactive(new Map<string, string | null>())
 
 export function useNodePowerProfile(nodeIdSource: MaybeRefOrGetter<string | undefined>) {
-  const nodeId = computed(() => unref(nodeIdSource) ?? '')
+  const nodeId = computed(() => toValue(nodeIdSource) ?? '')
 
   const profileState = computed(() => {
     return nodeId.value ? profileStateCache.get(nodeId.value) ?? null : null

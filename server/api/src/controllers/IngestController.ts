@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import type { TelemetryPayload } from '@anthos/shared'
+import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
@@ -13,18 +13,15 @@ export class IngestController {
     private readonly saveDb: () => Promise<void>
   ) {}
 
-  getLatestTelemetry = (_req: Request, res: Response): void => {
-    const payload = this.telemetryService.getLatest()
-    if (!payload) {
+  getLatestTelemetryByNode = (_req: Request, res: Response): void => {
+    const payloads = this.telemetryService.getLatestByNode()
+
+    if (payloads.length === 0) {
       res.status(404).json({ error: 'No telemetry received yet' })
       return
     }
 
-    const nodeRecord = this.registry.getLogicalNode(payload.nodeId)
-    res.json({
-      ...payload,
-      capability: nodeRecord?.capability ?? 'earth',
-    })
+    res.json({ nodes: payloads })
   }
 
   postTelemetry = async (req: Request, res: Response): Promise<void> => {
@@ -46,15 +43,19 @@ export class IngestController {
       await this.saveDb()
     }
 
-    payload.nodeId = nodeId
+    const nodeRecord = this.registry.getLogicalNode(nodeId)
+    const telemetryPayload: NodeTelemetryPayload = {
+      ...payload,
+      nodeId,
+      capability: nodeRecord?.capability ?? 'earth',
+    }
 
-    await this.telemetryService.ingest(payload)
+    await this.telemetryService.ingest(telemetryPayload)
 
-    await this.logArchive.recordTelemetry(payload).catch(error => {
+    await this.logArchive.recordTelemetry(telemetryPayload).catch(error => {
       console.error('log.archive.record.failed', error)
     })
 
-    const nodeRecord = this.registry.getLogicalNode(nodeId)
     res.status(202).json({
       status: existing ? 'accepted' : 'registered',
       nodeId,

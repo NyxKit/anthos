@@ -2,7 +2,7 @@ import initSqlJs, { Database } from 'sql.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { TelemetryPayload } from '@anthos/shared'
+import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared'
 
 const DB_PATH = path.resolve(process.cwd(), '../db/anthos.db')
 const STORE_INTERVAL_MS = 60000
@@ -45,6 +45,20 @@ export class TelemetryService {
     this.db.run(`
       CREATE INDEX IF NOT EXISTS idx_readings_node_time
       ON readings(node_id, timestamp)
+    `)
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS telemetry_snapshots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        node_id TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        payload_json TEXT NOT NULL
+      )
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_telemetry_snapshots_node_time
+      ON telemetry_snapshots(node_id, timestamp)
     `)
 
     this.db.run(`
@@ -132,10 +146,18 @@ export class TelemetryService {
     console.log('telemetry.db.init', DB_PATH)
   }
 
-  async ingest(payload: TelemetryPayload): Promise<void> {
+  async ingest(payload: NodeTelemetryPayload): Promise<void> {
     const timestamp = Date.now()
     payload.timestampMs = timestamp
     this.latestPayload = payload
+
+    if (this.db) {
+      this.db.run(
+        'INSERT INTO telemetry_snapshots (node_id, timestamp, payload_json) VALUES (?, ?, ?)',
+        [payload.nodeId, timestamp, JSON.stringify(payload)]
+      )
+    }
+
     for (const sensor of payload.sensors) {
       this.pendingReadings.push({
         nodeId: payload.nodeId,
@@ -198,6 +220,35 @@ export class TelemetryService {
 
   getLatest(): TelemetryPayload | null {
     return this.latestPayload
+  }
+
+  getLatestByNode(): NodeTelemetryPayload[] {
+    if (!this.db) return []
+
+    const stmt = this.db.prepare(`
+      SELECT snapshot.payload_json AS payload_json
+      FROM telemetry_snapshots snapshot
+      INNER JOIN (
+        SELECT node_id, MAX(id) AS id
+        FROM telemetry_snapshots
+        GROUP BY node_id
+      ) latest
+      ON latest.node_id = snapshot.node_id
+      AND latest.id = snapshot.id
+      ORDER BY snapshot.timestamp DESC
+    `)
+
+    const payloads: NodeTelemetryPayload[] = []
+    while (stmt.step()) {
+      const row = stmt.getAsObject() as Record<string, unknown>
+      const payloadJson = row['payload_json']
+      if (typeof payloadJson === 'string') {
+        payloads.push(JSON.parse(payloadJson) as NodeTelemetryPayload)
+      }
+    }
+
+    stmt.free()
+    return payloads
   }
 
   getAverageHumidity(windowMs = 15 * 60 * 1000): number | null {

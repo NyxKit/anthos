@@ -9,6 +9,12 @@ import type { LogicalNodeRecord } from '@anthos/shared'
 const node = defineModel<LogicalNodeRecord | undefined>()
 const telemetryStore = useTelemetryStore()
 
+const nodeId = computed(() => node.value?.nodeId ?? '')
+
+const nodeTelemetry = computed(() => {
+  return nodeId.value ? telemetryStore.getNodeTelemetry(nodeId.value) : null
+})
+
 const sensorConfig: Record<string, { icon: string; label: string }> = {
   lux: { icon: 'sun', label: 'Light' },
   temperature: { icon: 'thermometer', label: 'Temperature' },
@@ -17,11 +23,12 @@ const sensorConfig: Record<string, { icon: string; label: string }> = {
 }
 
 const sensors = computed(() => {
-  const capability = telemetryStore.nodeCapability
+  const telemetry = nodeTelemetry.value
+  const capability = telemetry?.capability ?? node.value?.capability ?? null
+  const isLiveNode = Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value)
 
   return Object.entries(sensorConfig).map(([type, { icon, label }]) => {
-    const reading = telemetryStore.sensors.find(entry => entry.type === type)
-    const isLiveNode = Boolean(node.value?.nodeId) && node.value?.nodeId === telemetryStore.nodeId && telemetryStore.status === 'connected'
+    const reading = telemetry?.sensors.find(entry => entry.type === type)
     const moistureValue = type === 'moisture' && reading && capability
       ? normalizeSoilMoistureByCapability(reading.value, capability)
       : null
@@ -38,12 +45,13 @@ const sensors = computed(() => {
 })
 
 const isCritical = computed(() => {
-  const isLiveNode = Boolean(node.value?.nodeId) && node.value?.nodeId === telemetryStore.nodeId && telemetryStore.status === 'connected'
+  const telemetry = nodeTelemetry.value
+  const isLiveNode = Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value)
   if (!isLiveNode) return false
-  const moisture = telemetryStore.sensors.find(reading => reading.type === 'moisture')
-  if (!moisture || !telemetryStore.nodeCapability) return false
+  const moisture = telemetry?.sensors.find(reading => reading.type === 'moisture')
+  if (!moisture || !telemetry?.capability) return false
 
-  return normalizeSoilMoistureByCapability(moisture.value, telemetryStore.nodeCapability) < 20
+  return normalizeSoilMoistureByCapability(moisture.value, telemetry.capability) < 20
 })
 </script>
 

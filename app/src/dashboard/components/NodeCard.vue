@@ -12,12 +12,14 @@ const node = defineModel<LogicalNodeRecord | undefined>()
 
 const store = useTelemetryStore()
 
+const nodeId = computed(() => node.value?.nodeId ?? '')
+
 const nodeDisplayName = computed(() => {
-  return node.value?.displayName || node.value?.nodeId || store.nodeId || 'Unknown Node'
+  return node.value?.displayName || nodeId.value || store.nodeId || 'Unknown Node'
 })
 
 const isLiveNode = computed(() => {
-  return Boolean(node.value?.nodeId) && node.value?.nodeId === store.nodeId && store.status === 'connected'
+  return Boolean(nodeId.value) && store.isNodeOnline(nodeId.value)
 })
 
 </script>

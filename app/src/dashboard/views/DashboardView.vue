@@ -13,20 +13,14 @@ const nodesStore = useNodesStore()
 
 const dashboardNodes = computed(() => {
   const claimedNodes = nodesStore.nodes.filter(node => node.claimStatus === 'claimed')
-  const activeNodeId = telemetryStore.nodeId
 
-  if (!activeNodeId) {
-    return claimedNodes.slice(0, 3)
-  }
-
-  const activeIndex = claimedNodes.findIndex(node => node.nodeId === activeNodeId)
-  if (activeIndex === -1) {
-    return claimedNodes.slice(0, 3)
-  }
-
-  const nodes = [...claimedNodes]
-  const [activeNode] = nodes.splice(activeIndex, 1)
-  return [activeNode, ...nodes].slice(0, 3)
+  return [...claimedNodes]
+    .sort((a, b) => {
+      const aSeen = telemetryStore.getNodeTelemetry(a.nodeId)?.timestampMs ?? 0
+      const bSeen = telemetryStore.getNodeTelemetry(b.nodeId)?.timestampMs ?? 0
+      return bSeen - aSeen
+    })
+    .slice(0, 3)
 })
 
 onMounted(() => {

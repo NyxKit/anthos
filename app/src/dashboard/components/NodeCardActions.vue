@@ -29,7 +29,7 @@ const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
 const pendingPumpCommandId = ref<string | null>(null)
 
 const capability = computed(() => node.value?.capability ?? null)
-const isLiveNode = computed(() => Boolean(nodeId.value) && nodeId.value === telemetryStore.nodeId && telemetryStore.status === 'connected')
+const isLiveNode = computed(() => Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value))
 const editDisplayName = ref(node.value.displayName ?? '')
 const editIsWateringUnit = ref(node.value.capability === 'watering')
 const isSavingDisplayName = ref(false)

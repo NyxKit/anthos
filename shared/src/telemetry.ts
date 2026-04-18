@@ -30,6 +30,10 @@ export interface NodeTelemetryPayload extends TelemetryPayload {
   capability: SoilMoistureCapability
 }
 
+export interface LatestTelemetryResponse {
+  nodes: NodeTelemetryPayload[]
+}
+
 export interface HardwareNodeRegistration {
   hwId: string
   firmwareVersion: string

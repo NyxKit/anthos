@@ -31,16 +31,20 @@ vi.mock('@anthos/shared/anthos', () => ({
 
 vi.mock('@/dashboard/stores/telemetry', () => ({
     useTelemetryStore: () => ({
-      nodeId: 'node-001',
-      status: 'connected',
-      health: { uptimeMs: 3600000, ip: '192.168.1.2', rssi: -42 },
-      sensors: [
-      { type: 'lux', value: 100, unit: 'lx' },
-      { type: 'temperature', value: 21, unit: 'C' },
-      { type: 'humidity', value: 45, unit: '%' },
-      { type: 'moisture', value: 12, unit: 'raw' },
-    ],
-    timestampMs: Date.now(),
+      getNodeTelemetry: () => ({
+        nodeId: 'node-001',
+        hwId: 'hw-001',
+        timestampMs: Date.now(),
+        capability: 'watering',
+        health: { uptimeMs: 3600000, ip: '192.168.1.2', rssi: -42 },
+        sensors: [
+          { type: 'lux', value: 100, unit: 'lx' },
+          { type: 'temperature', value: 21, unit: 'C' },
+          { type: 'humidity', value: 45, unit: '%' },
+          { type: 'moisture', value: 12, unit: 'raw' },
+        ],
+      }),
+      isNodeOnline: () => true,
   }),
 }))
 

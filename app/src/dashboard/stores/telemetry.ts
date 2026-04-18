@@ -13,6 +13,7 @@ interface Node {
 }
 
 export const useTelemetryStore = defineStore('telemetry', () => {
+  const latestByNode = ref<Record<string, NodeTelemetryPayload>>({})
   const nodeId = ref<string>('')
   const nodeName = ref<string>('')
   const status = ref<'connected' | 'disconnected' | 'unknown'>('unknown')
@@ -24,6 +25,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
   const error = ref<string | null>(null)
   const lastUpdated = ref<number | null>(null)
   const nodeCapability = ref<'earth' | 'watering' | null>(null)
+  const STALE_TELEMETRY_MS = 2 * 60 * 1000
 
   const node = computed<Node | null>(() => {
     if (!nodeId.value) return null
@@ -38,19 +40,33 @@ export const useTelemetryStore = defineStore('telemetry', () => {
 
   let pollingInterval: ReturnType<typeof setInterval> | null = null
 
+  function getNodeTelemetry(nodeId: string | undefined | null): NodeTelemetryPayload | null {
+    if (!nodeId) return null
+    return latestByNode.value[nodeId] ?? null
+  }
+
+  function isNodeOnline(nodeId: string | undefined | null): boolean {
+    const telemetry = getNodeTelemetry(nodeId)
+    if (!telemetry) return false
+    return Date.now() - telemetry.timestampMs <= STALE_TELEMETRY_MS
+  }
+
   async function fetchData() {
     isLoading.value = true
     error.value = null
 
     try {
-      const data: NodeTelemetryPayload = await anthos.nodes.getLatestTelemetry()
-      nodeId.value = data.nodeId
-      nodeName.value = data.nodeId
-      status.value = 'connected'
-      health.value = data.health
-      sensors.value = data.sensors
-      timestampMs.value = data.timestampMs
-      nodeCapability.value = data.capability
+      const data = await anthos.nodes.getLatestTelemetryByNode()
+      latestByNode.value = Object.fromEntries(data.nodes.map(node => [node.nodeId, node]))
+
+      const primary = data.nodes[0] ?? null
+      nodeId.value = primary?.nodeId ?? ''
+      nodeName.value = primary?.nodeId ?? ''
+      status.value = primary && isNodeOnline(primary.nodeId) ? 'connected' : 'unknown'
+      health.value = primary?.health ?? null
+      sensors.value = primary?.sensors ?? []
+      timestampMs.value = primary?.timestampMs ?? null
+      nodeCapability.value = primary?.capability ?? null
       lastUpdated.value = Date.now()
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Failed to fetch readings'
@@ -89,6 +105,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
 
   return {
     nodeId,
+    latestByNode,
     node,
     health,
     sensors,
@@ -99,6 +116,8 @@ export const useTelemetryStore = defineStore('telemetry', () => {
     error,
     lastUpdated,
     nodeCapability,
+    getNodeTelemetry,
+    isNodeOnline,
     fetchData,
     fetchMetrics,
     startPolling,
