@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 
-import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared'
+import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared/nodes/types'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'

@@ -2,9 +2,9 @@
 import { computed } from 'vue'
 import { NyxIcon } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
-import { normalizeSoilMoistureByCapability } from '@anthos/shared/moisture'
+import { normalizeSoilMoistureByCapability } from '@anthos/shared/nodes/utils/moisture'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
-import type { LogicalNodeRecord } from '@anthos/shared'
+import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 
 const node = defineModel<LogicalNodeRecord | undefined>()
 const telemetryStore = useTelemetryStore()

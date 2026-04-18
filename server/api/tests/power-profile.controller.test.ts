@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { PowerProfile } from '@anthos/shared'
+import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
 import { PowerProfileController } from '../src/controllers/PowerProfileController.js'
 

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { LogicalNodeRecord } from '@/shared/types/telemetry'
+import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 import anthos from '@anthos/shared/anthos'
 
 export const useNodesStore = defineStore('nodes', () => {

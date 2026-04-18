@@ -6,7 +6,7 @@ import type {
   PowerProfileAssignmentState,
   PowerProfileAppliedState,
   PowerProfileDefinition,
-} from '@anthos/shared'
+} from '@anthos/shared/nodes/types'
 
 export class NodeRegistryService {
   constructor(private readonly db: Database) {}

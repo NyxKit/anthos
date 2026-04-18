@@ -6,8 +6,9 @@ import anthos from '@anthos/shared/anthos'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
-import { POWER_PROFILES, PowerProfile } from '@anthos/shared/power-profiles'
-import type { LogicalNodeRecord } from '@anthos/shared'
+import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
+import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
+import type { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
 const PUMP_VOLUME_ML = 100
 

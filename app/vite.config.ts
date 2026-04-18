@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
+      '@anthos/shared/nodes': resolve(__dirname, '../shared/src/nodes'),
       '@anthos/shared': resolve(__dirname, '../shared/src'),
     },
   },

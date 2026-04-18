@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { NyxCard, NyxStatusDot } from 'nyx-kit/components'
 import { NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
-import type { LogicalNodeRecord } from '@anthos/shared'
+import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import NodeCardActions from './NodeCardActions.vue'
 import NodeMeta from './NodeMeta.vue'

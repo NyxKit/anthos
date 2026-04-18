@@ -6,7 +6,7 @@ import {
   normalizeSoilMoistureReadings,
   normalizeSoilMoistureByCapability,
   normalizeSoilMoistureReadingsByCapability,
-} from '@anthos/shared/moisture'
+} from '@anthos/shared/nodes/utils/moisture'
 
 describe('soil moisture calibration', () => {
   it('maps the earth profile to a 0-100 scale', () => {

@@ -19,7 +19,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@anthos/shared": ["../shared/src/index.ts"],
-      "@anthos/shared/anthos": ["../shared/src/anthos/index.ts"]
+      "@anthos/shared/anthos": ["../shared/src/anthos/index.ts"],
+      "@anthos/shared/nodes/*": ["../shared/src/nodes/*"]
     }
   },
   "include": [

@@ -1,7 +1,8 @@
 import { computed, reactive, toValue, watch, type MaybeRefOrGetter } from 'vue'
 import anthos from '@anthos/shared/anthos'
-import { PowerProfile, POWER_PROFILES } from '@anthos/shared/power-profiles'
-import type { NodePowerProfileState } from '@anthos/shared'
+import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
+import type { NodePowerProfileState } from '@anthos/shared/nodes/types/powerProfile'
+import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 
 const profileStateCache = reactive(new Map<string, NodePowerProfileState | null>())
 const profileLoadingCache = reactive(new Map<string, boolean>())

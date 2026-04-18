@@ -2,9 +2,9 @@ import type { Request, Response, RequestHandler } from 'express'
 
 import type {
   ApplyPowerProfileRequest,
-  PowerProfile,
-} from '@anthos/shared'
-import { POWER_PROFILES } from '@anthos/shared'
+} from '@anthos/shared/nodes/types/powerProfile'
+import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
+import { POWER_PROFILES } from '@anthos/shared/nodes/utils/powerProfile'
 
 import { LogArchiveService } from '../services/LogArchiveService.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'

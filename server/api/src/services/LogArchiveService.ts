@@ -3,7 +3,7 @@ import { mkdir, readFile, readdir, writeFile, unlink } from 'node:fs/promises'
 import path from 'node:path'
 
 import { LogEntry, type LogArchiveStatus, type LogListFilters, type LogListResponse, type LogLevel } from '@anthos/shared'
-import type { TelemetryPayload } from '@anthos/shared'
+import type { TelemetryPayload } from '@anthos/shared/nodes/types'
 
 type LogListener = {
   filters: LogListFilters

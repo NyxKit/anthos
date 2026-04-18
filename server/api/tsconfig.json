@@ -3,13 +3,21 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "baseUrl": ".",
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "paths": {
-      "@anthos/shared": ["../../shared/src/index.ts"]
+      "@anthos/shared": ["../../shared/src/index.ts"],
+      "@anthos/shared/nodes": ["../../shared/src/nodes/index.ts"],
+      "@anthos/shared/nodes/*": ["../../shared/src/nodes/*"],
+      "@anthos/shared/nodes/utils/moisture": ["../../shared/src/nodes/utils/moisture.ts"],
+      "@anthos/shared/nodes/utils/powerProfile": ["../../shared/src/nodes/utils/powerProfile.ts"],
+      "@anthos/shared/nodes/types": ["../../shared/src/nodes/types/index.ts"],
+      "@anthos/shared/nodes/types/moisture": ["../../shared/src/nodes/types/moisture.ts"],
+      "@anthos/shared/nodes/types/powerProfile": ["../../shared/src/nodes/types/powerProfile.ts"]
     }
   },
   "include": [
@@ -17,4 +25,3 @@
     "../../shared/src/**/*.ts"
   ]
 }
-

@@ -2,7 +2,7 @@ import initSqlJs, { Database } from 'sql.js'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared'
+import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared/nodes/types'
 
 const DB_PATH = path.resolve(process.cwd(), '../db/anthos.db')
 const STORE_INTERVAL_MS = 60000

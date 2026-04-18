@@ -1,4 +1,4 @@
-export type { SensorName, NodeHealthPayload, SensorSample, TelemetryPayload, NodeTelemetryPayload, LatestTelemetryResponse, LogicalNodeRecord } from '@anthos/shared'
+export type { SensorName, NodeHealthPayload, SensorSample, TelemetryPayload, NodeTelemetryPayload, LatestTelemetryResponse, LogicalNodeRecord } from '@anthos/shared/nodes/types'
 
 export interface Node {
   id: string

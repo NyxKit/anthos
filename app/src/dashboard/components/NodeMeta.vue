@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
-import type { LogicalNodeRecord } from '@anthos/shared'
+import type { LogicalNodeRecord } from '@anthos/shared/nodes/types'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 
 const node = defineModel<LogicalNodeRecord | undefined>()
