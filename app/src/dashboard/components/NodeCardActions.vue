@@ -21,7 +21,7 @@ const powerProfileSelectOptions: NyxSelectOption[] = Object.entries(POWER_PROFIL
 
 const isEditModalOpen = ref(false)
 
-const nodeId = computed(() => node.value.nodeId)
+const nodeId = computed(() => node.value.id ?? node.value.nodeId)
 const { profileStateLoading, selectedProfileOption, applyPowerProfile } = useNodePowerProfile(nodeId)
 
 const pumpState = ref<'idle' | 'loading' | 'error'>('idle')
@@ -33,6 +33,7 @@ const capability = computed(() => node.value?.capability ?? null)
 const isLiveNode = computed(() => Boolean(nodeId.value) && telemetryStore.isNodeOnline(nodeId.value))
 const editDisplayName = ref(node.value.displayName ?? '')
 const editIsWateringUnit = ref(node.value.capability === 'watering')
+const editOrder = ref<string>('')
 const isSavingDisplayName = ref(false)
 
 watch(() => node.value.displayName, value => {
@@ -47,10 +48,17 @@ watch(() => node.value.capability, value => {
   }
 })
 
+watch(() => node.value.order, value => {
+  if (!isEditModalOpen.value) {
+    editOrder.value = value == null ? '' : String(value)
+  }
+})
+
 watch(isEditModalOpen, open => {
   if (open) {
     editDisplayName.value = node.value.displayName ?? ''
     editIsWateringUnit.value = node.value.capability === 'watering'
+    editOrder.value = node.value.order == null ? '' : String(node.value.order)
   }
 })
 
@@ -111,7 +119,9 @@ async function handleEditSubmit(event: Event) {
 
   const nextDisplayName = editDisplayName.value.trim()
   const nextCapability = editIsWateringUnit.value ? 'watering' : 'earth'
+  const nextOrder = editOrder.value.trim() === '' ? null : Number(editOrder.value)
   if (!nextDisplayName) return
+  if (nextOrder !== null && !Number.isFinite(nextOrder)) return
 
   isSavingDisplayName.value = true
 
@@ -124,6 +134,11 @@ async function handleEditSubmit(event: Event) {
     if (nextCapability !== node.value.capability) {
       const updatedCapability = await anthos.nodes.updateCapability(nodeId.value, nextCapability)
       node.value = new PlantNode({ ...node.value, ...updatedCapability })
+    }
+
+    if ((nextOrder ?? null) !== node.value.order) {
+      const updatedOrder = await anthos.nodes.updateOrder(nodeId.value, nextOrder)
+      node.value = new PlantNode({ ...node.value, ...updatedOrder })
     }
 
     isEditModalOpen.value = false
@@ -216,11 +231,20 @@ async function handleEditSubmit(event: Event) {
       :size="NyxSize.Small"
     >
       <template #header>
-        <h1 class="node-card-actions__edit-modal-title">Edit node: <span>{{ node.displayName }}</span></h1>
+        <h1 class="node-card-actions__edit-modal-title">Edit node: <span>{{ node.name || node.displayName || node.nodeId }}</span></h1>
       </template>
       <NyxForm :size="NyxSize.Small" @submit="handleEditSubmit">
         <NyxFormField label="Node name">
           <NyxInput v-model="editDisplayName" :theme="NyxTheme.Info" :size="NyxSize.Medium" />
+        </NyxFormField>
+        <NyxFormField label="Node order">
+          <NyxInput
+            v-model="editOrder"
+            :theme="NyxTheme.Info"
+            :size="NyxSize.Medium"
+            :type="NyxInputType.Number"
+            placeholder="Leave blank for no order"
+          />
         </NyxFormField>
         <NyxFormField label="Watering unit">
           <NyxSwitch

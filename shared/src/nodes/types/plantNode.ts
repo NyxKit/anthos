@@ -52,6 +52,7 @@ export interface LogicalNodeRecord {
   displayName: string | null
   claimStatus: 'unclaimed' | 'claimed'
   capability: SoilMoistureCapability
+  order: number | null
   registeredAt: number
 }
 

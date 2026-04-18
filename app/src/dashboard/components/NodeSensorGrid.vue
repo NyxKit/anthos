@@ -9,7 +9,7 @@ import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 const node = defineModel<PlantNode | undefined>()
 const telemetryStore = useTelemetryStore()
 
-const nodeId = computed(() => node.value?.nodeId ?? '')
+const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 
 const nodeTelemetry = computed(() => {
   return nodeId.value ? telemetryStore.getNodeTelemetry(nodeId.value) : null

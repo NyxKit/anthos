@@ -72,6 +72,7 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   router.patch('/nodes/:id', provisionCtrl.claimNode)
   router.patch('/nodes/:id/capability', provisionCtrl.updateCapability)
   router.patch('/nodes/:id/name', provisionCtrl.updateDisplayName)
+  router.patch('/nodes/:id/order', provisionCtrl.updateOrder)
   router.get('/nodes/:id/power-profile', powerProfileCtrl.getNodeProfile)
   router.patch('/nodes/:id/power-profile', powerProfileCtrl.applyProfile)
 

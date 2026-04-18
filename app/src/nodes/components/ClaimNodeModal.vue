@@ -25,8 +25,8 @@ async function handleSave() {
   if (!props.node || !displayName.value.trim()) return
   isSaving.value = true
   try {
-    await store.claimNode(props.node.nodeId, displayName.value.trim(), capability.value)
-    emit('claimed', props.node.nodeId, displayName.value.trim(), capability.value)
+    await store.claimNode(props.node.id || props.node.nodeId, displayName.value.trim(), capability.value)
+    emit('claimed', props.node.id || props.node.nodeId, displayName.value.trim(), capability.value)
   } catch {
     // error already set in store
   } finally {
@@ -44,7 +44,7 @@ function handleClose() {
     <div v-if="isOpen && node" class="modal-backdrop" @click.self="handleClose">
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <h2 id="modal-title" class="modal-card__title">Name your node</h2>
-        <p class="modal-card__subtitle">Node ID: {{ node.nodeId }}</p>
+        <p class="modal-card__subtitle">Node ID: {{ node.id || node.nodeId }}</p>
 
         <input
           v-model="displayName"

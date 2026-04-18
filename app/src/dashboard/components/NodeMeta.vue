@@ -9,11 +9,12 @@ const node = defineModel<PlantNode | undefined>()
 const telemetryStore = useTelemetryStore()
 
 const nodeTelemetry = computed(() => {
-  return node.value?.nodeId ? telemetryStore.getNodeTelemetry(node.value.nodeId) : null
+  const nodeId = node.value?.id ?? node.value?.nodeId
+  return nodeId ? telemetryStore.getNodeTelemetry(nodeId) : null
 })
 
-const nodeId = computed(() => node.value?.nodeId ?? '--')
-const nodeIdValue = computed(() => node.value?.nodeId ?? '')
+const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '--')
+const nodeIdValue = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 const hardwareId = computed(() => node.value?.hwId ?? '--')
 const ipAddress = computed(() => nodeTelemetry.value?.health.ip || '192.168.1.x')
 const isLiveNode = computed(() => Boolean(nodeIdValue.value) && telemetryStore.isNodeOnline(nodeIdValue.value))

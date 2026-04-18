@@ -139,4 +139,26 @@ export class ProvisionController {
 
     res.json(this.registry.getLogicalNode(nodeId))
   }
+
+  updateOrder: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const nodeId = String(req.params['id'])
+    const { order } = req.body as { order?: number | null }
+
+    if (order !== null && order !== undefined && !Number.isFinite(Number(order))) {
+      res.status(400).json({ error: 'order must be a number or null' })
+      return
+    }
+
+    const normalizedOrder = order === undefined ? null : (order === null ? null : Number(order))
+    const updated = this.registry.updateOrder(nodeId, normalizedOrder)
+
+    if (!updated) {
+      res.status(404).json({ error: 'Node not found or not claimed' })
+      return
+    }
+
+    await this.saveDb()
+
+    res.json(this.registry.getLogicalNode(nodeId))
+  }
 }

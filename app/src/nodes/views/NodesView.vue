@@ -40,9 +40,9 @@ async function handleAddNode() {
 
 async function handleCapabilityToggle(node: PlantNode) {
   const nextCapability = node.capability === 'watering' ? 'earth' : 'watering'
-  capabilitySavingNodeId.value = node.nodeId
+  capabilitySavingNodeId.value = node.id || node.nodeId
   try {
-    await store.updateCapability(node.nodeId, nextCapability)
+    await store.updateCapability(node.id || node.nodeId, nextCapability)
   } finally {
     capabilitySavingNodeId.value = null
   }
@@ -70,7 +70,7 @@ async function handleCapabilityToggle(node: PlantNode) {
       <NyxGrid :columns="2">
         <UnclaimedNodeCard
           v-for="n in unclaimedNodes"
-          :key="n.nodeId"
+          :key="n.id || n.nodeId"
           :node="n"
           @claim="openClaimModal"
         />
@@ -83,12 +83,12 @@ async function handleCapabilityToggle(node: PlantNode) {
       <NyxGrid v-else :columns="2">
           <NyxCard
             v-for="n in claimedNodes"
-            :key="n.nodeId"
-            :title="n.displayName || n.nodeId"
+            :key="n.id || n.nodeId"
+            :title="n.name || n.displayName || n.nodeId"
           >
             <div class="named-node__details">
               <span class="label">Node ID</span>
-              <span>{{ n.nodeId }}</span>
+              <span>{{ n.id || n.nodeId }}</span>
               <span class="label">Hardware</span>
               <span>{{ n.capability === 'watering' ? 'Watering unit' : 'Earth only' }}</span>
             </div>
@@ -99,7 +99,7 @@ async function handleCapabilityToggle(node: PlantNode) {
               class="named-node__toggle"
               :theme="NyxTheme.Primary"
               :size="NyxSize.Small"
-              :disabled="capabilitySavingNodeId === n.nodeId"
+              :disabled="capabilitySavingNodeId === (n.id || n.nodeId)"
               @click="handleCapabilityToggle(n)"
             >
               {{ n.capability === 'watering' ? 'Set Earth' : 'Set Watering' }}

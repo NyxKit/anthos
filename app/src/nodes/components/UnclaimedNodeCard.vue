@@ -30,7 +30,7 @@ const formattedRegisteredAt = computed(() => {
   <NyxCard class="unclaimed-node-card">
     <template #header>
       <div class="unclaimed-node-card__header">
-        <h3 class="unclaimed-node-card__id">{{ node.nodeId }}</h3>
+        <h3 class="unclaimed-node-card__id">{{ node.id || node.nodeId }}</h3>
         <NyxButton
           :theme="NyxTheme.Warning"
           :variant="NyxVariant.Soft"

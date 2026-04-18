@@ -75,6 +75,7 @@ export class TelemetryService {
         node_id       TEXT    PRIMARY KEY,
         hw_id         TEXT    NOT NULL REFERENCES hardware_nodes(hw_id),
         display_name  TEXT,
+        node_order    INTEGER,
         claim_status  TEXT    NOT NULL DEFAULT 'unclaimed',
         capability    TEXT    NOT NULL DEFAULT 'earth',
         registered_at INTEGER NOT NULL,
@@ -101,6 +102,12 @@ export class TelemetryService {
       && logicalNodeColumns[0].values.some((row: unknown[]) => row[1] === 'capability')
     if (!hasCapabilityColumn) {
       this.db.run("ALTER TABLE logical_nodes ADD COLUMN capability TEXT NOT NULL DEFAULT 'earth'")
+    }
+
+    const hasOrderColumn = logicalNodeColumns.length > 0
+      && logicalNodeColumns[0].values.some((row: unknown[]) => row[1] === 'node_order')
+    if (!hasOrderColumn) {
+      this.db.run('ALTER TABLE logical_nodes ADD COLUMN node_order INTEGER')
     }
 
     const profileColumns = [

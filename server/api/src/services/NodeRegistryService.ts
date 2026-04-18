@@ -73,8 +73,8 @@ export class NodeRegistryService {
     const nodeId = `node-${String(next).padStart(3, '0')}`
 
     const insertStmt = this.db.prepare(`
-      INSERT INTO logical_nodes (node_id, hw_id, display_name, claim_status, capability, registered_at)
-      VALUES (?, ?, NULL, 'unclaimed', 'earth', ?)
+      INSERT INTO logical_nodes (node_id, hw_id, display_name, node_order, claim_status, capability, registered_at)
+      VALUES (?, ?, NULL, NULL, 'unclaimed', 'earth', ?)
     `)
     insertStmt.run([nodeId, hwId, now])
     insertStmt.free()
@@ -84,8 +84,9 @@ export class NodeRegistryService {
 
   listLogicalNodes(): LogicalNodeRecord[] {
     const results = this.db.exec(`
-      SELECT node_id, hw_id, display_name, claim_status, capability, registered_at
-      FROM logical_nodes ORDER BY registered_at DESC
+      SELECT node_id, hw_id, display_name, node_order, claim_status, capability, registered_at
+      FROM logical_nodes
+      ORDER BY node_order IS NULL, node_order ASC, registered_at ASC
     `)
 
     if (results.length === 0) return []
@@ -100,7 +101,7 @@ export class NodeRegistryService {
 
   getLogicalNode(nodeId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(`
-      SELECT node_id, hw_id, display_name, claim_status, capability, registered_at
+      SELECT node_id, hw_id, display_name, node_order, claim_status, capability, registered_at
       FROM logical_nodes WHERE node_id=?
     `)
     stmt.bind([nodeId])
@@ -165,6 +166,23 @@ export class NodeRegistryService {
       SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND display_name=?
     `)
     checkStmt.bind([nodeId, displayName])
+    const updated = checkStmt.step()
+    checkStmt.free()
+
+    return updated
+  }
+
+  updateOrder(nodeId: string, order: number | null): boolean {
+    const stmt = this.db.prepare(`
+      UPDATE logical_nodes SET node_order=? WHERE node_id=? AND claim_status='claimed'
+    `)
+    stmt.run([order, nodeId])
+    stmt.free()
+
+    const checkStmt = this.db.prepare(`
+      SELECT 1 FROM logical_nodes WHERE node_id=? AND claim_status='claimed' AND node_order ${order === null ? 'IS NULL' : '= ?'}
+    `)
+    order === null ? checkStmt.bind([nodeId]) : checkStmt.bind([nodeId, order])
     const updated = checkStmt.step()
     checkStmt.free()
 
@@ -301,6 +319,7 @@ export class NodeRegistryService {
       displayName: row['display_name'] != null ? String(row['display_name']) : null,
       claimStatus: row['claim_status'] as 'unclaimed' | 'claimed',
       capability: row['capability'] === 'watering' ? 'watering' : 'earth',
+      order: row['node_order'] != null ? Number(row['node_order']) : null,
       registeredAt: Number(row['registered_at']),
     }
   }

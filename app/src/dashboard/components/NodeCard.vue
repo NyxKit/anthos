@@ -12,10 +12,10 @@ const node = defineModel<PlantNode | undefined>()
 
 const store = useTelemetryStore()
 
-const nodeId = computed(() => node.value?.nodeId ?? '')
+const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 
 const nodeDisplayName = computed(() => {
-  return node.value?.displayName || nodeId.value || store.nodeId || 'Unknown Node'
+  return node.value?.name || node.value?.displayName || nodeId.value || store.nodeId || 'Unknown Node'
 })
 
 const isLiveNode = computed(() => {

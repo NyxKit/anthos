@@ -37,6 +37,13 @@ export class AnthosNodes {
     })
   }
 
+  updateOrder(nodeId: string, order: number | null): Promise<LogicalNodeRecord> {
+    return this.anthos.request<LogicalNodeRecord>(`/api/nodes/${nodeId}/order`, {
+      method: 'PATCH',
+      body: { order },
+    })
+  }
+
   openProvisionWindow(): Promise<void> {
     return this.anthos.request<void>('/api/provision/open', {
       method: 'POST',

@@ -14,13 +14,7 @@ const nodesStore = useNodesStore()
 const dashboardNodes = computed(() => {
   const claimedNodes = nodesStore.nodes.filter(node => node.claimStatus === 'claimed')
 
-  return [...claimedNodes]
-    .sort((a, b) => {
-      const aSeen = telemetryStore.getNodeTelemetry(a.nodeId)?.timestampMs ?? 0
-      const bSeen = telemetryStore.getNodeTelemetry(b.nodeId)?.timestampMs ?? 0
-      return bSeen - aSeen
-    })
-    .slice(0, 3)
+  return claimedNodes.slice(0, 3)
 })
 
 onMounted(() => {
@@ -37,7 +31,7 @@ onUnmounted(() => {
   <div class="dashboard">
     <MetricsBar />
     <NyxGrid v-if="dashboardNodes.length" class="dashboard__nodes" :columns="3">
-      <NodeCard v-for="node in dashboardNodes" :key="node.nodeId" :model-value="node" />
+      <NodeCard v-for="node in dashboardNodes" :key="node.id || node.nodeId" :model-value="node" />
     </NyxGrid>
     <p v-else class="dashboard__nodes dashboard__nodes--empty">No claimed nodes yet.</p>
     <footer class="dashboard__footer">
