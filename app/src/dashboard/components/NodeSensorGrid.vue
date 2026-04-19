@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 import { NyxIcon } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
-import { normalizeSoilMoistureByCapability } from '@anthos/shared/nodes/utils/moisture'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { NodeStatus } from '@anthos/shared'
@@ -10,7 +9,6 @@ import { SensorType } from '@anthos/shared/nodes/types'
 
 const node = defineModel<PlantNode | undefined>()
 const telemetryStore = useTelemetryStore()
-const MOISTURE_SENSOR_TYPE = SensorType.Earth
 
 const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 
@@ -26,23 +24,22 @@ const sensorConfig: Record<string, { icon: string; label: string }> = {
 
 const sensors = computed(() => {
   const telemetry = nodeTelemetry.value
-  const capability = telemetry?.capability ?? node.value?.capability ?? null
 
   return Object.entries(sensorConfig).map(([type, { icon, label }]) => {
-    const reading = telemetry?.sensors.find(entry => entry.type === (type === 'moisture' ? MOISTURE_SENSOR_TYPE : type))
-    const moistureCalibration = node.value?.calibration?.moisture ?? null
-    const moistureValue = type === 'moisture' && reading && capability
-      ? moistureCalibration
-        ? moistureCalibration.normalizeRaw(reading.value)
-        : normalizeSoilMoistureByCapability(reading.value, capability)
+    const reading = telemetry?.sensors.find((entry) => entry.type === type)
+    const moistureValue = type === SensorType.Moisture && reading
+      ? node.value?.calibration.moisture.normalizeRaw(reading.value)
       : null
+
+    const val = (type === SensorType.Moisture ? moistureValue?.toFixed(0) ?? '--' : reading?.value.toFixed(1))
+    const unit = (type === SensorType.Moisture ? '%' : reading?.unit || '')
 
     return {
       type,
       icon,
       label,
-      value: isLiveNode.value && reading ? (type === 'moisture' ? moistureValue?.toFixed(0) ?? '--' : reading.value.toFixed(1)) : '--',
-      unit: isLiveNode.value ? (type === 'moisture' ? '%' : reading?.unit || '') : '',
+      value: isLiveNode.value && reading ? val : '--',
+      unit: isLiveNode.value ? unit : '',
       active: Boolean(isLiveNode.value && reading),
     }
   })
@@ -50,15 +47,11 @@ const sensors = computed(() => {
 
 const isCritical = computed(() => {
   const telemetry = nodeTelemetry.value
-  if (!isLiveNode.value) return false
-  const moisture = telemetry?.sensors.find(reading => reading.type === MOISTURE_SENSOR_TYPE)
-  if (!moisture || !telemetry?.capability) return false
+  if (!node.value || !isLiveNode.value) return false
+  const moisture = telemetry?.sensors.find(reading => reading.type === SensorType.Moisture)
+  if (!moisture) return false
 
-  const moistureCalibration = node.value?.calibration?.moisture ?? null
-  const normalized = moistureCalibration
-    ? moistureCalibration.normalizeRaw(moisture.value)
-    : normalizeSoilMoistureByCapability(moisture.value, telemetry.capability)
-
+  const normalized = node.value.calibration.moisture.normalizeRaw(moisture.value)
   return normalized < 20
 })
 </script>

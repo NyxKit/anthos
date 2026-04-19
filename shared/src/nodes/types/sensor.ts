@@ -1,8 +1,7 @@
 export enum SensorType {
   DLight = 'dlight',
   ENV = 'env',
-  Earth = 'earth',
-  Watering = 'watering',
+  Moisture = 'moisture',
 }
 
 export interface SensorSample {
