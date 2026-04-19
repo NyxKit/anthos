@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import SidebarNav from '@/dashboard/components/SidebarNav.vue'
+
+const route = useRoute()
+const showShell = computed(() => route.meta.hideShell !== true)
 </script>
 
 <template>
   <div class="app-layout">
-    <SidebarNav />
-    <div class="app-layout__main">
+    <SidebarNav v-if="showShell" />
+    <div class="app-layout__main" :class="{ 'app-layout__main--full': !showShell }">
       <main class="app-layout__content">
         <router-view />
       </main>
@@ -36,6 +41,10 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+.app-layout__main--full {
+  margin-left: 0;
 }
 
 .app-layout__content {

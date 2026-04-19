@@ -6,9 +6,11 @@ import { normalizeSoilMoistureByCapability } from '@anthos/shared/nodes/utils/mo
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { NodeStatus } from '@anthos/shared'
+import { SensorType } from '@anthos/shared/nodes/types'
 
 const node = defineModel<PlantNode | undefined>()
 const telemetryStore = useTelemetryStore()
+const MOISTURE_SENSOR_TYPE = SensorType.Earth
 
 const nodeId = computed(() => node.value?.id ?? node.value?.nodeId ?? '')
 
@@ -27,7 +29,7 @@ const sensors = computed(() => {
   const capability = telemetry?.capability ?? node.value?.capability ?? null
 
   return Object.entries(sensorConfig).map(([type, { icon, label }]) => {
-    const reading = telemetry?.sensors.find(entry => entry.type === type)
+    const reading = telemetry?.sensors.find(entry => entry.type === (type === 'moisture' ? MOISTURE_SENSOR_TYPE : type))
     const moistureCalibration = node.value?.calibration?.moisture ?? null
     const moistureValue = type === 'moisture' && reading && capability
       ? moistureCalibration
@@ -49,7 +51,7 @@ const sensors = computed(() => {
 const isCritical = computed(() => {
   const telemetry = nodeTelemetry.value
   if (!isLiveNode.value) return false
-  const moisture = telemetry?.sensors.find(reading => reading.type === 'moisture')
+  const moisture = telemetry?.sensors.find(reading => reading.type === MOISTURE_SENSOR_TYPE)
   if (!moisture || !telemetry?.capability) return false
 
   const moistureCalibration = node.value?.calibration?.moisture ?? null

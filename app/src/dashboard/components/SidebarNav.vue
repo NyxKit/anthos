@@ -1,56 +1,51 @@
 <script setup lang="ts">
-import { NyxIcon } from 'nyx-kit/components'
-import { NyxSize } from 'nyx-kit/types'
-import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 import { logo } from '@/shared/assets'
+import { useAuthStore } from '@/auth/stores/auth'
+import { AnthosRouteItem, RouteName } from '@/shared/types'
+import NavItem from './NavItem.vue'
 
-const route = useRoute()
+const auth = useAuthStore()
 
-const navItems = [
-  { name: 'Dashboard', path: '/', icon: 'home' },
-  { name: 'Nodes', path: '/nodes', icon: 'leaf' },
-  { name: 'Logs', path: '/logs', icon: 'file-text' },
-  { name: 'Alerts', path: '/alerts', icon: 'bell' },
-  { name: 'Settings', path: '/settings', icon: 'settings' },
+const navItems: AnthosRouteItem[] = [
+  { name: RouteName.Dashboard, icon: 'home', label: 'Dashboard' },
+  { name: RouteName.Nodes, icon: 'leaf', label: 'Nodes' },
+  // { name: RouteName.Alerts, icon: 'bell', label: 'Alerts' },
+  { name: RouteName.Users, icon: 'users', label: 'Users' },
+  // { name: RouteName.Settings, icon: 'settings', label: 'Settings' },
+  { name: RouteName.Logs, icon: 'file-text', label: 'Logs' },
 ] as const
 
-const supportItem = { name: 'Support', path: '/support', icon: 'life-buoy' } as const
-
-const isActive = (path: string) => {
-  if (path === '/') return route.path === '/'
-  return route.path.startsWith(path)
-}
+const currentUserLabel = computed(() => auth.currentUser?.displayName || auth.currentUser?.username || 'Signed in')
 </script>
 
 <template>
   <aside class="sidebar-nav">
-    <div class="sidebar-nav__brand">
+    <header class="sidebar-nav__brand">
       <img class="sidebar-nav__logo" :src="logo" alt="Anthos Logo" />
       <div class="sidebar-nav__title">
         <h1>Anthos</h1>
         <p>LIVING LABORATORY</p>
       </div>
-    </div>
+    </header>
     
     <nav class="sidebar-nav__menu">
-      <router-link
+      <NavItem
         v-for="item in navItems"
-        :key="item.path"
-        :to="item.path"
-        class="sidebar-nav__link"
-        :class="{ 'sidebar-nav__link--active': isActive(item.path) }"
-      >
-        <NyxIcon :name="item.icon" :size="NyxSize.Medium" />
-        <span>{{ item.name }}</span>
-      </router-link>
+        :key="item.name"
+        :name="item.name"
+        :icon="item.icon"
+        :label="item.label"
+      />
     </nav>
-    
-    <div class="sidebar-nav__footer">
-      <router-link :to="supportItem.path" class="sidebar-nav__link">
-        <NyxIcon :name="supportItem.icon" :size="NyxSize.Medium" />
-        <span>{{ supportItem.name }}</span>
-      </router-link>
-    </div>
+
+    <footer class="sidebar-nav__footer">
+      <NavItem
+        :name="RouteName.Account"
+        icon="user"
+        :label="currentUserLabel"
+      />
+    </footer>
   </aside>
 </template>
 
@@ -108,40 +103,24 @@ const isActive = (path: string) => {
   gap: 0.25rem;
 }
 
-.sidebar-nav__link {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.25rem;
-  color: var(--nyx-c-on-surface, #dee3eb);
-  text-decoration: none;
-  font-family: var(--nyx-font-family-headline, 'Space Grotesk', sans-serif);
-  font-size: 0.875rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  transition: all 0.2s ease;
-  opacity: 0.6;
-}
-
-.sidebar-nav__link:hover {
-  opacity: 1;
-  background: var(--nyx-c-surface-container, #1b2026);
-}
-
-.sidebar-nav__link--active {
-  opacity: 1;
-  background: var(--nyx-c-surface-container-high, #252a30);
-  color: var(--nyx-c-primary, #dcb8ff);
-  border-right: 3px solid #9F50F0;
-}
-
 .sidebar-nav__footer {
   padding: 0 1rem;
   border-top: 1px solid var(--nyx-c-outline-variant, rgba(76, 67, 84, 0.2));
   padding-top: 1rem;
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sidebar-nav__user {
+  font-size: 0.875rem;
+  color: var(--nyx-c-text-2, rgba(222, 227, 235, 0.8));
+  padding: 0 1rem;
+}
+
+.sidebar-nav__logout {
+  margin: 0 1rem;
 }
 
 @media (max-width: 768px) {

@@ -31,6 +31,8 @@ export class TelemetryService {
       this.db = new SQL.Database()
     }
 
+    this.db.run('PRAGMA foreign_keys = ON')
+
     this.db.run(`
       CREATE TABLE IF NOT EXISTS readings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -94,6 +96,39 @@ export class TelemetryService {
     this.db.run(`
       CREATE INDEX IF NOT EXISTS idx_logical_nodes_hw_id
       ON logical_nodes(hw_id)
+    `)
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL COLLATE NOCASE UNIQUE,
+        display_name TEXT NOT NULL,
+        email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN ('admin', 'user')),
+        created_at INTEGER NOT NULL
+      )
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)
+    `)
+
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        token_hash TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL
+      )
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)
     `)
 
     const logicalNodeColumns = this.db.exec("PRAGMA table_info(logical_nodes)")

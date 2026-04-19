@@ -36,7 +36,7 @@ const nodeTelemetry = computed(() => nodeId.value ? telemetryStore.getNodeTeleme
 const isLiveNode = computed(() => node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected)
 const editDisplayName = ref(node.value.displayName ?? '')
 const editIsWateringUnit = ref(node.value.capability === 'watering')
-const editOrder = ref<string | number>('')
+const editOrder = ref('')
 const isSavingDisplayName = ref(false)
 
 watch(() => node.value.displayName, value => {
