@@ -66,10 +66,11 @@ async function handleEdit(payload: Record<string, unknown>): Promise<void> {
   }
 }
 
-async function handleDelete(userId: string): Promise<void> {
+async function handleDelete(userId: string | undefined): Promise<void> {
+  if (!userId) return
+
   const user = usersStore.users.find((item) => item.id === userId)
   if (!user) return
-
   const confirmation = await NyxKit.confirm({
     title: 'Delete user',
     message: `Delete ${user.displayName || user.username}?`,
@@ -118,7 +119,7 @@ const isEditingSelf = computed(() => selectedUser.value?.id === auth.currentUser
           :size="NyxSize.Small"
           :shape="NyxShape.Square"
           :variant="NyxVariant.Subtle"
-          :disabled="String(item.id) === auth.currentUser?.id"
+          :disabled="item.id === auth.currentUser?.id"
           @click="handleDelete(String(item.id))"
         >
           <NyxIcon name="trash" :size="NyxSize.XSmall" />

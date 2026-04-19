@@ -11,7 +11,7 @@ export const useUsersStore = defineStore('users', () => {
   const isReady = ref(false)
   const error = ref<string | null>(null)
 
-  const sortedUsers = computed(() => [...users.value].sort((left, right) => left.username.localeCompare(right.username)))
+  const sortedUsers = computed(() => [...users.value].sort((a, b) => a.username.localeCompare(b.username)))
 
   function upsertUser(nextUser: User): void {
     const index = users.value.findIndex(user => user.id === nextUser.id)
