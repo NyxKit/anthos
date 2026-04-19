@@ -1,76 +1,87 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/auth/stores/auth'
 import { useUsersStore } from '@/users/stores/users'
+import { RouteName } from '../types'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      name: 'dashboard',
+      name: RouteName.Dashboard,
       component: () => import('@/dashboard/views/DashboardView.vue'),
     },
     {
       path: '/login',
-      name: 'login',
+      name: RouteName.Login,
       component: () => import('@/auth/views/SignInView.vue'),
       meta: { hideShell: true },
     },
     {
       path: '/setup',
-      name: 'setup',
+      name: RouteName.Setup,
       component: () => import('@/views/UserSetupView.vue'),
       meta: { hideShell: true },
     },
     {
       path: '/users',
-      name: 'users',
+      name: RouteName.Users,
       component: () => import('@/users/views/UsersView.vue'),
     },
     {
+      path: '/account',
+      name: RouteName.Account,
+      component: () => import('@/users/views/AccountView.vue'),
+    },
+    {
       path: '/nodes',
-      name: 'nodes',
+      name: RouteName.Nodes,
       component: () => import('@/nodes/views/NodesView.vue'),
     },
     {
       path: '/provision',
-      name: 'provision',
+      name: RouteName.Provision,
       component: () => import('@/views/ProvisionView.vue'),
     },
     {
       path: '/logs',
-      name: 'logs',
+      name: RouteName.Logs,
       component: () => import('@/logs/views/LogsView.vue'),
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: RouteName.NotFound,
+      component: () => import('@/shared/views/NotFoundView.vue'),
     },
   ],
 })
 
-router.beforeEach(async to => {
-  const auth = useAuthStore()
-  const users = useUsersStore()
+router.beforeEach(async (to: RouteLocationNormalized) => {
+  const authStore = useAuthStore()
+  const usersStore = useUsersStore()
 
-  if (!users.isReady) {
-    await users.loadSetupStatus()
+  if (!usersStore.isReady) {
+    await usersStore.loadSetupStatus()
   }
 
-  if (!auth.isReady) {
-    await auth.bootstrap()
+  if (!authStore.isReady) {
+    await authStore.bootstrap()
   }
 
-  if (users.setupRequired) {
-    if (to.path !== '/setup') {
-      return '/setup'
+  if (usersStore.setupRequired) {
+    if (to.name !== RouteName.Setup) {
+      return { name: RouteName.Setup }
     }
 
     return true
   }
 
-  if (!auth.isAuthenticated && to.path !== '/login') {
-    return '/login'
+  if (!authStore.isAuthenticated && to.name !== RouteName.Login) {
+    return { name: RouteName.Login }
   }
 
-  if (auth.isAuthenticated && (to.path === '/login' || to.path === '/setup')) {
-    return '/users'
+  if (authStore.isAuthenticated && (to.name === RouteName.Login || to.name === RouteName.Setup)) {
+    return { name: RouteName.Users }
   }
 
   return true

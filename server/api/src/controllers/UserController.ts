@@ -46,6 +46,52 @@ export class UserController {
     res.json({ user })
   }
 
+  updateMe: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const token = this.readToken(req)
+      if (!token) {
+        res.status(401).json({ error: 'not_authenticated' })
+        return
+      }
+
+      const currentUser = await this.auth.requireUser(token)
+      const user = this.users.updateUser(currentUser.id, {
+        username: req.body?.username ? String(req.body.username) : undefined,
+        displayName: req.body?.displayName ? String(req.body.displayName) : undefined,
+        email: req.body?.email ? String(req.body.email) : undefined,
+        password: req.body?.password ? String(req.body.password) : undefined,
+      })
+
+      await this.users.persist()
+      res.json({ user })
+    } catch (error) {
+      this.handleUserError(error, res)
+    }
+  }
+
+  deleteMe: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const token = this.readToken(req)
+      if (!token) {
+        res.status(401).json({ error: 'not_authenticated' })
+        return
+      }
+
+      const currentUser = await this.auth.requireUser(token)
+      const deleted = this.users.deleteUser(currentUser.id)
+      if (!deleted) {
+        res.status(404).json({ error: 'user_not_found' })
+        return
+      }
+
+      await this.users.persist()
+      await this.auth.logout(token)
+      res.status(204).send()
+    } catch (error) {
+      this.handleAuthError(error, res)
+    }
+  }
+
   get: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     try {
       const token = this.readToken(req)
@@ -190,7 +236,7 @@ export class UserController {
       return
     }
 
-    if (message === 'user_conflict') {
+    if (message === 'username_taken' || message === 'email_taken' || message === 'user_conflict') {
       res.status(409).json({ error: message })
       return
     }

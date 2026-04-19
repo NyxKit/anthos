@@ -219,18 +219,36 @@ export class UserService {
   }
 
   private assertUnique(username: string, email: string, ignoreUserId?: string): void {
+    if (this.existsByUsername(username, ignoreUserId)) throw new Error('username_taken')
+    if (this.existsByEmail(email, ignoreUserId)) throw new Error('email_taken')
+  }
+
+  private existsByUsername(username: string, ignoreUserId?: string): boolean {
     const stmt = this.db.prepare(`
       SELECT id
       FROM users
-      WHERE (username = ? COLLATE NOCASE OR email = ? COLLATE NOCASE)
+      WHERE username = ? COLLATE NOCASE
         AND (? = '' OR id <> ?)
       LIMIT 1
     `)
-    stmt.bind([username, email, ignoreUserId ?? '', ignoreUserId ?? ''])
-    const hasDuplicate = stmt.step()
+    stmt.bind([username, ignoreUserId ?? '', ignoreUserId ?? ''])
+    const exists = stmt.step()
     stmt.free()
+    return exists
+  }
 
-    if (hasDuplicate) throw new Error('user_conflict')
+  private existsByEmail(email: string, ignoreUserId?: string): boolean {
+    const stmt = this.db.prepare(`
+      SELECT id
+      FROM users
+      WHERE email = ? COLLATE NOCASE
+        AND (? = '' OR id <> ?)
+      LIMIT 1
+    `)
+    stmt.bind([email, ignoreUserId ?? '', ignoreUserId ?? ''])
+    const exists = stmt.step()
+    stmt.free()
+    return exists
   }
 
   private rowToUser(row: UserRow): User {

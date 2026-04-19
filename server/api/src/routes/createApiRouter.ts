@@ -80,6 +80,8 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   router.get('/users/setup-status', userCtrl.setupStatus)
   router.get('/users', userCtrl.list)
   router.get('/users/me', userCtrl.me)
+  router.patch('/users/me', userCtrl.updateMe)
+  router.delete('/users/me', userCtrl.deleteMe)
   router.get('/users/:id', userCtrl.get)
   router.post('/users', userCtrl.create)
   router.patch('/users/:id', userCtrl.update)

@@ -54,6 +54,10 @@ export const useAuthStore = defineStore('auth', () => {
     setApiSession(null)
   }
 
+  function setCurrentUser(user: User | null): void {
+    currentUser.value = user
+  }
+
   async function bootstrap(): Promise<void> {
     if (isReady.value) return
 
@@ -148,6 +152,7 @@ export const useAuthStore = defineStore('auth', () => {
     bootstrap,
     login,
     logout,
+    setCurrentUser,
     applySession,
     clearSession,
   }

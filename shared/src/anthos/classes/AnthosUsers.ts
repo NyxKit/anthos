@@ -4,7 +4,7 @@ import { NyxResult } from 'nyx-kit/classes'
 import { User } from '../../users/classes/User.js'
 import { UserRole, type SetupStatus, type UserCreateInput, type UserCredentials, type UserSession, type UserUpdateInput } from '../types/index.js'
 
-type AnthosUsersError = 'request_failed' | 'invalid_response'
+type AnthosUsersError = string
 
 export class AnthosUsers {
   constructor(protected readonly anthos: Anthos) {
@@ -94,6 +94,14 @@ export class AnthosUsers {
 
   async me(): Promise<NyxResult<User, AnthosUsersError>> {
     return this.get('me')
+  }
+
+  async updateMe(input: UserUpdateInput): Promise<NyxResult<User, AnthosUsersError>> {
+    return this.update('me', input)
+  }
+
+  async deleteMe(): Promise<NyxResult<void, AnthosUsersError>> {
+    return this.delete('me')
   }
 
   static adminRole(): UserRole {

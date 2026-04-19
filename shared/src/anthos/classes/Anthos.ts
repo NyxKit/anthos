@@ -68,7 +68,15 @@ export class Anthos {
     })
 
     if (!response.ok) {
-      throw new Error(`Anthos request failed with status ${response.status}`)
+      const contentType = response.headers.get('content-type') ?? ''
+      if (contentType.includes('application/json')) {
+        const payload = await response.json() as { error?: unknown }
+        const error = payload.error != null ? String(payload.error) : `Anthos request failed with status ${response.status}`
+        throw new Error(error)
+      }
+
+      const text = await response.text()
+      throw new Error(text || `Anthos request failed with status ${response.status}`)
     }
 
     if (response.status === 204) {

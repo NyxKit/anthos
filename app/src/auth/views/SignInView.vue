@@ -26,7 +26,7 @@ async function handleSubmit(): Promise<void> {
     <div class="auth-view__card">
       <p class="auth-view__eyebrow">Anthos</p>
       <h1>Sign in</h1>
-      <p class="auth-view__description">Access the Anthos user management console.</p>
+      <p class="auth-view__description">Access the Living Laboratory.</p>
 
       <form class="auth-view__form" @submit.prevent="handleSubmit">
         <NyxFormField label="Username">
