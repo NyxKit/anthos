@@ -11,7 +11,7 @@ This roadmap focuses on the next product-level capabilities Anthos needs to feel
 
 ## Now
 
-- [P0] Docker integration for the server, similar to `nyx-notes`
+- [P0] Docker integration for the server, matching the NAS-hosting pattern used by `nyx-notes`
 - [P0] Node firmware power profile work so hardware stays off unless it is actively needed
 - [P1] Native mobile app for Bluetooth pairing and mobile monitoring
 

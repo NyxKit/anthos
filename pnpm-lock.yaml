@@ -100,8 +100,8 @@ importers:
   shared:
     dependencies:
       nyx-kit:
-        specifier: link:../../nyx-kit
-        version: link:../../nyx-kit
+        specifier: ^2.0.39
+        version: 2.0.39(@floating-ui/dom@1.7.6)(@tiptap/extension-list@3.22.1(@tiptap/core@3.22.1(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1))(@tiptap/pm@3.22.1)(@vue/eslint-config-typescript@14.7.0(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3))(eslint-plugin-oxlint@0.15.15)(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.32)(pinia@3.0.4(typescript@5.6.3)(vue@3.5.32(typescript@5.6.3)))(vue@3.5.32(typescript@5.6.3)))(vue@3.5.32(typescript@5.6.3))
 
 packages:
 

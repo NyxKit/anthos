@@ -4,7 +4,21 @@ import path from 'node:path'
 
 import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared/nodes/types'
 
-const DB_PATH = path.resolve(process.cwd(), '../db/anthos.db')
+function resolveDbPath(): string {
+  const explicitDbPath = process.env.ANTHOS_DB_PATH?.trim()
+  if (explicitDbPath) {
+    return path.resolve(explicitDbPath)
+  }
+
+  const dataDir = process.env.ANTHOS_DATA_DIR?.trim()
+  if (dataDir) {
+    return path.resolve(dataDir, 'anthos.db')
+  }
+
+  return path.resolve(process.cwd(), '../db/anthos.db')
+}
+
+const DB_PATH = resolveDbPath()
 const STORE_INTERVAL_MS = 60000
 
 interface Reading {

@@ -63,7 +63,7 @@ Planned stack:
 - Node.js + TypeScript backend
 - Vue frontend
 - `Nyx Kit` as the Vue component library
-- one Dockerized deployment for local hosting
+- one Dockerized deployment for local hosting and NAS installs
 
 Example shape:
 
@@ -198,6 +198,13 @@ INDEX idx_readings_node_time ON readings(node_id, timestamp)
 
 - Database: `server/db/anthos.db` (gitignored)
 - Runtime logs: `server/api/logs/` (gitignored)
+
+## Docker Deployment
+
+- Anthos now has a single-container deployment path for NAS hosting.
+- The container serves the built dashboard and API from the same process.
+- Persistent data should live on a mounted host directory so restarts and upgrades do not erase nodes, readings, or logs.
+- The Docker deployment mirrors the same home-hosted model used for `nyx-notes`.
 
 ## Hardware Findings That Affect Architecture
 
