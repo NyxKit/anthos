@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watchEffect } from 'vue'
-import { NyxButton, NyxIcon, NyxModal, NyxTable } from 'nyx-kit/components'
+import { NyxButton, NyxCard, NyxIcon, NyxModal, NyxTable } from 'nyx-kit/components'
 import { NyxKit } from 'nyx-kit'
 import { NyxShape, NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
 
@@ -109,7 +109,23 @@ async function handleDelete(automationId: string): Promise<void> {
       <NyxButton :theme="NyxTheme.Primary" @click="openCreate">New Automation</NyxButton>
     </header>
 
+    <section v-if="tableRows.length === 0" class="automations-view__empty">
+      <NyxCard>
+        <template #header>
+          <span class="automations-view__empty-eyebrow">No automations yet</span>
+          <h3>Set up your first rule</h3>
+        </template>
+        <p class="automations-view__empty-copy">
+          Create an automation to watch a sensor and queue a command automatically when conditions match.
+        </p>
+        <template #footer>
+          <NyxButton :theme="NyxTheme.Primary" @click="openCreate">New Automation</NyxButton>
+        </template>
+      </NyxCard>
+    </section>
+
     <NyxTable
+      v-else
       v-model="tableRows"
       :size="NyxSize.Small"
       :col-include="['node', 'sensor', 'operator', 'value', 'then']"
@@ -147,6 +163,7 @@ async function handleDelete(automationId: string): Promise<void> {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  height: 100%;
 }
 
 .automations-view__header {
@@ -155,8 +172,30 @@ async function handleDelete(automationId: string): Promise<void> {
   gap: 1rem;
 }
 
+.automations-view__empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.automations-view__empty-copy {
+  margin: 0 0 1rem;
+}
+
 .automations-view__modal-title {
   margin: 0;
+}
+
+.automations-view__empty-eyebrow {
+  margin: 0;
+  font-family: var(--nyx-font-family-mono, monospace);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--nyx-c-primary, #dcb8ff);
+  font-size: 0.75rem;
 }
 
 @media (max-width: 768px) {
