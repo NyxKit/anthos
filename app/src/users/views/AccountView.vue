@@ -11,6 +11,7 @@ import { RouteName } from '@/shared/types'
 
 const router = useRouter()
 const auth = useAuthStore()
+const canPerformActions = computed(() => auth.canPerformActions)
 
 const username = ref('')
 const displayName = ref('')
@@ -188,7 +189,13 @@ async function handleDelete(): Promise<void> {
         <p v-if="error" class="account-view__error">{{ error }}</p>
 
         <NyxFormField class="account-view__form-actions">
-          <NyxButton :theme="NyxTheme.Primary" :size="NyxSize.Medium" :disabled="isSaving" type="submit">
+          <NyxButton
+            :theme="NyxTheme.Primary"
+            :size="NyxSize.Medium"
+            :disabled="isSaving || !canPerformActions"
+            :title="canPerformActions ? 'Save changes' : 'Guests can only view account details'"
+            type="submit"
+          >
             Save changes
           </NyxButton>
         </NyxFormField>
@@ -207,6 +214,8 @@ async function handleDelete(): Promise<void> {
       />
 
       <NyxActionItem
+        class="account-view__action"
+        :class="{ 'account-view__action--disabled': !canPerformActions }"
         title="Delete account"
         action="Delete account"
         description="Permanently delete your account and sign out."
@@ -273,5 +282,10 @@ async function handleDelete(): Promise<void> {
 
 .account-view__error {
   color: #ff9b9b;
+}
+
+.account-view__danger-action--disabled {
+  pointer-events: none;
+  opacity: 0.5;
 }
 </style>

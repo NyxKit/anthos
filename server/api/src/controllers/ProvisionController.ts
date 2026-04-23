@@ -2,11 +2,14 @@ import type { Request, Response, RequestHandler } from 'express'
 
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { PairingWindowService } from '../services/PairingWindowService.js'
+import { AuthController } from './AuthController.js'
+import { AuthService } from '../services/AuthService.js'
 
 export class ProvisionController {
   constructor(
     private readonly registry: NodeRegistryService,
     private readonly pairing: PairingWindowService,
+    private readonly auth: AuthService,
     private readonly saveDb: () => Promise<void>
   ) {}
 
@@ -57,8 +60,21 @@ export class ProvisionController {
   }
 
   openProvisionWindow: RequestHandler = (_req: Request, res: Response): void => {
-    this.pairing.open()
-    res.json({ message: 'Pairing window opened', ...this.pairing.getStatus() })
+    const token = AuthController.readToken(_req)
+    if (!token) {
+      res.status(401).json({ error: 'not_authenticated' })
+      return
+    }
+
+    void this.auth.requireActionUser(token)
+      .then(() => {
+        this.pairing.open()
+        res.json({ message: 'Pairing window opened', ...this.pairing.getStatus() })
+      })
+      .catch(error => {
+        const message = error instanceof Error ? error.message : 'not_authorized'
+        res.status(message === 'not_authorized' ? 403 : 500).json({ error: message })
+      })
   }
 
   getProvisionStatus: RequestHandler = (_req: Request, res: Response): void => {
@@ -71,6 +87,20 @@ export class ProvisionController {
   }
 
   updateCapability: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const token = AuthController.readToken(req)
+    if (!token) {
+      res.status(401).json({ error: 'not_authenticated' })
+      return
+    }
+
+    try {
+      await this.auth.requireActionUser(token)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'not_authorized'
+      res.status(message === 'not_authorized' ? 403 : 500).json({ error: message })
+      return
+    }
+
     const nodeId = String(req.params['id'])
     const { capability } = req.body as { capability?: string }
 
@@ -88,6 +118,20 @@ export class ProvisionController {
   }
 
   updateDisplayName: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const token = AuthController.readToken(req)
+    if (!token) {
+      res.status(401).json({ error: 'not_authenticated' })
+      return
+    }
+
+    try {
+      await this.auth.requireActionUser(token)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'not_authorized'
+      res.status(message === 'not_authorized' ? 403 : 500).json({ error: message })
+      return
+    }
+
     const nodeId = String(req.params['id'])
     const { displayName } = req.body as { displayName?: string }
 
@@ -114,6 +158,20 @@ export class ProvisionController {
   }
 
   updateOrder: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const token = AuthController.readToken(req)
+    if (!token) {
+      res.status(401).json({ error: 'not_authenticated' })
+      return
+    }
+
+    try {
+      await this.auth.requireActionUser(token)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'not_authorized'
+      res.status(message === 'not_authorized' ? 403 : 500).json({ error: message })
+      return
+    }
+
     const nodeId = String(req.params['id'])
     const { order } = req.body as { order?: number | null }
 

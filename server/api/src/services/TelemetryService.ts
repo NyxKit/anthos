@@ -105,10 +105,12 @@ export class TelemetryService {
         display_name TEXT NOT NULL,
         email TEXT NOT NULL COLLATE NOCASE UNIQUE,
         password_hash TEXT NOT NULL,
-        role TEXT NOT NULL CHECK (role IN ('admin', 'user')),
+        role TEXT NOT NULL CHECK (role IN ('admin', 'user', 'guest')),
         created_at INTEGER NOT NULL
       )
     `)
+
+    this.migrateUsersRoleConstraint()
 
     this.db.run(`
       CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)
@@ -206,6 +208,52 @@ export class TelemetryService {
     `)
 
     console.log('telemetry.db.init', DB_PATH)
+  }
+
+  private migrateUsersRoleConstraint(): void {
+    const stmt = this.db!.prepare(`
+      SELECT sql
+      FROM sqlite_master
+      WHERE type = 'table' AND name = 'users'
+      LIMIT 1
+    `)
+
+    try {
+      if (!stmt.step()) return
+
+      const row = stmt.getAsObject() as Record<string, unknown>
+      const sql = typeof row.sql === 'string' ? row.sql : ''
+      if (sql.includes("'guest'")) return
+
+      this.db!.run('PRAGMA foreign_keys = OFF')
+      this.db!.run('BEGIN TRANSACTION')
+      this.db!.run('ALTER TABLE users RENAME TO users_legacy')
+      this.db!.run(`
+        CREATE TABLE users (
+          id TEXT PRIMARY KEY,
+          username TEXT NOT NULL COLLATE NOCASE UNIQUE,
+          display_name TEXT NOT NULL,
+          email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL CHECK (role IN ('admin', 'user', 'guest')),
+          created_at INTEGER NOT NULL
+        )
+      `)
+      this.db!.run(`
+        INSERT INTO users (id, username, display_name, email, password_hash, role, created_at)
+        SELECT id, username, display_name, email, password_hash, role, created_at
+        FROM users_legacy
+      `)
+      this.db!.run('DROP TABLE users_legacy')
+      this.db!.run('COMMIT')
+      this.db!.run('PRAGMA foreign_keys = ON')
+    } catch (error) {
+      this.db!.run('ROLLBACK')
+      this.db!.run('PRAGMA foreign_keys = ON')
+      throw error
+    } finally {
+      stmt.free()
+    }
   }
 
   async ingest(payload: NodeTelemetryPayload): Promise<void> {

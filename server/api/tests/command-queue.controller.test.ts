@@ -22,10 +22,13 @@ describe('CommandController', () => {
     const logArchive = {
       recordEntry: vi.fn().mockResolvedValue(undefined),
     }
-    const controller = new CommandController(commands as never, registry as never, logArchive as never, vi.fn().mockResolvedValue(undefined) as never)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new CommandController(commands as never, registry as never, logArchive as never, auth as never, vi.fn().mockResolvedValue(undefined) as never)
     const res = createRes()
 
-    await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { volumeMl: 0 } } as never, res as never)
+    await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { volumeMl: 0 }, headers: { authorization: 'Bearer token' } } as never, res as never)
 
     expect(res.status).toHaveBeenCalledWith(400)
     expect(commands.enqueuePumpCommand).not.toHaveBeenCalled()
@@ -44,7 +47,10 @@ describe('CommandController', () => {
     const logArchive = {
       recordEntry: vi.fn().mockResolvedValue(undefined),
     }
-    const controller = new CommandController(commands as never, registry as never, logArchive as never, vi.fn().mockResolvedValue(undefined) as never)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new CommandController(commands as never, registry as never, logArchive as never, auth as never, vi.fn().mockResolvedValue(undefined) as never)
 
     const listRes = createRes()
     await controller.listPending({ params: { nodeId: 'node-001' } } as never, listRes as never)
@@ -76,10 +82,13 @@ describe('CommandController', () => {
     const logArchive = {
       recordEntry: vi.fn().mockResolvedValue(undefined),
     }
-    const controller = new CommandController(commands as never, registry as never, logArchive as never, vi.fn().mockResolvedValue(undefined) as never)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new CommandController(commands as never, registry as never, logArchive as never, auth as never, vi.fn().mockResolvedValue(undefined) as never)
     const res = createRes()
 
-    await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { volumeMl: 100 } } as never, res as never)
+    await controller.enqueuePump({ params: { nodeId: 'node-001' }, body: { volumeMl: 100 }, headers: { authorization: 'Bearer token' } } as never, res as never)
 
     expect(res.status).toHaveBeenCalledWith(403)
     expect(commands.enqueuePumpCommand).not.toHaveBeenCalled()

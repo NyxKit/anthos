@@ -15,6 +15,8 @@ const usersStore = useUsersStore()
 const selectedUser = ref<User | null>(null)
 const isCreateModalOpen = ref(false)
 const isEditModalOpen = ref(false)
+const canInviteUsers = computed(() => auth.canInviteUsers)
+const canPerformActions = computed(() => auth.canPerformActions)
 
 onMounted(() => {
   void usersStore.fetchUsers()
@@ -95,7 +97,14 @@ const isEditingSelf = computed(() => selectedUser.value?.id === auth.currentUser
     <header class="users-view__header">
       <p class="users-view__subtitle">Manage user accounts and access.</p>
       <div class="users-view__actions">
-        <NyxButton :theme="NyxTheme.Primary" @click="beginCreate">Add user</NyxButton>
+        <NyxButton
+          :theme="NyxTheme.Primary"
+          :disabled="!canInviteUsers"
+          :title="canInviteUsers ? 'Add user' : 'Only admins can invite users'"
+          @click="beginCreate"
+        >
+          Add user
+        </NyxButton>
       </div>
     </header>
 
@@ -110,6 +119,8 @@ const isEditingSelf = computed(() => selectedUser.value?.id === auth.currentUser
           :size="NyxSize.Small"
           :shape="NyxShape.Square"
           :variant="NyxVariant.Subtle"
+          :disabled="!canPerformActions"
+          :title="canPerformActions ? 'Edit user' : 'Guests can only view users'"
           @click="beginEditById(String(item.id))"
         >
           <NyxIcon name="pencil" :size="NyxSize.XSmall" />
@@ -119,7 +130,8 @@ const isEditingSelf = computed(() => selectedUser.value?.id === auth.currentUser
           :size="NyxSize.Small"
           :shape="NyxShape.Square"
           :variant="NyxVariant.Subtle"
-          :disabled="item.id === auth.currentUser?.id"
+          :disabled="!canPerformActions || item.id === auth.currentUser?.id"
+          :title="canPerformActions ? 'Delete user' : 'Guests can only view users'"
           @click="handleDelete(String(item.id))"
         >
           <NyxIcon name="trash" :size="NyxSize.XSmall" />

@@ -27,10 +27,13 @@ describe('ProvisionController', () => {
       getStatus: vi.fn(),
     }
     const saveDb = vi.fn().mockResolvedValue(undefined)
-    const controller = new ProvisionController(registry as never, pairing as never, saveDb)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new ProvisionController(registry as never, pairing as never, auth as never, saveDb)
     const res = createRes()
 
-    await controller.updateCapability({ params: { id: 'node-001' }, body: { capability: 'watering' } } as never, res as never)
+    await controller.updateCapability({ params: { id: 'node-001' }, body: { capability: 'watering' }, headers: { authorization: 'Bearer token' } } as never, res as never)
 
     expect(registry.updateCapability).toHaveBeenCalledWith('node-001', 'watering')
     expect(res.json).toHaveBeenCalledWith({
@@ -59,10 +62,13 @@ describe('ProvisionController', () => {
       getStatus: vi.fn(),
     }
     const saveDb = vi.fn().mockResolvedValue(undefined)
-    const controller = new ProvisionController(registry as never, pairing as never, saveDb)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new ProvisionController(registry as never, pairing as never, auth as never, saveDb)
     const res = createRes()
 
-    await controller.updateCapability({ params: { id: 'node-001' }, body: { capability: 'watering' } } as never, res as never)
+    await controller.updateCapability({ params: { id: 'node-001' }, body: { capability: 'watering' }, headers: { authorization: 'Bearer token' } } as never, res as never)
 
     expect(registry.updateCapability).toHaveBeenCalledWith('node-001', 'watering')
     expect(res.json).toHaveBeenCalledWith({
@@ -91,10 +97,13 @@ describe('ProvisionController', () => {
       getStatus: vi.fn(),
     }
     const saveDb = vi.fn().mockResolvedValue(undefined)
-    const controller = new ProvisionController(registry as never, pairing as never, saveDb)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new ProvisionController(registry as never, pairing as never, auth as never, saveDb)
     const res = createRes()
 
-    await controller.updateDisplayName({ params: { id: 'node-001' }, body: { displayName: 'Fern v2' } } as never, res as never)
+    await controller.updateDisplayName({ params: { id: 'node-001' }, body: { displayName: 'Fern v2' }, headers: { authorization: 'Bearer token' } } as never, res as never)
 
     expect(registry.updateDisplayName).toHaveBeenCalledWith('node-001', 'Fern v2')
     expect(res.json).toHaveBeenCalledWith({

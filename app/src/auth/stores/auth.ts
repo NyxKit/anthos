@@ -32,6 +32,8 @@ export const useAuthStore = defineStore('auth', () => {
   const error = ref<string | null>(null)
 
   const isAuthenticated = computed(() => currentUser.value !== null)
+  const canPerformActions = computed(() => currentUser.value?.canPerformActions ?? false)
+  const canInviteUsers = computed(() => currentUser.value?.canInviteUsers ?? false)
 
   function setApiSession(sessionToken: string | null): void {
     anthos.setup({
@@ -149,6 +151,8 @@ export const useAuthStore = defineStore('auth', () => {
     isReady,
     error,
     isAuthenticated,
+    canPerformActions,
+    canInviteUsers,
     bootstrap,
     login,
     logout,

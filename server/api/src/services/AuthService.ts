@@ -63,6 +63,12 @@ export class AuthService {
     return user
   }
 
+  async requireActionUser(token: string): Promise<User> {
+    const user = await this.requireUser(token)
+    if (!user.canPerformActions) throw new Error('not_authorized')
+    return user
+  }
+
   async createSession(user: User): Promise<UserSession> {
     const token = createSessionToken()
     const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30

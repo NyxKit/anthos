@@ -30,6 +30,18 @@ export class User implements UserRecord {
     return this.role === UserRole.Admin
   }
 
+  get isGuest(): boolean {
+    return this.role === UserRole.Guest
+  }
+
+  get canInviteUsers(): boolean {
+    return this.isAdmin
+  }
+
+  get canPerformActions(): boolean {
+    return this.role === UserRole.Admin || this.role === UserRole.User
+  }
+
   toJSON(): UserRecord {
     return {
       id: this.id,

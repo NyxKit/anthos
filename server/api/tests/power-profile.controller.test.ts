@@ -22,12 +22,16 @@ describe('PowerProfileController', () => {
     const commands = {
       enqueuePowerProfileCommand: vi.fn().mockResolvedValue({ commandId: 'cmd-123' }),
     }
-    const controller = new PowerProfileController(registry as never, logArchive as never, commands as never, vi.fn().mockResolvedValue(undefined) as never)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new PowerProfileController(registry as never, logArchive as never, commands as never, auth as never, vi.fn().mockResolvedValue(undefined) as never)
     const res = createRes()
 
     await controller.applyProfile({
       params: { id: 'node-001' },
       body: { profileId: PowerProfile.Balanced },
+      headers: { authorization: 'Bearer token' },
     } as never, res as never)
 
     expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({

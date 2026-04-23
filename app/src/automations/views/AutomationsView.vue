@@ -6,6 +6,7 @@ import { NyxShape, NyxSize, NyxTheme, NyxVariant } from 'nyx-kit/types'
 
 import { type AutomationRecord, type AutomationUpsertInput } from '@anthos/shared/automations'
 import { AutomationCommandType } from '@anthos/shared/automations'
+import { useAuthStore } from '@/auth/stores/auth'
 import { useAutomationsStore, type AutomationOption } from '@/automations/stores/automations'
 import { AutomationFormMode } from '@/automations/types'
 import AutomationForm from '@/automations/components/AutomationForm.vue'
@@ -20,9 +21,11 @@ interface AutomationTableRow {
 }
 
 const store = useAutomationsStore()
+const auth = useAuthStore()
 const isModalOpen = ref(false)
 const selectedAutomation = ref<AutomationRecord | null>(null)
 const tableRows = ref<AutomationTableRow[]>([])
+const canPerformActions = computed(() => auth.canPerformActions)
 
 const sensorOptionsByNode = computed<Record<string, AutomationOption[]>>(() => Object.fromEntries(store.nodes.map(node => [node.id, store.sensorOptionsForNode(node.id)])))
 
@@ -106,7 +109,14 @@ async function handleDelete(automationId: string): Promise<void> {
 <template>
   <section class="automations-view">
     <header class="automations-view__header">
-      <NyxButton :theme="NyxTheme.Primary" @click="openCreate">New Automation</NyxButton>
+      <NyxButton
+        :theme="NyxTheme.Primary"
+        :disabled="!canPerformActions"
+        :title="canPerformActions ? 'New Automation' : 'Guests can only view automations'"
+        @click="openCreate"
+      >
+        New Automation
+      </NyxButton>
     </header>
 
     <section v-if="tableRows.length === 0" class="automations-view__empty">
@@ -119,7 +129,14 @@ async function handleDelete(automationId: string): Promise<void> {
           Create an automation to watch a sensor and queue a command automatically when conditions match.
         </p>
         <template #footer>
-          <NyxButton :theme="NyxTheme.Primary" @click="openCreate">New Automation</NyxButton>
+          <NyxButton
+            :theme="NyxTheme.Primary"
+            :disabled="!canPerformActions"
+            :title="canPerformActions ? 'New Automation' : 'Guests can only view automations'"
+            @click="openCreate"
+          >
+            New Automation
+          </NyxButton>
         </template>
       </NyxCard>
     </section>
@@ -131,10 +148,26 @@ async function handleDelete(automationId: string): Promise<void> {
       :col-include="['node', 'sensor', 'operator', 'value', 'then']"
     >
       <template #actions="{ item }">
-        <NyxButton :theme="NyxTheme.Primary" :size="NyxSize.Small" :shape="NyxShape.Square" :variant="NyxVariant.Subtle" @click="openEdit(String(item.automationId))">
+        <NyxButton
+          :theme="NyxTheme.Primary"
+          :size="NyxSize.Small"
+          :shape="NyxShape.Square"
+          :variant="NyxVariant.Subtle"
+          :disabled="!canPerformActions"
+          :title="canPerformActions ? 'Edit automation' : 'Guests can only view automations'"
+          @click="openEdit(String(item.automationId))"
+        >
           <NyxIcon name="pencil" :size="NyxSize.XSmall" />
         </NyxButton>
-        <NyxButton :theme="NyxTheme.Danger" :size="NyxSize.Small" :shape="NyxShape.Square" :variant="NyxVariant.Subtle" @click="handleDelete(String(item.automationId))">
+        <NyxButton
+          :theme="NyxTheme.Danger"
+          :size="NyxSize.Small"
+          :shape="NyxShape.Square"
+          :variant="NyxVariant.Subtle"
+          :disabled="!canPerformActions"
+          :title="canPerformActions ? 'Delete automation' : 'Guests can only view automations'"
+          @click="handleDelete(String(item.automationId))"
+        >
           <NyxIcon name="trash" :size="NyxSize.XSmall" />
         </NyxButton>
       </template>

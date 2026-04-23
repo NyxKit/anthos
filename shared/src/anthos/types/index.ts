@@ -3,6 +3,7 @@ import type { User } from '../../users/classes/User.js'
 export enum UserRole {
   Admin = 'admin',
   User = 'user',
+  Guest = 'guest',
 }
 
 export interface UserRecord {

@@ -2,10 +2,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import anthos from '@anthos/shared/anthos'
+import { useAuthStore } from '@/auth/stores/auth'
 import { useBleProvisioning, type DiscoveredNode } from '@/composables/useBleProvisioning'
 
 const router = useRouter()
+const auth = useAuthStore()
 const { status, discoveredNodes, error, connectedNode, wifiResult, scanForNodes, connectToNode, sendCredentials, reset } = useBleProvisioning()
+const canPerformActions = computed(() => auth.canPerformActions)
 
 // Credentials form
 const ssid = ref('')
@@ -33,6 +36,8 @@ watch(status, (newStatus) => {
 })
 
 onMounted(async () => {
+  if (!canPerformActions.value) return
+
   // T027: open pairing window at start of flow (non-blocking)
   try {
     await anthos.nodes.openProvisionWindow()
@@ -56,10 +61,12 @@ const showProgressScreen = computed(() =>
 )
 
 async function handleConnect(node: DiscoveredNode) {
+  if (!canPerformActions.value) return
   await connectToNode(node)
 }
 
 async function handleSendCredentials() {
+  if (!canPerformActions.value) return
   if (!ssid.value.trim()) return
   await sendCredentials({
     ssid: ssid.value,
@@ -76,6 +83,7 @@ async function handleDisconnectAndReset() {
 }
 
 async function openPairingWindow() {
+  if (!canPerformActions.value) return
   try {
     await anthos.nodes.openProvisionWindow()
   } catch (err) {
@@ -114,7 +122,7 @@ function handleTryAgain() {
         <p class="subtitle">Scan for nearby Anthos nodes</p>
         <button
           class="btn btn-primary"
-          :disabled="isScanning"
+          :disabled="isScanning || !canPerformActions"
           @click="scanForNodes()"
         >
           <span v-if="isScanning" class="spinner-inline"></span>
@@ -132,7 +140,7 @@ function handleTryAgain() {
             :key="node.address"
             class="node-item"
             :class="{ 'node-item--loading': status === 'connecting' && connectedNode?.address === node.address }"
-            @click="handleConnect(node)"
+            @click="canPerformActions && handleConnect(node)"
           >
             <div class="node-info">
               <span class="node-name">{{ node.name }}</span>
@@ -142,7 +150,7 @@ function handleTryAgain() {
             <span v-else class="chevron">›</span>
           </li>
         </ul>
-        <button class="btn btn-secondary" @click="scanForNodes()">Re-scan</button>
+        <button class="btn btn-secondary" :disabled="!canPerformActions" @click="scanForNodes()">Re-scan</button>
         <p v-if="error" class="error-msg">{{ error }}</p>
       </div>
 
@@ -183,7 +191,7 @@ function handleTryAgain() {
               autocomplete="off"
             />
           </div>
-          <button type="submit" class="btn btn-primary" :disabled="!ssid.trim()">
+          <button type="submit" class="btn btn-primary" :disabled="!ssid.trim() || !canPerformActions">
             Connect
           </button>
         </form>
@@ -200,7 +208,7 @@ function handleTryAgain() {
           <p class="progress-label">Connecting to WiFi...</p>
           <div v-if="showTimeoutWarning" class="timeout-warning">
             <p class="warning-text">This is taking longer than expected. The hub may not have a pairing window open.</p>
-            <button class="btn btn-secondary" @click="openPairingWindow()">Open pairing window</button>
+            <button class="btn btn-secondary" :disabled="!canPerformActions" @click="openPairingWindow()">Open pairing window</button>
           </div>
         </template>
 

@@ -3,9 +3,14 @@ import type { Request, Response, RequestHandler } from 'express'
 import { AuthService } from '../services/AuthService.js'
 
 const readToken = (req: Request): string | null => {
-  const header = req.header('authorization') ?? req.header('Authorization')
-  if (!header?.startsWith('Bearer ')) return null
-  const token = header.slice('Bearer '.length).trim()
+  const header = typeof req.header === 'function'
+    ? (req.header('authorization') ?? req.header('Authorization'))
+    : req.headers?.authorization
+
+  const value = Array.isArray(header) ? header[0] : header
+  if (!value?.startsWith('Bearer ')) return null
+
+  const token = value.slice('Bearer '.length).trim()
   return token.length > 0 ? token : null
 }
 

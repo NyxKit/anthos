@@ -8,6 +8,7 @@ import { useTelemetryStore } from '@/dashboard/stores/telemetry'
 import { useLogStore } from '@/logs/stores/logs'
 import { useNodesStore } from '@/nodes/stores/nodes'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
+import { useAuthStore } from '@/auth/stores/auth'
 import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 import { NodeStatus, PowerProfile } from '@anthos/shared'
 
@@ -18,8 +19,10 @@ const node = defineModel<PlantNode>({ required: true })
 const telemetryStore = useTelemetryStore()
 const logStore = useLogStore()
 const nodesStore = useNodesStore()
+const auth = useAuthStore()
 const powerProfileSelectOptions: NyxSelectOption<PowerProfile>[] = Object.values(POWER_PROFILES)
   .map(profile => ({ label: profile.label, value: profile.id, icon: profile.icon }))
+const canPerformActions = computed(() => auth.canPerformActions)
 
 const isEditModalOpen = ref(false)
 
@@ -167,7 +170,8 @@ async function handleEditSubmit(event: Event) {
         :variant="NyxVariant.Subtle"
         :size="NyxSize.Small"
         :shape="NyxShape.Square"
-        :disabled="!isLiveNode"
+        :disabled="!isLiveNode || !canPerformActions"
+        :title="canPerformActions ? 'Pump' : 'Guests can only view nodes'"
       >
         <NyxSpinner v-if="pumpState === 'loading'" :theme="NyxTheme.Secondary" :size="NyxSize.Small" />
         <NyxIcon v-else name="soap-dispenser-droplet" :size="NyxSize.Small" />
@@ -212,7 +216,14 @@ async function handleEditSubmit(event: Event) {
       :options="powerProfileSelectOptions"
       @select="handlePowerProfileSelect"
     >
-      <NyxButton :theme="NyxTheme.Primary" :variant="NyxVariant.Subtle" :size="NyxSize.Small" :shape="NyxShape.Square" :disabled="!isLiveNode || profileStateLoading">
+      <NyxButton
+        :theme="NyxTheme.Primary"
+        :variant="NyxVariant.Subtle"
+        :size="NyxSize.Small"
+        :shape="NyxShape.Square"
+        :disabled="!isLiveNode || profileStateLoading || !canPerformActions"
+        :title="canPerformActions ? 'Apply power profile' : 'Guests can only view nodes'"
+      >
         <NyxSpinner v-if="profileStateLoading" :theme="NyxTheme.Primary" :size="NyxSize.Small" />
         <NyxIcon v-else :name="selectedProfileOption?.icon ?? 'question-mark'" :size="NyxSize.Small" />
       </NyxButton>
@@ -223,7 +234,8 @@ async function handleEditSubmit(event: Event) {
       :variant="NyxVariant.Subtle"
       :size="NyxSize.Small"
       :shape="NyxShape.Square"
-      :disabled="!isLiveNode"
+      :disabled="!isLiveNode || !canPerformActions"
+      :title="canPerformActions ? 'Edit node' : 'Guests can only view nodes'"
       @click="isEditModalOpen = true"
     >
       <NyxIcon name="pencil" :size="NyxSize.Small" />

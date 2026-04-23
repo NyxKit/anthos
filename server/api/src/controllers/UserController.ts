@@ -23,7 +23,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireAdmin(token)
+      await this.auth.requireActionUser(token)
       res.json({ users: this.users.listUsers() })
     } catch (error) {
       this.handleAuthError(error, res)
@@ -54,7 +54,7 @@ export class UserController {
         return
       }
 
-      const currentUser = await this.auth.requireUser(token)
+      const currentUser = await this.auth.requireActionUser(token)
       const user = this.users.updateUser(currentUser.id, {
         username: req.body?.username ? String(req.body.username) : undefined,
         displayName: req.body?.displayName ? String(req.body.displayName) : undefined,
@@ -77,7 +77,7 @@ export class UserController {
         return
       }
 
-      const currentUser = await this.auth.requireUser(token)
+      const currentUser = await this.auth.requireActionUser(token)
       const deleted = this.users.deleteUser(currentUser.id)
       if (!deleted) {
         res.status(404).json({ error: 'user_not_found' })
@@ -100,7 +100,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireAdmin(token)
+      await this.auth.requireActionUser(token)
       const user = this.users.getUserById(String(req.params['id']))
       if (!user) {
         res.status(404).json({ error: 'user_not_found' })
@@ -139,7 +139,7 @@ export class UserController {
         email: String(payload['email'] ?? ''),
         password: String(payload['password'] ?? ''),
         repeatPassword: String(payload['repeatPassword'] ?? ''),
-        role: payload['role'] === UserRole.Admin ? UserRole.Admin : payload['role'] === UserRole.User ? UserRole.User : undefined,
+        role: payload['role'] === UserRole.Admin ? UserRole.Admin : payload['role'] === UserRole.User ? UserRole.User : payload['role'] === UserRole.Guest ? UserRole.Guest : undefined,
         setupMode,
       })
 
@@ -165,14 +165,14 @@ export class UserController {
         return
       }
 
-      await this.auth.requireAdmin(token)
+      await this.auth.requireActionUser(token)
 
       const user = this.users.updateUser(String(req.params['id']), {
         username: req.body?.username ? String(req.body.username) : undefined,
         displayName: req.body?.displayName ? String(req.body.displayName) : undefined,
         email: req.body?.email ? String(req.body.email) : undefined,
         password: req.body?.password ? String(req.body.password) : undefined,
-        role: req.body?.role === UserRole.Admin ? UserRole.Admin : req.body?.role === UserRole.User ? UserRole.User : undefined,
+        role: req.body?.role === UserRole.Admin ? UserRole.Admin : req.body?.role === UserRole.User ? UserRole.User : req.body?.role === UserRole.Guest ? UserRole.Guest : undefined,
       })
 
       await this.users.persist()
@@ -190,7 +190,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireAdmin(token)
+      await this.auth.requireActionUser(token)
       const deleted = this.users.deleteUser(String(req.params['id']))
 
       if (!deleted) {

@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { NyxButton } from 'nyx-kit/components'
 import { NyxTheme, NyxSize } from 'nyx-kit/types'
+import { useAuthStore } from '@/auth/stores/auth'
 import { useNodesStore } from '@/nodes/stores/nodes'
 import NodesGrid from '@/nodes/components/NodesGrid.vue'
 
 const store = useNodesStore()
+const auth = useAuthStore()
 const router = useRouter()
+const canPerformActions = computed(() => auth.canPerformActions)
 
 onMounted(() => store.fetchNodes())
 
@@ -26,6 +29,8 @@ async function handleAddNode() {
       <NyxButton
         :theme="NyxTheme.Primary"
         :size="NyxSize.Small"
+        :disabled="!canPerformActions"
+        :title="canPerformActions ? 'Add Node' : 'Guests can only view nodes'"
         @click="handleAddNode"
       >
         Add Node
