@@ -24,6 +24,14 @@ docker run --rm -p 8088:8088 -v /your/nas/path/anthos:/data ghcr.io/nyxkit/antho
 
 Use `/data` as the persistent mount so readings, nodes, and logs survive restarts.
 
+## Quickstart Docker
+
+1. Create a host folder for Anthos data, for example `/your/nas/path/anthos`.
+2. Build the image with `docker build -t ghcr.io/nyxkit/anthos .`.
+3. Run the container with `docker run --rm -p 8088:8088 -v /your/nas/path/anthos:/data ghcr.io/nyxkit/anthos`.
+4. Open `http://<nas-ip>:8088` in a browser.
+5. Keep using the same `/data` mount so data survives restarts and upgrades.
+
 ## Next Steps
 
 1. Build and flash the firmware in `node/`.
