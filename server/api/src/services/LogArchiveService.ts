@@ -23,8 +23,22 @@ const DEFAULT_LIMIT = 100
 const DEFAULT_RETENTION_DAYS = 30
 const ARCHIVE_PATTERN = /^\d{4}-\d{2}-\d{2}\.ndjson$/
 
+function resolveLogDir(): string {
+  const explicitLogDir = process.env.ANTHOS_LOG_DIR?.trim()
+  if (explicitLogDir) {
+    return path.resolve(explicitLogDir)
+  }
+
+  const dataDir = process.env.ANTHOS_DATA_DIR?.trim()
+  if (dataDir) {
+    return path.resolve(dataDir, 'logs')
+  }
+
+  return path.resolve(process.cwd(), 'logs')
+}
+
 export class LogArchiveService {
-  private readonly logDir = path.resolve(process.cwd(), 'logs')
+  private readonly logDir = resolveLogDir()
   private readonly retentionDays = DEFAULT_RETENTION_DAYS
   private readonly listeners = new Set<LogListener>()
 

@@ -1,0 +1,15 @@
+.git/
+node_modules/
+app/node_modules/
+server/api/node_modules/
+shared/node_modules/
+dist/
+app/dist/
+server/api/dist/
+coverage/
+*.log
+*.log.*
+.env
+.env.*
+.DS_Store
+Thumbs.db

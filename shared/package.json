@@ -27,6 +27,6 @@
     "./anthos/classes/AnthosUsers": "./src/anthos/classes/AnthosUsers.ts"
   },
   "dependencies": {
-    "nyx-kit": "link:../../nyx-kit"
+    "nyx-kit": "^2.0.39"
   }
 }
