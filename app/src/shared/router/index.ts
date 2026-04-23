@@ -29,6 +29,11 @@ const router = createRouter({
       component: () => import('@/users/views/UsersView.vue'),
     },
     {
+      path: '/automations',
+      name: RouteName.Automations,
+      component: () => import('@/automations/views/AutomationsView.vue'),
+    },
+    {
       path: '/account',
       name: RouteName.Account,
       component: () => import('@/users/views/AccountView.vue'),

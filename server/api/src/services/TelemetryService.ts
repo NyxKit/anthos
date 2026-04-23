@@ -184,6 +184,27 @@ export class TelemetryService {
       ON commands(node_id, status, created_at)
     `)
 
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS automations (
+        automation_id TEXT PRIMARY KEY,
+        node_id TEXT NOT NULL REFERENCES logical_nodes(node_id) ON DELETE CASCADE,
+        sensor_type TEXT NOT NULL,
+        operator TEXT NOT NULL CHECK (operator IN ('<', '>', '==')),
+        threshold_value REAL NOT NULL,
+        command_type TEXT NOT NULL,
+        command_json TEXT NOT NULL,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        last_triggered_at INTEGER,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    `)
+
+    this.db.run(`
+      CREATE INDEX IF NOT EXISTS idx_automations_node_sensor_enabled
+      ON automations(node_id, sensor_type, enabled, updated_at)
+    `)
+
     console.log('telemetry.db.init', DB_PATH)
   }
 
