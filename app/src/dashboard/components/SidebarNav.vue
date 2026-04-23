@@ -10,6 +10,7 @@ const auth = useAuthStore()
 const navItems: AnthosRouteItem[] = [
   { name: RouteName.Dashboard, icon: 'home', label: 'Dashboard' },
   { name: RouteName.Nodes, icon: 'leaf', label: 'Nodes' },
+  { name: RouteName.Automations, icon: 'zap', label: 'Automations' },
   // { name: RouteName.Alerts, icon: 'bell', label: 'Alerts' },
   { name: RouteName.Users, icon: 'users', label: 'Users' },
   // { name: RouteName.Settings, icon: 'settings', label: 'Settings' },

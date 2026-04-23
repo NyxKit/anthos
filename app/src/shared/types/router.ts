@@ -3,6 +3,7 @@ export enum RouteName {
   Login = 'login',
   Setup = 'setup',
   Users = 'users',
+  Automations = 'automations',
   Nodes = 'nodes',
   Provision = 'provision',
   Logs = 'logs',

@@ -4,12 +4,14 @@ import type { NodeTelemetryPayload, TelemetryPayload } from '@anthos/shared/node
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
+import { AutomationEvaluator } from '../services/AutomationEvaluator.js'
 
 export class IngestController {
   constructor(
     private readonly telemetryService: TelemetryService,
     private readonly logArchive: LogArchiveService,
     private readonly registry: NodeRegistryService,
+    private readonly automations: AutomationEvaluator,
     private readonly saveDb: () => Promise<void>
   ) {}
 
@@ -54,6 +56,10 @@ export class IngestController {
 
     await this.logArchive.recordTelemetry(telemetryPayload).catch(error => {
       console.error('log.archive.record.failed', error)
+    })
+
+    await this.automations.evaluateTelemetry(telemetryPayload).catch(error => {
+      console.error('automation.evaluate.failed', error)
     })
 
     res.status(202).json({

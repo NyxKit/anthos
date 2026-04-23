@@ -8,6 +8,7 @@ import { PowerProfileController } from '../controllers/PowerProfileController.js
 import { ProvisionController } from '../controllers/ProvisionController.js'
 import { AuthController } from '../controllers/AuthController.js'
 import { UserController } from '../controllers/UserController.js'
+import { AutomationController } from '../controllers/AutomationController.js'
 import { CommandQueueService } from '../services/CommandQueueService.js'
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { PairingWindowService } from '../services/PairingWindowService.js'
@@ -15,6 +16,8 @@ import { LogArchiveService } from '../services/LogArchiveService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 import { AuthService } from '../services/AuthService.js'
 import { UserService } from '../services/UserService.js'
+import { AutomationService } from '../services/AutomationService.js'
+import { AutomationEvaluator } from '../services/AutomationEvaluator.js'
 
 export function createApiRouter(telemetry: TelemetryService, logArchive: LogArchiveService): Router {
   const router = Router()
@@ -22,9 +25,12 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   const registry = new NodeRegistryService(telemetry.getDb())
   const pairing = new PairingWindowService()
   const saveDb = () => telemetry.saveDbPublic()
-  const ingestController = new IngestController(telemetry, logArchive, registry, saveDb)
   const commandService = new CommandQueueService(telemetry.getDb(), saveDb, logArchive)
   const commandController = new CommandController(commandService, registry, logArchive, saveDb)
+  const automationService = new AutomationService(telemetry.getDb(), saveDb, logArchive, registry)
+  const automationEvaluator = new AutomationEvaluator(telemetry.getDb(), registry, commandService, automationService, logArchive)
+  const automationController = new AutomationController(automationService)
+  const ingestController = new IngestController(telemetry, logArchive, registry, automationEvaluator, saveDb)
   const metricsController = new MetricsController(telemetry, registry)
   const logsController = new LogsController(logArchive)
   const provisionCtrl = new ProvisionController(registry, pairing, saveDb)
@@ -72,6 +78,11 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
 
   router.get('/logs', logsController.list)
   router.get('/logs/stream', logsController.stream)
+
+  router.get('/automations', automationController.list)
+  router.post('/automations', automationController.create)
+  router.patch('/automations/:automationId', automationController.update)
+  router.delete('/automations/:automationId', automationController.delete)
 
   router.post('/auth/login', authCtrl.login)
   router.post('/auth/logout', authCtrl.logout)

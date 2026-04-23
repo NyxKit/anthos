@@ -21,6 +21,7 @@
     "./logs": "./src/logs.ts",
     "./logs/classes/LogEntry": "./src/logs/classes/LogEntry.ts",
     "./power-profiles": "./src/power-profiles.ts",
+    "./automations": "./src/automations.ts",
     "./users": "./src/users/index.ts",
     "./users/classes/User": "./src/users/classes/User.ts",
     "./anthos/classes/AnthosUsers": "./src/anthos/classes/AnthosUsers.ts"

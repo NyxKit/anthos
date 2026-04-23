@@ -1,4 +1,5 @@
 import { AnthosAlerts } from './AnthosAlerts.js'
+import { AnthosAutomations } from './AnthosAutomations.js'
 import { AnthosLogs } from './AnthosLogs.js'
 import { AnthosMetrics } from './AnthosMetrics.js'
 import { AnthosNodes } from './AnthosNodes.js'
@@ -16,6 +17,7 @@ export class Anthos {
 
   readonly nodes: AnthosNodes
   readonly logs: AnthosLogs
+  readonly automations: AnthosAutomations
   readonly metrics: AnthosMetrics
   readonly rooms: AnthosRooms
   readonly alerts: AnthosAlerts
@@ -24,6 +26,7 @@ export class Anthos {
   constructor(setup?: AnthosSetupArgs) {
     this.nodes = new AnthosNodes(this)
     this.logs = new AnthosLogs(this)
+    this.automations = new AnthosAutomations(this)
     this.metrics = new AnthosMetrics(this)
     this.rooms = new AnthosRooms(this)
     this.alerts = new AnthosAlerts(this)
