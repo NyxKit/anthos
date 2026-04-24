@@ -13,7 +13,7 @@ bool NvsConfig::hasWifiCredentials() {
     Serial.println("[NVS] Failed to open namespace (read). Treating as first boot.");
     return false;
   }
-  bool has = prefs.isKey(kWifiSsid) && prefs.getString(kWifiSsid, "").length() > 0;
+  const bool has = prefs.isKey(kWifiSsid);
   prefs.end();
   return has;
 }
@@ -21,7 +21,15 @@ bool NvsConfig::hasWifiCredentials() {
 bool NvsConfig::hasNodeId() {
   Preferences prefs;
   if (!prefs.begin(kNamespace, true)) return false;
-  bool has = prefs.isKey(kNodeId) && prefs.getString(kNodeId, "").length() > 0;
+  const bool has = prefs.isKey(kNodeId);
+  prefs.end();
+  return has;
+}
+
+bool NvsConfig::hasNodeCapability() {
+  Preferences prefs;
+  if (!prefs.begin(kNamespace, true)) return false;
+  const bool has = prefs.isKey(kNodeCapability);
   prefs.end();
   return has;
 }
@@ -29,7 +37,7 @@ bool NvsConfig::hasNodeId() {
 String NvsConfig::getWifiSsid() {
   Preferences prefs;
   prefs.begin(kNamespace, true);
-  String val = prefs.getString(kWifiSsid, "");
+  String val = prefs.isKey(kWifiSsid) ? prefs.getString(kWifiSsid, "") : "";
   prefs.end();
   return val;
 }
@@ -37,7 +45,7 @@ String NvsConfig::getWifiSsid() {
 String NvsConfig::getWifiPass() {
   Preferences prefs;
   prefs.begin(kNamespace, true);
-  String val = prefs.getString(kWifiPass, "");
+  String val = prefs.isKey(kWifiPass) ? prefs.getString(kWifiPass, "") : "";
   prefs.end();
   return val;
 }
@@ -45,7 +53,7 @@ String NvsConfig::getWifiPass() {
 String NvsConfig::getServerUrl() {
   Preferences prefs;
   prefs.begin(kNamespace, true);
-  String val = prefs.getString(kServerUrl, "");
+  String val = prefs.isKey(kServerUrl) ? prefs.getString(kServerUrl, "") : "";
   prefs.end();
   return val;
 }
@@ -53,7 +61,7 @@ String NvsConfig::getServerUrl() {
 String NvsConfig::getNodeId() {
   Preferences prefs;
   prefs.begin(kNamespace, true);
-  String val = prefs.getString(kNodeId, "");
+  String val = prefs.isKey(kNodeId) ? prefs.getString(kNodeId, "") : "";
   prefs.end();
   return val;
 }
@@ -61,7 +69,7 @@ String NvsConfig::getNodeId() {
 String NvsConfig::getNodeCapability() {
   Preferences prefs;
   prefs.begin(kNamespace, true);
-  String val = prefs.getString(kNodeCapability, "earth");
+  String val = prefs.isKey(kNodeCapability) ? prefs.getString(kNodeCapability, "earth") : "earth";
   prefs.end();
   return val;
 }

@@ -11,6 +11,7 @@ class NvsConfig {
   // Credential checks
   static bool hasWifiCredentials();
   static bool hasNodeId();
+  static bool hasNodeCapability();
 
   // Getters
   static String getWifiSsid();

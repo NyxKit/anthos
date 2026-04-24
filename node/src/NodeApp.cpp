@@ -1,6 +1,7 @@
 #include "NodeApp.h"
 
 #include <Arduino.h>
+#include <M5AtomS3.h>
 #include <WiFi.h>
 #include <Wire.h>
 
@@ -12,6 +13,11 @@
 
 namespace {
 constexpr const char* kFirmwareVersion = "dev";
+
+void showBootColor(uint32_t rgb) {
+  AtomS3.dis.drawpix(rgb);
+  AtomS3.update();
+}
 }
 
 const char* NodeApp::describePortMode() const {
@@ -28,12 +34,22 @@ const char* NodeApp::describePortMode() const {
 
 void NodeApp::begin() {
   logger_.begin(115200);
+
+  AtomS3.begin(true);
+  showBootColor(0x080000);
+
+  const bool hasWifiCredentials = NvsConfig::hasWifiCredentials();
+  if (!hasWifiCredentials) {
+    // Give `node:flash && node:monitor` time to reconnect after a full erase.
+    delay(8000);
+  }
+
   delay(1500);
 
   logger_.line();
 
-  const String nodeId = NvsConfig::getNodeId();
-  logger_.boot(nodeId.length() > 0 ? nodeId.c_str() : "unregistered", describePortMode());
+  const String nodeId = NvsConfig::hasNodeId() ? NvsConfig::getNodeId() : "unregistered";
+  logger_.boot(nodeId.c_str(), describePortMode());
   logger_.portPins(kAppConfig.portYellowPin, kAppConfig.portWhitePin);
 
   if (kAppConfig.portMode != PortMode::EarthOnly) {
@@ -46,15 +62,19 @@ void NodeApp::begin() {
   // Run provisioning (BLE → WiFi) before starting telemetry.
   // Telemetry and hub sync continue in the background.
   provisioning_.begin();
+  showBootColor(0x000808);
 
   health_.begin();
   syncNodeRegistration();
   applyHardwareProfileIfNeeded();
   api_.begin();
   commands_.begin();
+
+  showBootColor(0x000800);
 }
 
 void NodeApp::loop() {
+  AtomS3.update();
   provisioning_.loop();
   health_.loop();
   syncNodeRegistration();
@@ -114,6 +134,9 @@ void NodeApp::syncNodeRegistration() {
   if (!health_.isWifiConnected()) {
     return;
   }
+  if (!NvsConfig::hasNodeId()) {
+    return;
+  }
 
   const auto now = millis();
   if (now - lastRegisterAt_ < kAppConfig.retryIntervalMs) {
@@ -131,6 +154,10 @@ void NodeApp::syncNodeRegistration() {
 }
 
 void NodeApp::applyHardwareProfileIfNeeded() {
+  if (!NvsConfig::hasNodeCapability()) {
+    return;
+  }
+
   const String capability = NvsConfig::getNodeCapability();
   if (capability == appliedCapability_) {
     return;
