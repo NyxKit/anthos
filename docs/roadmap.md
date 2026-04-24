@@ -11,25 +11,25 @@ This roadmap focuses on the next product-level capabilities Anthos needs to feel
 
 ## Now
 
-- [P0] Docker integration for the server, matching the NAS-hosting pattern used by `nyx-notes`
-- [P0] Node firmware power profile work so hardware stays off unless it is actively needed
-- [P1] Native app porting for the existing web experience across Windows, Mac, Linux, iOS, and Android
-- [P1] Native app Bluetooth pairing for node provisioning and setup
-- [P1] Native app USB flashing support for programming node firmware over a connected cable
+- [x] [P0] Docker integration for the server, matching the NAS-hosting pattern used by `nyx-notes`
+- [ ] [P0] Node firmware power profile work so hardware stays off unless it is actively needed
+- [ ] [P1] Native app porting for the existing web experience across Windows, Mac, Linux, iOS, and Android
+- [ ] [P1] Native app Bluetooth pairing for node provisioning and setup
+- [ ] [P1] Native app USB flashing support for programming node firmware over a connected cable
 
 ## Next
 
-- [P1] Node health visibility in the dashboard, including connectivity, uptime, and sensor status
-- [P1] Basic alerting for node offline events and sensor failures
-- [P2] Configuration backup and restore for the server and node setup
-- [P1] Authentication for anything exposed beyond the local network
+- [ ] [P1] Node health visibility in the dashboard, including connectivity, uptime, and sensor status
+- [ ] [P1] Basic alerting for node offline events and sensor failures
+- [ ] [P2] Configuration backup and restore for the server and node setup
+- [ ] [P1] Authentication for anything exposed beyond the local network
 
 ## Later
 
-- [P2] Remote access support for trusted off-site monitoring
-- [P2] OTA firmware update flow for nodes
-- [P2] Historical trends and export tools for readings
-- [P3] Per-node diagnostics and maintenance view
+- [ ] [P2] Remote access support for trusted off-site monitoring
+- [ ] [P2] OTA firmware update flow for nodes
+- [ ] [P2] Historical trends and export tools for readings
+- [ ] [P3] Per-node diagnostics and maintenance view
 
 ## Notes
 
