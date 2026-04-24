@@ -1,11 +1,10 @@
 #include "NvsConfig.h"
 #include <Preferences.h>
 #include "AppConfig.h"
+#include "PowerPolicy.h"
 
 namespace {
-unsigned long sReadIntervalMs = 0;
-unsigned long sTelemetryIntervalMs = 0;
-unsigned long sQueueIntervalMs = 0;
+unsigned long sIntervalMs = 0;
 }
 
 bool NvsConfig::hasWifiCredentials() {
@@ -67,16 +66,24 @@ String NvsConfig::getNodeCapability() {
   return val;
 }
 
+unsigned long NvsConfig::getIntervalMs() {
+  return sIntervalMs > 0 ? sIntervalMs : kAppConfig.pushIntervalMs;
+}
+
 unsigned long NvsConfig::getReadIntervalMs() {
-  return sReadIntervalMs > 0 ? sReadIntervalMs : kAppConfig.readIntervalMs;
+  return getIntervalMs();
 }
 
 unsigned long NvsConfig::getTelemetryIntervalMs() {
-  return sTelemetryIntervalMs > 0 ? sTelemetryIntervalMs : kAppConfig.pushIntervalMs;
+  return getIntervalMs();
 }
 
 unsigned long NvsConfig::getQueueIntervalMs() {
-  return sQueueIntervalMs > 0 ? sQueueIntervalMs : kAppConfig.commandPollIntervalMs;
+  return getIntervalMs();
+}
+
+unsigned long NvsConfig::getTelemetrySuspendCutoffMs() {
+  return PowerPolicy::kSuspendCutoffMs;
 }
 
 void NvsConfig::setWifiCredentials(const String& ssid, const String& pass) {
@@ -108,16 +115,20 @@ void NvsConfig::setNodeCapability(const String& capability) {
   prefs.end();
 }
 
+void NvsConfig::setIntervalMs(unsigned long intervalMs) {
+  sIntervalMs = intervalMs;
+}
+
 void NvsConfig::setReadIntervalMs(unsigned long intervalMs) {
-  sReadIntervalMs = intervalMs;
+  setIntervalMs(intervalMs);
 }
 
 void NvsConfig::setTelemetryIntervalMs(unsigned long intervalMs) {
-  sTelemetryIntervalMs = intervalMs;
+  setIntervalMs(intervalMs);
 }
 
 void NvsConfig::setQueueIntervalMs(unsigned long intervalMs) {
-  sQueueIntervalMs = intervalMs;
+  setIntervalMs(intervalMs);
 }
 
 void NvsConfig::factoryReset() {

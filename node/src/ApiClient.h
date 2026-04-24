@@ -12,16 +12,19 @@ class ApiClient {
 
   void begin();
   void loop();
+  bool consumeSuccessfulPublish();
+  bool hasSuccessfulPublish() const;
 
  private:
   bool shouldPublish() const;
   String buildPayload() const;
   String ingestUrl() const;
-  void publishHeartbeat();
+  bool publishHeartbeat();
 
   Logger& logger_;
   const NodeHealth& health_;
   SensorManager& sensors_;
   unsigned long lastPublishAt_ = 0;
   unsigned long lastNetworkLatencyMs_ = 0;
+  bool successfulPublishPending_ = false;
 };

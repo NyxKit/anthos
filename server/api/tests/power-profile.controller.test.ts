@@ -41,9 +41,7 @@ describe('PowerProfileController', () => {
     }))
     expect(registry.setPowerProfileAssignment).toHaveBeenCalled()
     expect(commands.enqueuePowerProfileCommand).toHaveBeenCalledWith('node-001', expect.objectContaining({
-      readIntervalMs: 600000,
-      telemetryIntervalMs: 600000,
-      queueIntervalMs: 600000,
+      intervalMs: 600000,
     }))
     expect(res.json).toHaveBeenCalled()
   })

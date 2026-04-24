@@ -99,9 +99,7 @@ export class PowerProfileController {
     }
 
     await this.commands.enqueuePowerProfileCommand(nodeId, {
-      readIntervalMs: profile.readIntervalMs,
-      telemetryIntervalMs: profile.telemetryIntervalMs,
-      queueIntervalMs: profile.queueIntervalMs,
+      intervalMs: profile.intervalMs,
     })
 
     await this.saveDb()

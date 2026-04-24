@@ -7,6 +7,7 @@
 #include "Logger.h"
 #include "NodeHealth.h"
 #include "NvsConfig.h"
+#include "PowerPolicy.h"
 #include "ProvisioningManager.h"
 #include "PumpActuator.h"
 #include "SensorManager.h"
@@ -20,6 +21,8 @@ class NodeApp {
   const char* describePortMode() const;
   void syncNodeRegistration();
   void applyHardwareProfileIfNeeded();
+  void maybeSuspendAfterTelemetry();
+  void holdAfterCycle();
 
   Logger             logger_;
   ProvisioningManager provisioning_;
@@ -32,5 +35,6 @@ class NodeApp {
   ApiClient          api_{logger_, health_, sensors_};
   unsigned long      lastReadAt_ = 0;
   unsigned long      lastRegisterAt_ = 0;
+  unsigned long      suspendHoldUntilAt_ = 0;
   String             appliedCapability_ = "";
 };

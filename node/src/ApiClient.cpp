@@ -20,6 +20,19 @@ void ApiClient::loop() {
   publishHeartbeat();
 }
 
+bool ApiClient::consumeSuccessfulPublish() {
+  if (!successfulPublishPending_) {
+    return false;
+  }
+
+  successfulPublishPending_ = false;
+  return true;
+}
+
+bool ApiClient::hasSuccessfulPublish() const {
+  return successfulPublishPending_;
+}
+
 bool ApiClient::shouldPublish() const {
   if (NvsConfig::getServerUrl().length() == 0) return false;
   if (!health_.isWifiConnected()) return false;
@@ -69,18 +82,18 @@ String ApiClient::ingestUrl() const {
   return base + "/api/ingest";
 }
 
-void ApiClient::publishHeartbeat() {
+bool ApiClient::publishHeartbeat() {
   const String url = ingestUrl();
-  if (url.length() == 0) return;
+  if (url.length() == 0) return false;
 
   lastPublishAt_ = millis();
-  if (!health_.isWifiConnected()) return;
+  if (!health_.isWifiConnected()) return false;
 
   HTTPClient http;
   http.setTimeout(2000);
   if (!http.begin(url)) {
     logger_.info("api: begin failed");
-    return;
+    return false;
   }
 
   http.addHeader("Content-Type", "application/json");
@@ -110,4 +123,10 @@ void ApiClient::publishHeartbeat() {
     }
   }
   http.end();
+  if (statusCode >= 200 && statusCode < 300) {
+    successfulPublishPending_ = true;
+    return true;
+  }
+
+  return false;
 }

@@ -12,6 +12,7 @@ class CommandClient {
 
   void begin();
   void loop();
+  bool pollNow();
 
  private:
   bool shouldPoll() const;
@@ -20,9 +21,7 @@ class CommandClient {
   void pollCommands();
   bool processCommand(const String& commandId, unsigned long durationMs);
   void processPowerProfileCommand(const String& commandId,
-                                  unsigned long readIntervalMs,
-                                  unsigned long telemetryIntervalMs,
-                                  unsigned long queueIntervalMs);
+                                  unsigned long intervalMs);
   bool acknowledgeCommand(const String& commandId, const char* result, const char* message);
 
   Logger& logger_;

@@ -211,7 +211,7 @@ export class NodeRegistryService {
         power_profile_assigned_at=?
       WHERE node_id=?
     `)
-    stmt.run([profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, updatedAt, nodeId])
+    stmt.run([profile.id, profile.intervalMs, profile.intervalMs, profile.intervalMs, updatedAt, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
@@ -219,7 +219,7 @@ export class NodeRegistryService {
       WHERE node_id=? AND power_profile_id=?
         AND power_profile_read_interval_ms=? AND power_profile_telemetry_interval_ms=? AND power_profile_queue_interval_ms=?
     `)
-    checkStmt.bind([nodeId, profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
+    checkStmt.bind([nodeId, profile.id, profile.intervalMs, profile.intervalMs, profile.intervalMs])
     const updated = checkStmt.step()
     checkStmt.free()
 
@@ -236,7 +236,7 @@ export class NodeRegistryService {
         power_profile_applied_at=?
       WHERE node_id=?
     `)
-    stmt.run([profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs, appliedAt, nodeId])
+    stmt.run([profile.id, profile.intervalMs, profile.intervalMs, profile.intervalMs, appliedAt, nodeId])
     stmt.free()
 
     const checkStmt = this.db.prepare(`
@@ -244,7 +244,7 @@ export class NodeRegistryService {
       WHERE node_id=?
        AND power_profile_applied_id=? AND power_profile_applied_read_interval_ms=? AND power_profile_applied_telemetry_interval_ms=? AND power_profile_applied_queue_interval_ms=?`
     )
-    checkStmt.bind([nodeId, profile.id, profile.readIntervalMs, profile.telemetryIntervalMs, profile.queueIntervalMs])
+    checkStmt.bind([nodeId, profile.id, profile.intervalMs, profile.intervalMs, profile.intervalMs])
     const updated = checkStmt.step()
     checkStmt.free()
 
@@ -327,9 +327,7 @@ export class NodeRegistryService {
   private rowToAssignmentState(row: Record<string, unknown>): PowerProfileAssignmentState {
     return {
       profileId: String(row['power_profile_id']) as PowerProfileAssignmentState['profileId'],
-      readIntervalMs: Number(row['power_profile_read_interval_ms'] ?? 0),
-      telemetryIntervalMs: Number(row['power_profile_telemetry_interval_ms'] ?? 0),
-      queueIntervalMs: Number(row['power_profile_queue_interval_ms'] ?? 0),
+      intervalMs: Number(row['power_profile_telemetry_interval_ms'] ?? row['power_profile_read_interval_ms'] ?? row['power_profile_queue_interval_ms'] ?? 0),
       updatedAt: Number(row['power_profile_assigned_at'] ?? 0),
     }
   }
@@ -337,9 +335,7 @@ export class NodeRegistryService {
   private rowToAppliedState(row: Record<string, unknown>): PowerProfileAppliedState {
     return {
       profileId: String(row['power_profile_applied_id']) as PowerProfileAppliedState['profileId'],
-      readIntervalMs: Number(row['power_profile_applied_read_interval_ms'] ?? 0),
-      telemetryIntervalMs: Number(row['power_profile_applied_telemetry_interval_ms'] ?? 0),
-      queueIntervalMs: Number(row['power_profile_applied_queue_interval_ms'] ?? 0),
+      intervalMs: Number(row['power_profile_applied_telemetry_interval_ms'] ?? row['power_profile_applied_read_interval_ms'] ?? row['power_profile_applied_queue_interval_ms'] ?? 0),
       appliedAt: Number(row['power_profile_applied_at'] ?? 0),
     }
   }

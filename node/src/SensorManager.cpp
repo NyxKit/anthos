@@ -3,11 +3,24 @@
 #include <Arduino.h>
 
 void SensorManager::begin() {
+  suspended_ = false;
   dlight_.begin(true);
   earth_.begin(true);
 }
 
+void SensorManager::suspend() {
+  suspended_ = true;
+}
+
+void SensorManager::resume() {
+  suspended_ = false;
+}
+
 void SensorManager::readAll() {
+  if (suspended_) {
+    return;
+  }
+
   dlight_.read();
   env_.read();
   earth_.read();

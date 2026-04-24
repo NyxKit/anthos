@@ -18,15 +18,18 @@ class NvsConfig {
   static String getServerUrl();  // full URL, e.g. "http://192.168.1.10:3000"
   static String getNodeId();
   static String getNodeCapability();
+  static unsigned long getIntervalMs();
   static unsigned long getReadIntervalMs();
   static unsigned long getTelemetryIntervalMs();
   static unsigned long getQueueIntervalMs();
+  static unsigned long getTelemetrySuspendCutoffMs();
 
   // Setters
   static void setWifiCredentials(const String& ssid, const String& pass);
   static void setServerUrl(const String& url);
   static void setNodeId(const String& nodeId);
   static void setNodeCapability(const String& capability);
+  static void setIntervalMs(unsigned long intervalMs);
   static void setReadIntervalMs(unsigned long intervalMs);
   static void setTelemetryIntervalMs(unsigned long intervalMs);
   static void setQueueIntervalMs(unsigned long intervalMs);

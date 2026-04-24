@@ -143,16 +143,14 @@ export class CommandController {
     }
 
     if (command.type === CommandType.PowerProfile && result === 'completed') {
-      const payload = command.payload as { readIntervalMs?: number; telemetryIntervalMs?: number; queueIntervalMs?: number }
+      const payload = command.payload as { intervalMs?: number }
       const state = this.registry.getPowerProfileState(nodeId)
       const assignment = state?.assignment
-      if (assignment && payload.readIntervalMs && payload.telemetryIntervalMs && payload.queueIntervalMs) {
+      if (assignment && payload.intervalMs) {
         const profile = POWER_PROFILES[assignment.profileId]
         this.registry.setPowerProfileApplied(nodeId, {
           ...profile,
-          readIntervalMs: payload.readIntervalMs,
-          telemetryIntervalMs: payload.telemetryIntervalMs,
-          queueIntervalMs: payload.queueIntervalMs,
+          intervalMs: payload.intervalMs,
         })
         await this.saveDb()
       }

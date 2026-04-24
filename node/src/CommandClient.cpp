@@ -34,6 +34,18 @@ void CommandClient::loop() {
   pollCommands();
 }
 
+bool CommandClient::pollNow() {
+  const bool canPoll = NvsConfig::getServerUrl().length() > 0 &&
+                       NvsConfig::getNodeId().length() > 0 &&
+                       health_.isWifiConnected();
+  if (!canPoll) {
+    return false;
+  }
+
+  pollCommands();
+  return true;
+}
+
 bool CommandClient::shouldPoll() const {
   if (NvsConfig::getServerUrl().length() == 0) return false;
   if (NvsConfig::getNodeId().length() == 0) return false;
@@ -124,9 +136,7 @@ void CommandClient::pollCommands() {
     if (std::strcmp(type, "power-profile") == 0) {
       processPowerProfileCommand(
         commandId,
-        payload["readIntervalMs"] | 0,
-        payload["telemetryIntervalMs"] | 0,
-        payload["queueIntervalMs"] | 0
+        payload["intervalMs"] | 0
       );
       continue;
     }
@@ -147,18 +157,17 @@ bool CommandClient::processCommand(const String& commandId, unsigned long durati
 
 void CommandClient::processPowerProfileCommand(
     const String& commandId,
-    unsigned long readIntervalMs,
-    unsigned long telemetryIntervalMs,
-    unsigned long queueIntervalMs) {
-  if (readIntervalMs == 0 || telemetryIntervalMs == 0 || queueIntervalMs == 0) {
+    unsigned long intervalMs) {
+  if (intervalMs == 0) {
     acknowledgeCommand(commandId, "failed", "invalid power profile payload");
     return;
   }
 
-  NvsConfig::setReadIntervalMs(readIntervalMs);
-  NvsConfig::setTelemetryIntervalMs(telemetryIntervalMs);
-  NvsConfig::setQueueIntervalMs(queueIntervalMs);
-  Serial.printf("cadence status=applied read_ms=%lu telemetry_ms=%lu queue_ms=%lu\n", readIntervalMs, telemetryIntervalMs, queueIntervalMs);
+  NvsConfig::setIntervalMs(intervalMs);
+  NvsConfig::setReadIntervalMs(intervalMs);
+  NvsConfig::setTelemetryIntervalMs(intervalMs);
+  NvsConfig::setQueueIntervalMs(intervalMs);
+  Serial.printf("cadence status=applied interval_ms=%lu\n", intervalMs);
   acknowledgeCommand(commandId, "completed", "power profile applied");
 }
 

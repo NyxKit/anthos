@@ -1,7 +1,10 @@
 #include "NodeApp.h"
 
 #include <Arduino.h>
+#include <WiFi.h>
 #include <Wire.h>
+
+#include <esp_sleep.h>
 
 #include "AppConfig.h"
 #include "BleProvisioning.h"
@@ -58,15 +61,53 @@ void NodeApp::loop() {
   applyHardwareProfileIfNeeded();
   commands_.loop();
   api_.loop();
+  holdAfterCycle();
+  maybeSuspendAfterTelemetry();
 
   const auto now = millis();
-  if (now - lastReadAt_ < NvsConfig::getReadIntervalMs()) {
+  if (now - lastReadAt_ < NvsConfig::getIntervalMs()) {
     delay(10);
     return;
   }
 
   lastReadAt_ = now;
   sensors_.readAll();
+}
+
+void NodeApp::maybeSuspendAfterTelemetry() {
+  if (suspendHoldUntilAt_ == 0) {
+    return;
+  }
+
+  const auto now = millis();
+  if (now < suspendHoldUntilAt_) {
+    return;
+  }
+
+  const unsigned long intervalMs = NvsConfig::getIntervalMs();
+  if (!PowerPolicy::shouldSuspendAfterTelemetry(intervalMs)) {
+    suspendHoldUntilAt_ = 0;
+    return;
+  }
+
+  commands_.pollNow();
+  suspendHoldUntilAt_ = 0;
+
+  Serial.printf("[PWR] Deep sleep for %lu ms\n", intervalMs);
+  sensors_.suspend();
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  delay(100);
+  esp_sleep_enable_timer_wakeup(static_cast<uint64_t>(intervalMs) * 1000ULL);
+  esp_deep_sleep_start();
+}
+
+void NodeApp::holdAfterCycle() {
+  if (!api_.consumeSuccessfulPublish()) {
+    return;
+  }
+
+  suspendHoldUntilAt_ = millis() + PowerPolicy::kSuspendHoldMs;
 }
 
 void NodeApp::syncNodeRegistration() {
