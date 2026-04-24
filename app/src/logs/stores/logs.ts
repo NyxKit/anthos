@@ -15,6 +15,7 @@ export const useLogStore = defineStore('logs', () => {
   const source = ref('')
   const level = ref<LogLevel | ''>('')
   const query = ref('')
+  const showTelemetry = ref(false)
   const selectedDay = ref<string | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -39,6 +40,16 @@ export const useLogStore = defineStore('logs', () => {
       before: before ?? undefined,
       limit,
     }
+  }
+
+  function isTelemetryEntry(entry: LogEntry): boolean {
+    return entry.source === 'Telemetry received'
+      || entry.message.startsWith('Telemetry received')
+  }
+
+  function applyTelemetryFilter(buffer: LogEntry[]): LogEntry[] {
+    if (showTelemetry.value) return buffer
+    return buffer.filter(entry => !isTelemetryEntry(entry))
   }
 
   function formatDay(day: string | null): string {
@@ -71,7 +82,7 @@ export const useLogStore = defineStore('logs', () => {
   }
 
   function replaceEntries(response: LogListResponse): void {
-    entries.value = trimEntries(hydrateEntries(response.items))
+    entries.value = trimEntries(applyTelemetryFilter(hydrateEntries(response.items)))
     hasMore.value = response.hasMore
     historyCursor.value = response.nextCursor
     archiveStatus.value = response.archiveStatus ?? 'available'
@@ -79,6 +90,10 @@ export const useLogStore = defineStore('logs', () => {
 
   function mergeLiveEntry(entry: LogEntry): void {
     const hydrated = hydrateEntry(entry)
+    if (!showTelemetry.value && isTelemetryEntry(hydrated)) {
+      return
+    }
+
     const index = entries.value.findIndex(item => item.id === hydrated.id)
     if (index === -1) {
       entries.value = trimEntries([hydrated, ...entries.value])
@@ -157,7 +172,7 @@ export const useLogStore = defineStore('logs', () => {
       const response = await anthos.logs.list(buildFilters(historyCursor.value))
       entries.value = trimEntries([
         ...entries.value,
-        ...hydrateEntries(response.items.filter(item => !entries.value.some(existing => existing.id === item.id))),
+        ...applyTelemetryFilter(hydrateEntries(response.items.filter(item => !entries.value.some(existing => existing.id === item.id)))),
       ])
       hasMore.value = response.hasMore
       historyCursor.value = response.nextCursor
@@ -185,6 +200,7 @@ export const useLogStore = defineStore('logs', () => {
     source.value = emptyFilter()
     level.value = ''
     query.value = emptyFilter()
+    showTelemetry.value = false
     selectedDay.value = null
     await reload()
   }
@@ -199,6 +215,7 @@ export const useLogStore = defineStore('logs', () => {
     source,
     level,
     query,
+    showTelemetry,
     selectedDay,
     isLoading,
     error,

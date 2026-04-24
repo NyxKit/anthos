@@ -31,8 +31,8 @@ class NodeApp {
   HubClient          hub_;
   SensorManager      sensors_;
   PumpActuator       pump_{logger_};
-  CommandClient      commands_{logger_, health_, pump_};
   ApiClient          api_{logger_, health_, sensors_};
+  CommandClient      commands_{logger_, health_, pump_, api_};
   unsigned long      lastReadAt_ = 0;
   unsigned long      lastRegisterAt_ = 0;
   unsigned long      suspendHoldUntilAt_ = 0;

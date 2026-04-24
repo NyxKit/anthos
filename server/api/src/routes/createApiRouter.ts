@@ -77,6 +77,7 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   router.post('/nodes/:nodeId/commands/:commandId/ack', commandController.acknowledge)
 
   router.get('/logs', logsController.list)
+  router.post('/logs', logsController.create)
   router.get('/logs/stream', logsController.stream)
 
   router.get('/automations', automationController.list)

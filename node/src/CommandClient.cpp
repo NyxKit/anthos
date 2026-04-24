@@ -7,8 +7,8 @@
 #include "AppConfig.h"
 #include "NvsConfig.h"
 
-CommandClient::CommandClient(Logger& logger, const NodeHealth& health, PumpActuator& pump)
-    : logger_(logger), health_(health), pump_(pump) {}
+CommandClient::CommandClient(Logger& logger, const NodeHealth& health, PumpActuator& pump, ApiClient& api)
+    : logger_(logger), health_(health), pump_(pump), api_(api) {}
 
 void CommandClient::begin() {
   if (shouldPoll()) {
@@ -25,6 +25,7 @@ void CommandClient::loop() {
 
   if (activePumpAckPending_ && activePumpCommandId_.length() > 0 && !pump_.isRunning()) {
     if (acknowledgeCommand(activePumpCommandId_, "completed", "pump completed")) {
+      api_.publishLog("watering", "Watering done", "info");
       activePumpCommandId_ = "";
       activePumpAckPending_ = false;
     }
@@ -119,6 +120,8 @@ void CommandClient::pollCommands() {
       continue;
     }
 
+    logCommandReceived(commandId, type);
+
     if (std::strcmp(type, "pump") == 0) {
       if (activePumpCommandId_.length() > 0 && activePumpCommandId_ != commandId) {
         continue;
@@ -152,6 +155,8 @@ bool CommandClient::processCommand(const String& commandId, unsigned long durati
     return false;
   }
 
+  api_.publishLog("watering", "Watering started", "info");
+
   return true;
 }
 
@@ -175,14 +180,6 @@ bool CommandClient::acknowledgeCommand(const String& commandId, const char* resu
   const String url = ackUrl(commandId);
   if (url.length() == 0) return false;
 
-  HTTPClient http;
-  http.setTimeout(2000);
-  if (!http.begin(url)) {
-    logger_.info("commands: ack begin failed");
-    return false;
-  }
-
-  http.addHeader("Content-Type", "application/json");
   StaticJsonDocument<256> doc;
   doc["result"] = result;
   if (message != nullptr && std::strlen(message) > 0) {
@@ -191,14 +188,15 @@ bool CommandClient::acknowledgeCommand(const String& commandId, const char* resu
 
   String body;
   serializeJson(doc, body);
-  const int statusCode = http.POST(body);
-  if (statusCode < 0) {
-    Serial.printf("commands ack_error=%s command=%s\n", http.errorToString(statusCode).c_str(), commandId.c_str());
-    http.end();
-    return false;
-  }
+  return api_.postJson("command-ack", url, body) == ApiClient::HttpPostResult::Success;
+}
 
-  Serial.printf("commands ack_status=%d command=%s result=%s\n", statusCode, commandId.c_str(), result);
-  http.end();
-  return statusCode >= 200 && statusCode < 300;
+void CommandClient::logCommandReceived(const String& commandId, const char* type) {
+  StaticJsonDocument<128> doc;
+  doc["commandId"] = commandId;
+  doc["type"] = type;
+
+  String meta;
+  serializeJson(doc, meta);
+  api_.publishLog("command-queue", "Command received", "info", meta.c_str());
 }

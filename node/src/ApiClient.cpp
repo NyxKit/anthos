@@ -2,6 +2,7 @@
 
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
+#include <cstring>
 
 #include "AppConfig.h"
 #include "BleProvisioning.h"
@@ -82,6 +83,64 @@ String ApiClient::ingestUrl() const {
   return base + "/api/ingest";
 }
 
+String ApiClient::logsUrl() const {
+  String base = NvsConfig::getServerUrl();
+  if (base.length() == 0) return "";
+  if (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+  return base + "/api/logs";
+}
+
+ApiClient::HttpPostResult ApiClient::postJson(const char* label, const String& url, const String& payload) {
+  HTTPClient http;
+  http.setTimeout(2000);
+  if (!http.begin(url)) {
+    Serial.printf("%s begin failed target=%s\n", label, url.c_str());
+    return HttpPostResult::NetworkError;
+  }
+
+  http.addHeader("Content-Type", "application/json");
+  const int statusCode = http.POST(payload);
+  if (statusCode < 0) {
+    Serial.printf("%s error=%s target=%s\n", label, http.errorToString(statusCode).c_str(), url.c_str());
+    http.end();
+    return HttpPostResult::NetworkError;
+  }
+
+  Serial.printf("%s status=%d target=%s\n", label, statusCode, url.c_str());
+  // The current split is actually clearer:
+  // - < 0 = network/client error
+  // - 200-299 = success
+  // - everything else = HTTP failure
+  http.end();
+  if (statusCode >= 200 && statusCode < 300) {
+    return HttpPostResult::Success;
+  }
+
+  return HttpPostResult::HttpFailure;
+}
+
+bool ApiClient::publishLog(const char* source, const char* message, const char* level, const char* metaJson) {
+  if (NvsConfig::getServerUrl().length() == 0) return false;
+  if (!health_.isWifiConnected()) return false;
+
+  StaticJsonDocument<256> doc;
+  doc["nodeId"] = NvsConfig::hasNodeId() ? NvsConfig::getNodeId().c_str() : nullptr;
+  doc["source"] = source;
+  doc["level"] = level;
+  doc["message"] = message;
+  doc["timestampMs"] = millis();
+  if (metaJson != nullptr && std::strlen(metaJson) > 0) {
+    StaticJsonDocument<128> meta;
+    if (deserializeJson(meta, metaJson) == DeserializationError::Ok) {
+      doc["meta"] = meta.as<JsonObjectConst>();
+    }
+  }
+
+  String payload;
+  serializeJson(doc, payload);
+  return postJson("logs", logsUrl(), payload) == HttpPostResult::Success;
+}
+
 bool ApiClient::publishHeartbeat() {
   const String url = ingestUrl();
   if (url.length() == 0) return false;
@@ -89,6 +148,7 @@ bool ApiClient::publishHeartbeat() {
   lastPublishAt_ = millis();
   if (!health_.isWifiConnected()) return false;
 
+  const unsigned long startedAt = millis();
   HTTPClient http;
   http.setTimeout(2000);
   if (!http.begin(url)) {
@@ -97,36 +157,40 @@ bool ApiClient::publishHeartbeat() {
   }
 
   http.addHeader("Content-Type", "application/json");
-  const unsigned long startedAt = millis();
   const int statusCode = http.POST(buildPayload());
   lastNetworkLatencyMs_ = millis() - startedAt;
   if (statusCode < 0) {
     Serial.printf("api error=%s target=%s\n", http.errorToString(statusCode).c_str(), url.c_str());
-  } else {
-    Serial.printf("api status=%d target=%s\n", statusCode, url.c_str());
+    http.end();
+    return false;
+  }
 
-    if (statusCode >= 200 && statusCode < 300) {
-      const String response = http.getString();
-      if (response.length() > 0) {
-        StaticJsonDocument<128> resp;
-        if (deserializeJson(resp, response) == DeserializationError::Ok) {
-          const String assignedNodeId = resp["nodeId"] | "";
-          if (assignedNodeId.length() > 0 && assignedNodeId != NvsConfig::getNodeId()) {
-            NvsConfig::setNodeId(assignedNodeId);
-            Serial.printf("[API] Synced node_id=%s from ingest response\n", assignedNodeId.c_str());
-          }
+  Serial.printf("api status=%d target=%s\n", statusCode, url.c_str());
+  // The current split is actually clearer:
+  // - < 0 = network/client error
+  // - 200-299 = success
+  // - everything else = HTTP failure
+  if (statusCode < 200 || statusCode >= 300) {
+    http.end();
+    return false;
+  }
 
-          const String capability = resp["capability"] | "earth";
-          NvsConfig::setNodeCapability(capability == "watering" ? "watering" : "earth");
-        }
+  const String response = http.getString();
+  if (response.length() > 0) {
+    StaticJsonDocument<128> resp;
+    if (deserializeJson(resp, response) == DeserializationError::Ok) {
+      const String assignedNodeId = resp["nodeId"] | "";
+      if (assignedNodeId.length() > 0 && assignedNodeId != NvsConfig::getNodeId()) {
+        NvsConfig::setNodeId(assignedNodeId);
+        Serial.printf("[API] Synced node_id=%s from ingest response\n", assignedNodeId.c_str());
       }
+
+      const String capability = resp["capability"] | "earth";
+      NvsConfig::setNodeCapability(capability == "watering" ? "watering" : "earth");
     }
   }
-  http.end();
-  if (statusCode >= 200 && statusCode < 300) {
-    successfulPublishPending_ = true;
-    return true;
-  }
 
-  return false;
+  http.end();
+  successfulPublishPending_ = true;
+  return true;
 }

@@ -114,6 +114,7 @@ void NodeApp::maybeSuspendAfterTelemetry() {
   suspendHoldUntilAt_ = 0;
 
   Serial.printf("[PWR] Deep sleep for %lu ms\n", intervalMs);
+  api_.publishLog("power", "I'm hibernating now");
   sensors_.suspend();
   WiFi.disconnect(true);
   WiFi.mode(WIFI_OFF);

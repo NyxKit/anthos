@@ -16,6 +16,42 @@ const parseOptionalString = (value: unknown): string | undefined => {
 export class LogsController {
   constructor(private readonly logArchive: LogArchiveService) {}
 
+  create: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const body = req.body as {
+      nodeId?: unknown
+      level?: unknown
+      source?: unknown
+      message?: unknown
+      meta?: unknown
+      timestamp?: unknown
+      timestampMs?: unknown
+    }
+
+    const source = parseOptionalString(body.source)
+    const message = parseOptionalString(body.message)
+    const level = parseOptionalString(body.level) as 'debug' | 'info' | 'warn' | 'error' | undefined
+
+    if (!source || !message) {
+      res.status(400).json({ error: 'Invalid log payload' })
+      return
+    }
+
+    const entry = await this.logArchive.recordEntry({
+      nodeId: parseOptionalString(body.nodeId) ?? null,
+      level: level ?? 'info',
+      source,
+      message,
+      meta: typeof body.meta === 'object' && body.meta !== null ? body.meta as Record<string, unknown> : undefined,
+      timestamp: typeof body.timestamp === 'number'
+        ? body.timestamp
+        : typeof body.timestampMs === 'number'
+          ? body.timestampMs
+          : undefined,
+    })
+
+    res.status(202).json({ status: 'accepted', id: entry.id })
+  }
+
   list: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const response = await this.logArchive.list({
       nodeId: parseOptionalString(req.query['nodeId']),
