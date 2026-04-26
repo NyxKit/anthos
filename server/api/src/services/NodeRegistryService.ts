@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Database } from 'sql.js'
 
 import type {
@@ -12,9 +13,12 @@ import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
 import { DEFAULT_POWER_PROFILE } from '@anthos/shared/nodes/data/powerProfiles'
 
 export class NodeRegistryService {
-  constructor(private readonly db: Database) {}
+  constructor(
+    private readonly db: Database,
+    private readonly saveDb?: () => Promise<void>
+  ) {}
 
-  upsertHardwareNode(hwId: string, firmwareVersion = ''): void {
+  async upsertHardwareNode(hwId: string, firmwareVersion = ''): Promise<void> {
     const now = Date.now()
     const hasFirmwareVersion = firmwareVersion.length > 0
 
@@ -31,6 +35,7 @@ export class NodeRegistryService {
       `)
       updateStmt.run([now, firmwareVersion, hwId])
       updateStmt.free()
+      await this.persist()
       return
     }
 
@@ -39,6 +44,7 @@ export class NodeRegistryService {
     `)
     updateStmt.run([now, hwId])
     updateStmt.free()
+    await this.persist()
   }
 
   findLogicalNodeByHwId(hwId: string): LogicalNodeRecord | null {
@@ -60,29 +66,48 @@ export class NodeRegistryService {
     return this.rowToRecord(row)
   }
 
-  createLogicalNode(hwId: string): string {
+  async createLogicalNode(hwId: string): Promise<string> {
     const now = Date.now()
 
-    const maxStmt = this.db.prepare(`
-      SELECT MAX(CAST(REPLACE(node_id,'node-','') AS INTEGER)) as max_num
-      FROM logical_nodes
-    `)
-    maxStmt.step()
-    const maxRow = maxStmt.getAsObject() as Record<string, unknown>
-    maxStmt.free()
+    this.ensureNodeIdCounter()
 
-    const maxNum = maxRow['max_num'] != null ? Number(maxRow['max_num']) : 0
-    const next = maxNum + 1
-    const nodeId = `node-${String(next).padStart(3, '0')}`
+    this.db.run('BEGIN IMMEDIATE TRANSACTION')
+    try {
+      const nextStmt = this.db.prepare(`
+        SELECT next_suffix
+        FROM node_id_counters
+        WHERE id = 1
+      `)
+      nextStmt.step()
+      const nextRow = nextStmt.getAsObject() as Record<string, unknown>
+      nextStmt.free()
 
-    const insertStmt = this.db.prepare(`
-      INSERT INTO logical_nodes (node_id, hw_id, display_name, node_order, capability, registered_at)
-      VALUES (?, ?, NULL, NULL, 'earth', ?)
-    `)
-    insertStmt.run([nodeId, hwId, now])
-    insertStmt.free()
+      const next = Number(nextRow['next_suffix'] ?? 1)
+      const nodeId = `node-${String(next).padStart(3, '0')}`
 
-    return nodeId
+      const bumpStmt = this.db.prepare(`
+        UPDATE node_id_counters
+        SET next_suffix = next_suffix + 1
+        WHERE id = 1
+      `)
+      bumpStmt.run()
+      bumpStmt.free()
+
+      const insertStmt = this.db.prepare(`
+        INSERT INTO logical_nodes (node_id, hw_id, display_name, node_order, capability, registered_at)
+        VALUES (?, ?, NULL, NULL, 'earth', ?)
+      `)
+      insertStmt.run([nodeId, hwId, now])
+      insertStmt.free()
+
+      this.db.run('COMMIT')
+
+      await this.persist()
+      return nodeId
+    } catch (error) {
+      this.db.run('ROLLBACK')
+      throw error
+    }
   }
 
   listLogicalNodes(): LogicalNodeRecord[] {
@@ -121,7 +146,7 @@ export class NodeRegistryService {
     return this.rowToRecord(row)
   }
 
-  updateCapability(nodeId: string, capability: 'earth' | 'watering'): boolean {
+  async updateCapability(nodeId: string, capability: 'earth' | 'watering'): Promise<boolean> {
     const stmt = this.db.prepare(`
       UPDATE logical_nodes SET capability=? WHERE node_id=?
     `)
@@ -135,10 +160,11 @@ export class NodeRegistryService {
     const updated = checkStmt.step()
     checkStmt.free()
 
+    await this.persist()
     return updated
   }
 
-  updateDisplayName(nodeId: string, displayName: string): boolean {
+  async updateDisplayName(nodeId: string, displayName: string): Promise<boolean> {
     const stmt = this.db.prepare(`
       UPDATE logical_nodes SET display_name=? WHERE node_id=?
     `)
@@ -152,10 +178,11 @@ export class NodeRegistryService {
     const updated = checkStmt.step()
     checkStmt.free()
 
+    await this.persist()
     return updated
   }
 
-  updateOrder(nodeId: string, order: number | null): boolean {
+  async updateOrder(nodeId: string, order: number | null): Promise<boolean> {
     const stmt = this.db.prepare(`
       UPDATE logical_nodes SET node_order=? WHERE node_id=?
     `)
@@ -169,6 +196,7 @@ export class NodeRegistryService {
     const updated = checkStmt.step()
     checkStmt.free()
 
+    await this.persist()
     return updated
   }
 
@@ -251,7 +279,7 @@ export class NodeRegistryService {
     return updated
   }
 
-  touchNodeByNodeId(nodeId: string): void {
+  async touchNodeByNodeId(nodeId: string): Promise<void> {
     const stmt = this.db.prepare(`
       UPDATE hardware_nodes
       SET last_seen = ?
@@ -261,6 +289,7 @@ export class NodeRegistryService {
     `)
     stmt.run([Date.now(), nodeId])
     stmt.free()
+    await this.persist()
   }
 
   countLogicalNodes(): number {
@@ -293,6 +322,86 @@ export class NodeRegistryService {
     stmt.free()
 
     return row['firmware_version'] != null ? String(row['firmware_version']) : null
+  }
+
+  getHardwareNodeWriteToken(hwId: string): string | null {
+    const stmt = this.db.prepare('SELECT device_token FROM hardware_nodes WHERE hw_id=?')
+    stmt.bind([hwId])
+    const hasRow = stmt.step()
+    if (!hasRow) {
+      stmt.free()
+      return null
+    }
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+
+    return row['device_token'] != null ? String(row['device_token']) : null
+  }
+
+  async ensureHardwareNodeWriteToken(hwId: string): Promise<string> {
+    const current = this.getHardwareNodeWriteToken(hwId)
+    if (current) return current
+
+    const token = randomUUID()
+    const stmt = this.db.prepare(`
+      UPDATE hardware_nodes
+      SET device_token=?
+      WHERE hw_id=?
+    `)
+    stmt.run([token, hwId])
+    stmt.free()
+    await this.persist()
+    return token
+  }
+
+  private async persist(): Promise<void> {
+    if (!this.saveDb) return
+    await this.saveDb()
+  }
+
+  private ensureNodeIdCounter(): void {
+    this.db.run(`
+      CREATE TABLE IF NOT EXISTS node_id_counters (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        next_suffix INTEGER NOT NULL
+      )
+    `)
+
+    const rowStmt = this.db.prepare(`
+      SELECT next_suffix
+      FROM node_id_counters
+      WHERE id = 1
+    `)
+    const hasRow = rowStmt.step()
+    rowStmt.free()
+
+    const maxStmt = this.db.prepare(`
+      SELECT MAX(CAST(REPLACE(node_id, 'node-', '') AS INTEGER)) AS max_num
+      FROM logical_nodes
+    `)
+    maxStmt.step()
+    const maxRow = maxStmt.getAsObject() as Record<string, unknown>
+    maxStmt.free()
+
+    const minNextSuffix = Number(maxRow['max_num'] ?? 0) + 1
+
+    if (!hasRow) {
+      const insertStmt = this.db.prepare(`
+        INSERT INTO node_id_counters (id, next_suffix)
+        VALUES (1, ?)
+      `)
+      insertStmt.run([minNextSuffix])
+      insertStmt.free()
+      return
+    }
+
+    const updateStmt = this.db.prepare(`
+      UPDATE node_id_counters
+      SET next_suffix = CASE WHEN next_suffix < ? THEN ? ELSE next_suffix END
+      WHERE id = 1
+    `)
+    updateStmt.run([minNextSuffix, minNextSuffix])
+    updateStmt.free()
   }
 
   private rowToRecord(row: Record<string, unknown>): LogicalNodeRecord {

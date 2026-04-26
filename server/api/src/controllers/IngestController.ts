@@ -6,13 +6,21 @@ import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
 import { AutomationEvaluator } from '../services/AutomationEvaluator.js'
 
+const readDeviceToken = (req: Request): string | null => {
+  const header = typeof req.header === 'function'
+    ? req.header('x-anthos-device-token')
+    : req.headers?.['x-anthos-device-token']
+
+  const value = Array.isArray(header) ? header[0] : header
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
 export class IngestController {
   constructor(
     private readonly telemetryService: TelemetryService,
     private readonly logArchive: LogArchiveService,
     private readonly registry: NodeRegistryService,
-    private readonly automations: AutomationEvaluator,
-    private readonly saveDb: () => Promise<void>
+    private readonly automations: AutomationEvaluator
   ) {}
 
   getLatestTelemetryByNode = (_req: Request, res: Response): void => {
@@ -34,15 +42,26 @@ export class IngestController {
       return
     }
 
-    this.registry.upsertHardwareNode(payload.hwId)
+    const deviceToken = readDeviceToken(req)
+    if (!deviceToken) {
+      res.status(401).json({ error: 'device_token_required' })
+      return
+    }
+
+    const storedToken = this.registry.getHardwareNodeWriteToken(payload.hwId)
+    if (!storedToken || storedToken !== deviceToken) {
+      res.status(403).json({ error: 'not_authorized' })
+      return
+    }
+
+    await this.registry.upsertHardwareNode(payload.hwId)
 
     let nodeId = payload.nodeId
     const existing = this.registry.findLogicalNodeByHwId(payload.hwId)
     if (existing) {
       nodeId = existing.nodeId
     } else {
-      nodeId = this.registry.createLogicalNode(payload.hwId)
-      await this.saveDb()
+      nodeId = await this.registry.createLogicalNode(payload.hwId)
     }
 
     const nodeRecord = this.registry.getLogicalNode(nodeId)

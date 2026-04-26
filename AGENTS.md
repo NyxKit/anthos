@@ -4,6 +4,10 @@
 
 Auto-generated from all feature plans. Last updated: 2026-04-12
 
+## Top Priority
+
+- Never create, stage, or push a git commit unless the user explicitly asks for it in the current request.
+
 ## Active Technologies
 
 | Layer | Language / Runtime | Key Dependencies |

@@ -1,5 +1,6 @@
 import type { Request, Response, RequestHandler } from 'express'
 
+import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
 
 const parseOptionalNumber = (value: unknown): number | undefined => {
@@ -13,8 +14,20 @@ const parseOptionalString = (value: unknown): string | undefined => {
   return value
 }
 
+const readDeviceToken = (req: Request): string | null => {
+  const header = typeof req.header === 'function'
+    ? req.header('x-anthos-device-token')
+    : req.headers?.['x-anthos-device-token']
+
+  const value = Array.isArray(header) ? header[0] : header
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
 export class LogsController {
-  constructor(private readonly logArchive: LogArchiveService) {}
+  constructor(
+    private readonly logArchive: LogArchiveService,
+    private readonly registry: NodeRegistryService
+  ) {}
 
   create: RequestHandler = async (req: Request, res: Response): Promise<void> => {
     const body = req.body as {
@@ -25,6 +38,31 @@ export class LogsController {
       meta?: unknown
       timestamp?: unknown
       timestampMs?: unknown
+    }
+
+    const nodeId = parseOptionalString(body.nodeId)
+    const deviceToken = readDeviceToken(req)
+
+    if (!nodeId) {
+      res.status(400).json({ error: 'nodeId is required' })
+      return
+    }
+
+    if (!deviceToken) {
+      res.status(401).json({ error: 'device_token_required' })
+      return
+    }
+
+    const node = this.registry.getLogicalNode(nodeId)
+    if (!node) {
+      res.status(403).json({ error: 'not_authorized' })
+      return
+    }
+
+    const storedToken = this.registry.getHardwareNodeWriteToken(node.hwId)
+    if (!storedToken || storedToken !== deviceToken) {
+      res.status(403).json({ error: 'not_authorized' })
+      return
     }
 
     const source = parseOptionalString(body.source)

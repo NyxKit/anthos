@@ -19,8 +19,6 @@ function resolveDbPath(): string {
 }
 
 const DB_PATH = resolveDbPath()
-const STORE_INTERVAL_MS = 60000
-
 interface Reading {
   nodeId: string
   timestamp: number
@@ -32,7 +30,6 @@ interface Reading {
 export class TelemetryService {
   private db: Database | null = null
   private latestPayload: TelemetryPayload | null = null
-  private lastStoredAt = 0
   private pendingReadings: Reading[] = []
 
   async init(): Promise<void> {
@@ -82,9 +79,20 @@ export class TelemetryService {
         hw_id            TEXT    PRIMARY KEY,
         first_seen       INTEGER NOT NULL,
         last_seen        INTEGER NOT NULL,
-        firmware_version TEXT
+        firmware_version TEXT,
+        device_token     TEXT
       )
     `)
+
+    const hardwareNodeColumns = this.db.exec('PRAGMA table_info(hardware_nodes)')
+    const hasDeviceTokenColumn = hardwareNodeColumns.some(result =>
+      result.columns.includes('name')
+        && result.values.some(row => String(row[result.columns.indexOf('name')]) === 'device_token')
+    )
+
+    if (!hasDeviceTokenColumn) {
+      this.db.run('ALTER TABLE hardware_nodes ADD COLUMN device_token TEXT')
+    }
 
     this.db.run(`
       CREATE TABLE IF NOT EXISTS logical_nodes (
@@ -292,10 +300,7 @@ export class TelemetryService {
       })
     }
 
-    if (timestamp - this.lastStoredAt >= STORE_INTERVAL_MS) {
-      await this.storePendingReadings()
-      this.lastStoredAt = timestamp
-    }
+    await this.storePendingReadings()
 
     console.log('telemetry.ingest', { 
       nodeId: payload.nodeId, 

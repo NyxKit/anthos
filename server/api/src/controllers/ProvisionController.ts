@@ -9,8 +9,7 @@ export class ProvisionController {
   constructor(
     private readonly registry: NodeRegistryService,
     private readonly pairing: PairingWindowService,
-    private readonly auth: AuthService,
-    private readonly saveDb: () => Promise<void>
+    private readonly auth: AuthService
   ) {}
 
   register: RequestHandler = async (req: Request, res: Response): Promise<void> => {
@@ -24,7 +23,8 @@ export class ProvisionController {
     const fwVersion = firmwareVersion ?? ''
 
     // Always upsert hardware node to track last_seen and firmware_version
-    this.registry.upsertHardwareNode(hwId, fwVersion)
+    await this.registry.upsertHardwareNode(hwId, fwVersion)
+    const deviceToken = await this.registry.ensureHardwareNodeWriteToken(hwId)
 
     const existing = this.registry.findLogicalNodeByHwId(hwId)
 
@@ -41,6 +41,7 @@ export class ProvisionController {
       if (firmwareUpdated) {
         response['firmwareUpdated'] = true
       }
+      response['deviceToken'] = deviceToken
 
       res.json(response)
       return
@@ -52,11 +53,10 @@ export class ProvisionController {
       return
     }
 
-    const nodeId = this.registry.createLogicalNode(hwId)
-    await this.saveDb()
+    const nodeId = await this.registry.createLogicalNode(hwId)
 
     const created = this.registry.getLogicalNode(nodeId)
-    res.json({ nodeId, status: 'registered', capability: created?.capability ?? 'earth' })
+    res.json({ nodeId, status: 'registered', capability: created?.capability ?? 'earth', deviceToken })
   }
 
   openProvisionWindow: RequestHandler = (_req: Request, res: Response): void => {
@@ -105,14 +105,12 @@ export class ProvisionController {
     const { capability } = req.body as { capability?: string }
 
     const normalizedCapability = capability === 'watering' ? 'watering' : 'earth'
-    const updated = this.registry.updateCapability(nodeId, normalizedCapability)
+    const updated = await this.registry.updateCapability(nodeId, normalizedCapability)
 
     if (!updated) {
       res.status(404).json({ error: 'Node not found' })
       return
     }
-
-    await this.saveDb()
 
     res.json(this.registry.getLogicalNode(nodeId))
   }
@@ -145,14 +143,12 @@ export class ProvisionController {
       return
     }
 
-    const updated = this.registry.updateDisplayName(nodeId, displayName.trim())
+    const updated = await this.registry.updateDisplayName(nodeId, displayName.trim())
 
     if (!updated) {
       res.status(404).json({ error: 'Node not found' })
       return
     }
-
-    await this.saveDb()
 
     res.json(this.registry.getLogicalNode(nodeId))
   }
@@ -181,14 +177,12 @@ export class ProvisionController {
     }
 
     const normalizedOrder = order === undefined ? null : (order === null ? null : Number(order))
-    const updated = this.registry.updateOrder(nodeId, normalizedOrder)
+    const updated = await this.registry.updateOrder(nodeId, normalizedOrder)
 
     if (!updated) {
       res.status(404).json({ error: 'Node not found' })
       return
     }
-
-    await this.saveDb()
 
     res.json(this.registry.getLogicalNode(nodeId))
   }

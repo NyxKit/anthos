@@ -1,159 +1,52 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { NyxActionItem, NyxButton, NyxDropdown, NyxIcon, NyxSpinner, NyxModal, NyxForm, NyxFormField, NyxInput, NyxSwitch } from 'nyx-kit/components'
 import { NyxInputNumberControls, NyxInputType, NyxShape, NyxSize, NyxTheme, NyxVariant, type NyxSelectOption } from 'nyx-kit/types'
-import anthos from '@anthos/shared/anthos'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
-import { useLogStore } from '@/logs/stores/logs'
-import { useNodesStore } from '@/nodes/stores/nodes'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 import { useAuthStore } from '@/auth/stores/auth'
 import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
 import { NodeStatus, PowerProfile } from '@anthos/shared'
-
-const PUMP_VOLUME_ML = 100
+import { useNodeCardEditState } from '@/dashboard/composables/useNodeCardEditState'
+import { useNodeCardPumpState } from '@/dashboard/composables/useNodeCardPumpState'
 
 const node = defineModel<PlantNode>({ required: true })
 
 const telemetryStore = useTelemetryStore()
-const logStore = useLogStore()
-const nodesStore = useNodesStore()
 const auth = useAuthStore()
 const powerProfileSelectOptions: NyxSelectOption<PowerProfile>[] = Object.values(POWER_PROFILES)
   .map(profile => ({ label: profile.label, value: profile.id, icon: profile.icon }))
 const canPerformActions = computed(() => auth.canPerformActions)
 
-const isEditModalOpen = ref(false)
-
 const nodeId = computed(() => node.value.id ?? node.value.nodeId)
 const { profileStateLoading, selectedProfileOption, applyPowerProfile } = useNodePowerProfile(nodeId)
-
-const pumpState = ref<'idle' | 'loading' | 'error'>('idle')
-const pumpError = ref<string | null>(null)
-const pumpVolumeMl = ref(String(PUMP_VOLUME_ML))
-const pendingPumpCommandId = ref<string | null>(null)
-
 const capability = computed(() => node.value?.capability ?? null)
 const nodeTelemetry = computed(() => nodeId.value ? telemetryStore.getNodeTelemetry(nodeId.value) : null)
 const isLiveNode = computed(() => node.value?.getStatus(nodeTelemetry.value?.timestampMs) === NodeStatus.Connected)
-const editDisplayName = ref(node.value.displayName ?? '')
-const editIsWateringUnit = ref(node.value.capability === 'watering')
-const editOrder = ref('')
-const isSavingDisplayName = ref(false)
 
-watch(() => node.value.displayName, value => {
-  if (!isEditModalOpen.value) {
-    editDisplayName.value = value ?? ''
-  }
-})
+const {
+  pumpState,
+  pumpError,
+  pumpVolumeMl,
+  isPumpPending,
+  pumpButtonLabel,
+  isPumpButtonDisabled,
+  handlePumpClick,
+} = useNodeCardPumpState(nodeId)
 
-watch(() => node.value.capability, value => {
-  if (!isEditModalOpen.value) {
-    editIsWateringUnit.value = value === 'watering'
-  }
-})
-
-watch(() => node.value.order, value => {
-  if (!isEditModalOpen.value) {
-    editOrder.value = value == null ? '' : String(value)
-  }
-})
-
-watch(isEditModalOpen, open => {
-  if (open) {
-    editDisplayName.value = node.value.displayName ?? ''
-    editIsWateringUnit.value = node.value.capability === 'watering'
-    editOrder.value = node.value.order == null ? '' : String(node.value.order)
-  }
-})
-
-const hasTerminalPumpLog = computed(() => {
-  if (!pendingPumpCommandId.value || !nodeId.value) return false
-
-  return logStore.entries.some(entry => {
-    const meta = entry.meta as { commandId?: string } | undefined
-    return meta?.commandId === pendingPumpCommandId.value
-      && (entry.message.includes('completed') || entry.message.includes('failed') || entry.message.includes('rejected'))
-  })
-})
-
-const isPumpPending = computed(() => Boolean(pendingPumpCommandId.value) && !hasTerminalPumpLog.value)
-
-const pumpButtonLabel = computed(() => {
-  if (pumpState.value === 'loading' || isPumpPending.value) return 'Pumping...'
-  return 'Pump'
-})
-
-const isPumpButtonDisabled = computed(() => pumpState.value === 'loading' || isPumpPending.value)
-
-watch(hasTerminalPumpLog, done => {
-  if (done && pendingPumpCommandId.value) {
-    pendingPumpCommandId.value = null
-    pumpState.value = 'idle'
-  }
-})
-
-onMounted(() => {
-  void logStore.start()
-})
-
-async function handlePumpClick() {
-  if (!nodeId.value) return
-
-  pumpState.value = 'loading'
-  pumpError.value = null
-
-  try {
-    const response = await anthos.nodes.queuePump(nodeId.value, Number(pumpVolumeMl.value))
-    pendingPumpCommandId.value = response.commandId
-    pumpState.value = 'idle'
-  } catch (error) {
-    pumpState.value = 'error'
-    pumpError.value = error instanceof Error ? error.message : 'Failed to queue pump command'
-  }
-}
+const {
+  isEditModalOpen,
+  editDisplayName,
+  editIsWateringUnit,
+  editOrder,
+  isSavingDisplayName,
+  handleEditSubmit,
+} = useNodeCardEditState(node, nodeId)
 
 async function handlePowerProfileSelect(option: NyxSelectOption<PowerProfile>) {
   if (!nodeId.value) return
   await applyPowerProfile(option.value)
-}
-
-async function handleEditSubmit(event: Event) {
-  event.preventDefault()
-  if (!nodeId.value) return
-
-  const nextDisplayName = editDisplayName.value.trim()
-  const nextCapability = editIsWateringUnit.value ? 'watering' : 'earth'
-  const nextOrderText = typeof editOrder.value === 'number' ? String(editOrder.value) : editOrder.value
-  const nextOrder = nextOrderText.trim() === '' ? null : Number(nextOrderText)
-  if (!nextDisplayName) return
-  if (nextOrder !== null && !Number.isFinite(nextOrder)) return
-
-  isSavingDisplayName.value = true
-
-  try {
-    if (nextDisplayName !== node.value.displayName) {
-      const updatedName = await nodesStore.updateDisplayName(nodeId.value, nextDisplayName)
-      if (updatedName) node.value = updatedName
-    }
-
-    if (nextCapability !== node.value.capability) {
-      const updatedCapability = await nodesStore.updateCapability(nodeId.value, nextCapability)
-      if (updatedCapability) node.value = updatedCapability
-    }
-
-    if ((nextOrder ?? null) !== node.value.order) {
-      const updatedOrder = await nodesStore.updateOrder(nodeId.value, nextOrder)
-      if (updatedOrder) node.value = updatedOrder
-    }
-
-    isEditModalOpen.value = false
-  } catch (error) {
-    console.error('Failed to update node', error)
-  } finally {
-    isSavingDisplayName.value = false
-  }
 }
 </script>
 

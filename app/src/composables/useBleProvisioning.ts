@@ -12,13 +12,24 @@ const disconnect = () =>
   invoke<void>('plugin:blec|disconnect')
 const writeWithResponse = (serviceUuid: string, characteristicUuid: string, data: number[]) =>
   invoke<void>('plugin:blec|write_with_response', { serviceUuid, characteristicUuid, data })
-const startNotify = (serviceUuid: string, characteristicUuid: string, callback: (data: number[]) => void) =>
-  invoke<void>('plugin:blec|start_notify', { serviceUuid, characteristicUuid }).then(() => {
-    // Listen for notification events emitted by the plugin
-    window.addEventListener(`blec:notify:${characteristicUuid}`, (e: Event) => {
-      callback((e as CustomEvent<number[]>).detail)
-    })
-  })
+
+export function createBleNotifySubscription(characteristicUuid: string, callback: (data: number[]) => void): () => void {
+  const eventName = `blec:notify:${characteristicUuid}`
+  const listener = (event: Event) => {
+    callback((event as CustomEvent<number[]>).detail)
+  }
+
+  window.addEventListener(eventName, listener)
+
+  return () => {
+    window.removeEventListener(eventName, listener)
+  }
+}
+
+const startNotify = async (serviceUuid: string, characteristicUuid: string, callback: (data: number[]) => void): Promise<() => void> => {
+  await invoke<void>('plugin:blec|start_notify', { serviceUuid, characteristicUuid })
+  return createBleNotifySubscription(characteristicUuid, callback)
+}
 
 export type ProvisionStatus = 'idle' | 'scanning' | 'connecting' | 'awaiting_credentials' | 'provisioning' | 'success' | 'failed'
 
@@ -43,6 +54,7 @@ export function useBleProvisioning() {
   const error = ref<string | null>(null)
   const connectedNode = ref<DiscoveredNode | null>(null)
   const wifiResult = ref<{ ip?: string; reason?: string } | null>(null)
+  let stopStatusNotification: (() => void) | null = null
 
   async function openPairingWindow(): Promise<void> {
     try {
@@ -76,11 +88,14 @@ export function useBleProvisioning() {
     status.value = 'connecting'
     error.value = null
 
+    stopStatusNotification?.()
+    stopStatusNotification = null
+
     try {
       await connect(node.address)
       connectedNode.value = node
 
-      await startNotify(SERVICE_UUID, STATUS_CHAR_UUID, (data: number[]) => {
+      stopStatusNotification = await startNotify(SERVICE_UUID, STATUS_CHAR_UUID, (data: number[]) => {
         try {
           const text = new TextDecoder().decode(new Uint8Array(data))
           const payload = JSON.parse(text) as { status: string; ip?: string; reason?: string }
@@ -90,10 +105,14 @@ export function useBleProvisioning() {
           } else if (payload.status === 'success') {
             wifiResult.value = { ip: payload.ip }
             status.value = 'success'
+            stopStatusNotification?.()
+            stopStatusNotification = null
             disconnect().catch((e: unknown) => console.error('[useBleProvisioning] Disconnect error:', e))
           } else if (payload.status === 'failed') {
             wifiResult.value = { reason: payload.reason }
             status.value = 'failed'
+            stopStatusNotification?.()
+            stopStatusNotification = null
             disconnect().catch((e: unknown) => console.error('[useBleProvisioning] Disconnect error:', e))
           }
         } catch (parseErr) {
@@ -119,6 +138,8 @@ export function useBleProvisioning() {
   }
 
   function reset(): void {
+    stopStatusNotification?.()
+    stopStatusNotification = null
     status.value = 'idle'
     discoveredNodes.value = []
     error.value = null

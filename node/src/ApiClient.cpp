@@ -36,6 +36,7 @@ bool ApiClient::hasSuccessfulPublish() const {
 
 bool ApiClient::shouldPublish() const {
   if (NvsConfig::getServerUrl().length() == 0) return false;
+  if (NvsConfig::getDeviceToken().length() == 0) return false;
   if (!health_.isWifiConnected()) return false;
   return millis() - lastPublishAt_ >= NvsConfig::getTelemetryIntervalMs();
 }
@@ -99,6 +100,10 @@ ApiClient::HttpPostResult ApiClient::postJson(const char* label, const String& u
   }
 
   http.addHeader("Content-Type", "application/json");
+  const String deviceToken = NvsConfig::getDeviceToken();
+  if (deviceToken.length() > 0) {
+    http.addHeader("X-Anthos-Device-Token", deviceToken);
+  }
   const int statusCode = http.POST(payload);
   if (statusCode < 0) {
     Serial.printf("%s error=%s target=%s\n", label, http.errorToString(statusCode).c_str(), url.c_str());
@@ -121,6 +126,7 @@ ApiClient::HttpPostResult ApiClient::postJson(const char* label, const String& u
 
 bool ApiClient::publishLog(const char* source, const char* message, const char* level, const char* metaJson) {
   if (NvsConfig::getServerUrl().length() == 0) return false;
+  if (NvsConfig::getDeviceToken().length() == 0) return false;
   if (!health_.isWifiConnected()) return false;
 
   StaticJsonDocument<256> doc;
@@ -157,6 +163,10 @@ bool ApiClient::publishHeartbeat() {
   }
 
   http.addHeader("Content-Type", "application/json");
+  const String deviceToken = NvsConfig::getDeviceToken();
+  if (deviceToken.length() > 0) {
+    http.addHeader("X-Anthos-Device-Token", deviceToken);
+  }
   const int statusCode = http.POST(buildPayload());
   lastNetworkLatencyMs_ = millis() - startedAt;
   if (statusCode < 0) {
