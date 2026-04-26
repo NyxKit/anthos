@@ -15,8 +15,7 @@ describe('IngestController', () => {
       { ingest: vi.fn() } as never,
       { recordTelemetry: vi.fn(), recordEntry: vi.fn() } as never,
       { upsertHardwareNode: vi.fn(), getHardwareNodeWriteToken: vi.fn(), findLogicalNodeByHwId: vi.fn(), createLogicalNode: vi.fn(), getLogicalNode: vi.fn() } as never,
-      { evaluateTelemetry: vi.fn() } as never,
-      vi.fn()
+      { evaluateTelemetry: vi.fn() } as never
     )
     const res = createRes()
 
@@ -30,15 +29,14 @@ describe('IngestController', () => {
     const telemetry = { ingest: vi.fn().mockResolvedValue(undefined), getLatestByNode: vi.fn() }
     const logArchive = { recordTelemetry: vi.fn().mockResolvedValue(undefined), recordEntry: vi.fn() }
     const registry = {
-      upsertHardwareNode: vi.fn(),
+      upsertHardwareNode: vi.fn().mockResolvedValue(undefined),
       getHardwareNodeWriteToken: vi.fn().mockReturnValue('token-123'),
       findLogicalNodeByHwId: vi.fn().mockReturnValue({ nodeId: 'node-001', capability: 'earth' }),
       createLogicalNode: vi.fn(),
       getLogicalNode: vi.fn().mockReturnValue({ capability: 'earth' }),
     }
     const automations = { evaluateTelemetry: vi.fn().mockResolvedValue(undefined) }
-    const saveDb = vi.fn().mockResolvedValue(undefined)
-    const controller = new IngestController(telemetry as never, logArchive as never, registry as never, automations as never, saveDb)
+    const controller = new IngestController(telemetry as never, logArchive as never, registry as never, automations as never)
     const res = createRes()
 
     await controller.postTelemetry({

@@ -20,8 +20,7 @@ export class IngestController {
     private readonly telemetryService: TelemetryService,
     private readonly logArchive: LogArchiveService,
     private readonly registry: NodeRegistryService,
-    private readonly automations: AutomationEvaluator,
-    private readonly saveDb: () => Promise<void>
+    private readonly automations: AutomationEvaluator
   ) {}
 
   getLatestTelemetryByNode = (_req: Request, res: Response): void => {
@@ -55,15 +54,14 @@ export class IngestController {
       return
     }
 
-    this.registry.upsertHardwareNode(payload.hwId)
+    await this.registry.upsertHardwareNode(payload.hwId)
 
     let nodeId = payload.nodeId
     const existing = this.registry.findLogicalNodeByHwId(payload.hwId)
     if (existing) {
       nodeId = existing.nodeId
     } else {
-      nodeId = this.registry.createLogicalNode(payload.hwId)
-      await this.saveDb()
+      nodeId = await this.registry.createLogicalNode(payload.hwId)
     }
 
     const nodeRecord = this.registry.getLogicalNode(nodeId)
