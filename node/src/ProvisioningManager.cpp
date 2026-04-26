@@ -1,7 +1,6 @@
 #include "ProvisioningManager.h"
 
 #include <WiFi.h>
-#include "BleProvisioning.h"
 #include "NvsConfig.h"
 
 void ProvisioningManager::begin() {
@@ -23,8 +22,7 @@ void ProvisioningManager::loop() {
 
 void ProvisioningManager::runBleProvisioning() {
   while (true) {
-    BleProvisioning ble;
-    const bool success = ble.begin();
+    const bool success = ble_.begin();
 
     if (success) {
       Serial.println("[PROV] WiFi provisioning succeeded. Starting telemetry loop.");

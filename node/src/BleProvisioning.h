@@ -48,6 +48,7 @@ class BleProvisioning : public NimBLEServerCallbacks,
   static constexpr unsigned long kWifiTimeoutMs = 30000;
 
   NimBLECharacteristic* statusChar_ = nullptr;
+  bool initialized_                 = false;
   bool clientConnected_             = false;
   bool provisioningDone_            = false;
   bool provisioningSuccess_         = false;
