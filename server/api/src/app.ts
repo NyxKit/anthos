@@ -36,11 +36,24 @@ function resolveStaticDir(): string | null {
   return existsSync(join(staticDir, 'index.html')) ? staticDir : null
 }
 
+function isSameOriginRequest(req: express.Request): boolean {
+  const origin = req.header('origin')
+  const host = req.header('host')
+
+  if (!origin || !host) return false
+
+  try {
+    const originUrl = new URL(origin)
+    return originUrl.host === host
+  } catch {
+    return false
+  }
+}
+
 export function createApp(telemetry: TelemetryService, logArchive: LogArchiveService) {
   const app = express()
   const allowedOrigins = resolveCorsOrigins()
-
-  app.use(cors({
+  const corsMiddleware = cors({
     origin: (origin, callback) => {
       if (!origin) {
         callback(null, true)
@@ -54,7 +67,16 @@ export function createApp(telemetry: TelemetryService, logArchive: LogArchiveSer
 
       callback(new Error('CORS origin not allowed'))
     },
-  }))
+  })
+
+  app.use((req, res, next) => {
+    if (isSameOriginRequest(req)) {
+      next()
+      return
+    }
+
+    corsMiddleware(req, res, next)
+  })
   app.use(express.json())
   app.use('/api', createApiRouter(telemetry, logArchive))
 
