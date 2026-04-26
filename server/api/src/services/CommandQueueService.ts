@@ -75,9 +75,7 @@ export class CommandQueueService {
       type: CommandType.PowerProfile,
       status: 'pending',
       payload: {
-        readIntervalMs: request.readIntervalMs,
-        telemetryIntervalMs: request.telemetryIntervalMs,
-        queueIntervalMs: request.queueIntervalMs,
+        intervalMs: request.intervalMs,
       },
       createdAt: now,
       updatedAt: now,
@@ -107,9 +105,7 @@ export class CommandQueueService {
       message: `Power profile command queued for ${nodeId}`,
       meta: {
         commandId: command.commandId,
-        readIntervalMs: request.readIntervalMs,
-        telemetryIntervalMs: request.telemetryIntervalMs,
-        queueIntervalMs: request.queueIntervalMs,
+        intervalMs: request.intervalMs,
       },
     })
 
@@ -226,9 +222,7 @@ export class CommandQueueService {
   private normalizePayload(type: CommandType, payload: Record<string, unknown>) {
     if (type === CommandType.PowerProfile) {
       return {
-        readIntervalMs: Number(payload.readIntervalMs ?? 0),
-        telemetryIntervalMs: Number(payload.telemetryIntervalMs ?? 0),
-        queueIntervalMs: Number(payload.queueIntervalMs ?? 0),
+        intervalMs: Number(payload.intervalMs ?? 0),
       }
     }
 

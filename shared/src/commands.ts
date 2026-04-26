@@ -11,9 +11,7 @@ export interface PumpCommandPayload {
 }
 
 export interface PowerProfileCommandPayload {
-  readIntervalMs: number
-  telemetryIntervalMs: number
-  queueIntervalMs: number
+  intervalMs: number
 }
 
 export type CommandPayload = PumpCommandPayload | PowerProfileCommandPayload
@@ -39,9 +37,7 @@ export interface QueuePumpCommandRequest {
 }
 
 export interface QueuePowerProfileCommandRequest {
-  readIntervalMs: number
-  telemetryIntervalMs: number
-  queueIntervalMs: number
+  intervalMs: number
 }
 
 export interface CommandAckRequest {

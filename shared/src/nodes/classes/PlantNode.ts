@@ -51,7 +51,7 @@ export default class PlantNode implements LogicalNodeRecord {
   }
 
   get telemetryOfflineThresholdMs (): number {
-    return this.powerProfilePreset.telemetryIntervalMs * OFFLINE_TELEMETRY_INTERVAL_MULTIPLIER
+    return this.powerProfilePreset.intervalMs * OFFLINE_TELEMETRY_INTERVAL_MULTIPLIER
   }
 
   getStatus (lastTelemetryTimestampMs: number | null | undefined): NodeStatus {

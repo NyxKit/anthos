@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include "BleProvisioning.h"
+
 enum class BootState {
   NO_CREDS,    // No WiFi credentials in NVS → enter BLE provisioning
   READY,       // WiFi is configured → start telemetry loop
@@ -20,14 +22,13 @@ class ProvisioningManager {
 
  private:
   void runBleProvisioning();
-  void runApFallback();
   void checkFactoryReset();
 
   BootState state_ = BootState::NO_CREDS;
+  BleProvisioning ble_;
 
   static constexpr uint8_t kButtonPin          = 41;     // AtomS3 Lite built-in button
   static constexpr unsigned long kHoldMs       = 3000;   // 3-second hold for factory reset
-  static constexpr unsigned long kBleTimeoutMs = 300000; // 5 minutes
   unsigned long buttonPressedAt_               = 0;
   bool          buttonWasPressed_              = false;
 };

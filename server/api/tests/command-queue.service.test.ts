@@ -76,16 +76,12 @@ describe('CommandQueueService', () => {
     const service = new CommandQueueService(db, saveDb, logArchive as never)
 
     const queued = await service.enqueuePowerProfileCommand('node-001', {
-      readIntervalMs: 600000,
-      telemetryIntervalMs: 600000,
-      queueIntervalMs: 600000,
+      intervalMs: 600000,
     })
 
     expect(queued.type).toBe(CommandType.PowerProfile)
     expect(queued.payload).toMatchObject({
-      readIntervalMs: 600000,
-      telemetryIntervalMs: 600000,
-      queueIntervalMs: 600000,
+      intervalMs: 600000,
     })
     expect(logArchive.recordEntry).toHaveBeenCalledWith(expect.objectContaining({
       nodeId: 'node-001',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { NyxButton, NyxInput, NyxLogViewer, NyxSelect } from 'nyx-kit/components'
+  import { NyxButton, NyxCheckbox, NyxInput, NyxLogViewer, NyxSelect } from 'nyx-kit/components'
 import { NyxInputType, NyxTheme } from 'nyx-kit/types'
 import { useLogStore } from '@/logs/stores/logs'
 
@@ -32,6 +32,7 @@ const levelOptions = [
       <NyxInput v-model="store.source" :type="NyxInputType.Text" placeholder="Source" />
       <NyxSelect v-model="store.level" :options="levelOptions" placeholder="Severity" />
       <NyxInput v-model="store.query" class="logs-view__search" :type="NyxInputType.Search" placeholder="Search messages" />
+      <NyxCheckbox v-model="store.showTelemetry" class="logs-view__telemetry-toggle" label="Show telemetry" />
       <div class="logs-view__actions">
         <NyxButton :theme="NyxTheme.Success" @click="store.applyFilters()">Apply</NyxButton>
         <NyxButton :theme="NyxTheme.Warning" @click="store.clearFilters()">Reset</NyxButton>
@@ -96,6 +97,11 @@ const levelOptions = [
   grid-column: span 2;
 }
 
+.logs-view__telemetry-toggle {
+  display: flex;
+  align-items: center;
+}
+
 .logs-view__actions {
   display: flex;
   align-items: end;
@@ -119,6 +125,10 @@ const levelOptions = [
   .logs-view__search {
     grid-column: span 2;
   }
+
+  .logs-view__telemetry-toggle {
+    grid-column: span 2;
+  }
 }
 
 @media (max-width: 768px) {
@@ -131,6 +141,10 @@ const levelOptions = [
   }
 
   .logs-view__search {
+    grid-column: span 1;
+  }
+
+  .logs-view__telemetry-toggle {
     grid-column: span 1;
   }
 }

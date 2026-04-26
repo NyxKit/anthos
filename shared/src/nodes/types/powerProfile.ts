@@ -4,33 +4,25 @@ export enum PowerProfile {
   Performance = 'performance',
 }
 export interface PowerProfileConfig {
-  readIntervalMs: number
-  telemetryIntervalMs: number
-  queueIntervalMs: number
+  intervalMs: number
 }
 
 export interface PowerProfileDefinition {
   id: PowerProfile
   label: string
   icon: string
-  readIntervalMs: number
-  telemetryIntervalMs: number
-  queueIntervalMs: number
+  intervalMs: number
 }
 
 export interface PowerProfileAssignmentState {
   profileId: PowerProfile
-  readIntervalMs: number
-  telemetryIntervalMs: number
-  queueIntervalMs: number
+  intervalMs: number
   updatedAt: number
 }
 
 export interface PowerProfileAppliedState {
   profileId: PowerProfile
-  readIntervalMs: number
-  telemetryIntervalMs: number
-  queueIntervalMs: number
+  intervalMs: number
   appliedAt: number
 }
 

@@ -53,6 +53,13 @@ vi.mock('@/logs/stores/logs', () => ({
   useLogStore: () => logStore,
 }))
 
+vi.mock('@/auth/stores/auth', () => ({
+  useAuthStore: () => ({
+    canPerformActions: true,
+    canInviteUsers: false,
+  }),
+}))
+
 import NodeCard from './NodeCard.vue'
 
 describe('NodeCard', () => {
@@ -68,14 +75,12 @@ describe('NodeCard', () => {
       nodeId: 'node-001',
       assignment: {
         profileId: 'balanced',
-        telemetryIntervalMs: 600000,
-        queueIntervalMs: 600000,
+        intervalMs: 600000,
         updatedAt: 1000,
       },
       applied: {
         profileId: 'balanced',
-        telemetryIntervalMs: 600000,
-        queueIntervalMs: 600000,
+        intervalMs: 600000,
         appliedAt: 1000,
       },
     })
@@ -84,14 +89,12 @@ describe('NodeCard', () => {
       nodeId: 'node-001',
       assignment: {
         profileId: 'performance',
-        telemetryIntervalMs: 60000,
-        queueIntervalMs: 60000,
+        intervalMs: 60000,
         updatedAt: 2000,
       },
       applied: {
         profileId: 'performance',
-        telemetryIntervalMs: 60000,
-        queueIntervalMs: 60000,
+        intervalMs: 60000,
         appliedAt: 2000,
       },
     })

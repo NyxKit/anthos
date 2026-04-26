@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
+#include <WiFi.h>
 
 // BLE GATT provisioning service.
 // Advertises as "Anthos-XXXX" (last 4 chars of hw_id from eFuse MAC).
@@ -36,6 +37,8 @@ class BleProvisioning : public NimBLEServerCallbacks,
 
   void notifyStatus(const String& status, const String& extra = "");
   bool attemptWifiConnect(const String& ssid, const String& pass);
+  void handleWifiDisconnect(uint8_t reason);
+  static const char* describeWifiDisconnectReason(uint8_t reason);
 
   // UUIDs from contracts/ble-gatt.md
   static constexpr const char* kServiceUuid = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
@@ -45,7 +48,10 @@ class BleProvisioning : public NimBLEServerCallbacks,
   static constexpr unsigned long kWifiTimeoutMs = 30000;
 
   NimBLECharacteristic* statusChar_ = nullptr;
+  bool initialized_                 = false;
   bool clientConnected_             = false;
   bool provisioningDone_            = false;
   bool provisioningSuccess_         = false;
+  uint8_t wifiDisconnectReason_     = 0;
+  WiFiEventId_t wifiDisconnectEventId_ = 0;
 };
