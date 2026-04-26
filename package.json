@@ -7,6 +7,7 @@
     "app:dev": "pnpm --dir app dev",
     "app:build": "pnpm --dir app build",
     "app:tauri": "pnpm --dir app tauri",
+    "release": "node scripts/release.mjs",
     "node:build": "pio run --project-dir node",
     "node:erase": "pio run --project-dir node -t erase",
     "node:flash": "pio run --project-dir node -t upload",
