@@ -14,6 +14,7 @@ This roadmap focuses on the next product-level capabilities Anthos needs to feel
 - [x] [P0] Docker integration for the server, matching the NAS-hosting pattern used by `nyx-notes`
 - [x] [P0] Node firmware power profile work so hardware stays off unless it is actively needed
 - [ ] [P1] Native app porting for the existing web experience across Windows, Mac, Linux, iOS, and Android
+- [ ] [P1] Mobile dashboard layout and interactions optimized for phones and small tablets
 - [ ] [P1] Node health visibility in the dashboard, including connectivity, uptime, and sensor status
 - [ ] [P1] Basic alerting for node offline events and sensor failures
 - [ ] [P2] Configuration backup and restore for the server and node setup
@@ -31,6 +32,7 @@ This roadmap focuses on the next product-level capabilities Anthos needs to feel
 - P1 items are the next product milestones after the core platform is stable.
 - P2 items should follow once the main experience is usable end to end.
 - P3 items are useful refinements, but not required for the first solid release.
+- The current dashboard is optimized for larger screens; mobile work should cover layout, navigation, and touch-friendly interactions.
 
 ## Open Questions
 
