@@ -7,9 +7,10 @@ import './shared/assets'
 import anthos from '@anthos/shared/anthos'
 import router from './shared/router'
 import App from './App.vue'
+import { resolveApiBaseUrl } from './shared/utils/apiBaseUrl'
 
 anthos.setup({
-  apiBaseUrl: import.meta.env.VITE_API_URL || 'http://localhost:8088',
+  apiBaseUrl: resolveApiBaseUrl(),
 })
 
 createApp(App)

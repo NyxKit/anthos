@@ -3,9 +3,10 @@ import { computed, ref } from 'vue'
 
 import anthos from '@anthos/shared/anthos'
 import { User, type UserSession } from '@anthos/shared/users'
+import { resolveApiBaseUrl } from '../../shared/utils/apiBaseUrl'
 
 const TOKEN_KEY = 'anthos.session.token'
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088'
+const API_BASE_URL = resolveApiBaseUrl()
 
 function readStoredToken(): string | null {
   if (typeof localStorage === 'undefined') return null
