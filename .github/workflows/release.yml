@@ -1,0 +1,52 @@
+name: Create Release Tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version, including the leading v
+        required: true
+        type: string
+      branch:
+        description: Branch or ref to tag
+        required: false
+        default: main
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+
+      - name: Validate version input
+        shell: bash
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version must look like v1.2.3"
+            exit 1
+          fi
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          tag="${{ inputs.version }}"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ inputs.version }}" \
+            --title "${{ inputs.version }}" \
+            --generate-notes \
+            --latest

@@ -25,6 +25,8 @@ Container
 docker build -t ghcr.io/nyxkit/anthos .
 ```
 
+Release images are published from the GitHub Actions workflow to GHCR. A tag push like `v1.2.3` publishes `ghcr.io/nyxkit/anthos:1.2.3`, `:1.2`, and `:1`, while `main` continues to refresh `:latest`.
+
 ## Run
 
 ```yaml
@@ -55,6 +57,12 @@ services:
 2. Pull or build the newer image.
 3. Start the new container with the same mounted storage.
 4. Confirm the dashboard opens and prior data is still present.
+
+If you want Docker update checkers to report an available upgrade, run the container from a registry tag such as `:latest` or `:1.2.3`. Avoid digest-pinned images unless you want to suppress update detection.
+
+## Release flow
+
+Run the manual GitHub Actions workflow with a version like `v1.2.3`. It creates and pushes the git tag, creates the GitHub Release, and the Docker workflow publishes the matching image tags.
 
 ## Notes
 
