@@ -5,15 +5,7 @@ import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
 import { AutomationEvaluator } from '../services/AutomationEvaluator.js'
-
-const readDeviceToken = (req: Request): string | null => {
-  const header = typeof req.header === 'function'
-    ? req.header('x-anthos-device-token')
-    : req.headers?.['x-anthos-device-token']
-
-  const value = Array.isArray(header) ? header[0] : header
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
-}
+import { readDeviceToken } from '../utils/readDeviceToken.js'
 
 export class IngestController {
   constructor(

@@ -2,6 +2,7 @@ import type { Request, Response, RequestHandler } from 'express'
 
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
+import { readDeviceToken } from '../utils/readDeviceToken.js'
 
 const parseOptionalNumber = (value: unknown): number | undefined => {
   if (typeof value !== 'string' || value.trim() === '') return undefined
@@ -12,15 +13,6 @@ const parseOptionalNumber = (value: unknown): number | undefined => {
 const parseOptionalString = (value: unknown): string | undefined => {
   if (typeof value !== 'string' || value.trim() === '') return undefined
   return value
-}
-
-const readDeviceToken = (req: Request): string | null => {
-  const header = typeof req.header === 'function'
-    ? req.header('x-anthos-device-token')
-    : req.headers?.['x-anthos-device-token']
-
-  const value = Array.isArray(header) ? header[0] : header
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
 }
 
 export class LogsController {
