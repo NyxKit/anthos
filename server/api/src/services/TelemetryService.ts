@@ -19,8 +19,6 @@ function resolveDbPath(): string {
 }
 
 const DB_PATH = resolveDbPath()
-const STORE_INTERVAL_MS = 60000
-
 interface Reading {
   nodeId: string
   timestamp: number
@@ -32,7 +30,6 @@ interface Reading {
 export class TelemetryService {
   private db: Database | null = null
   private latestPayload: TelemetryPayload | null = null
-  private lastStoredAt = 0
   private pendingReadings: Reading[] = []
 
   async init(): Promise<void> {
@@ -303,10 +300,7 @@ export class TelemetryService {
       })
     }
 
-    if (timestamp - this.lastStoredAt >= STORE_INTERVAL_MS) {
-      await this.storePendingReadings()
-      this.lastStoredAt = timestamp
-    }
+    await this.storePendingReadings()
 
     console.log('telemetry.ingest', { 
       nodeId: payload.nodeId, 
