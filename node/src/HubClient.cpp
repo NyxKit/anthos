@@ -66,12 +66,16 @@ String HubClient::tryRegisterOnce(const String& hwId, const String& firmwareVers
     const String response = http.getString();
     http.end();
 
-    StaticJsonDocument<128> resp;
+    StaticJsonDocument<256> resp;
     if (deserializeJson(resp, response) == DeserializationError::Ok) {
       const String nodeId = resp["nodeId"] | "";
       if (nodeId.length() > 0) {
         const String capability = resp["capability"] | "earth";
+        const String deviceToken = resp["deviceToken"] | "";
         NvsConfig::setNodeCapability(capability == "watering" ? "watering" : "earth");
+        if (deviceToken.length() > 0) {
+          NvsConfig::setDeviceToken(deviceToken);
+        }
         Serial.printf("[REG] Assigned node_id=%s (status=%s)\n",
           nodeId.c_str(), (resp["status"] | "unknown"));
         return nodeId;

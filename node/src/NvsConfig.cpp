@@ -74,6 +74,14 @@ String NvsConfig::getNodeCapability() {
   return val;
 }
 
+String NvsConfig::getDeviceToken() {
+  Preferences prefs;
+  prefs.begin(kNamespace, true);
+  String val = prefs.isKey(kDeviceToken) ? prefs.getString(kDeviceToken, "") : "";
+  prefs.end();
+  return val;
+}
+
 unsigned long NvsConfig::getIntervalMs() {
   return sIntervalMs > 0 ? sIntervalMs : kAppConfig.pushIntervalMs;
 }
@@ -120,6 +128,13 @@ void NvsConfig::setNodeCapability(const String& capability) {
   Preferences prefs;
   prefs.begin(kNamespace, false);
   prefs.putString(kNodeCapability, capability);
+  prefs.end();
+}
+
+void NvsConfig::setDeviceToken(const String& token) {
+  Preferences prefs;
+  prefs.begin(kNamespace, false);
+  prefs.putString(kDeviceToken, token);
   prefs.end();
 }
 

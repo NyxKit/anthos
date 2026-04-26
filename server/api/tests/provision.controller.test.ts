@@ -114,4 +114,43 @@ describe('ProvisionController', () => {
       registeredAt: 1000,
     })
   })
+
+  it('issues a device token during registration', async () => {
+    const registry = {
+      upsertHardwareNode: vi.fn(),
+      ensureHardwareNodeWriteToken: vi.fn().mockReturnValue('token-123'),
+      findLogicalNodeByHwId: vi.fn().mockReturnValue(null),
+      createLogicalNode: vi.fn().mockReturnValue('node-001'),
+      getLogicalNode: vi.fn().mockReturnValue({
+        nodeId: 'node-001',
+        hwId: 'hw-001',
+        displayName: null,
+        capability: 'earth',
+        registeredAt: 1000,
+      }),
+    }
+    const pairing = {
+      isOpen: vi.fn().mockReturnValue(true),
+      open: vi.fn(),
+      getStatus: vi.fn(),
+    }
+    const saveDb = vi.fn().mockResolvedValue(undefined)
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new ProvisionController(registry as never, pairing as never, auth as never, saveDb)
+    const res = createRes()
+
+    await controller.register({ body: { hwId: 'hw-001', firmwareVersion: '1.0.0' } } as never, res as never)
+
+    expect(registry.ensureHardwareNodeWriteToken).toHaveBeenCalledWith('hw-001')
+    expect(registry.createLogicalNode).toHaveBeenCalledWith('hw-001')
+    expect(saveDb).toHaveBeenCalled()
+    expect(res.json).toHaveBeenCalledWith({
+      nodeId: 'node-001',
+      status: 'registered',
+      capability: 'earth',
+      deviceToken: 'token-123',
+    })
+  })
 })

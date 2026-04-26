@@ -135,9 +135,6 @@ void NodeApp::syncNodeRegistration() {
   if (!health_.isWifiConnected()) {
     return;
   }
-  if (!NvsConfig::hasNodeId()) {
-    return;
-  }
 
   const auto now = millis();
   if (now - lastRegisterAt_ < kAppConfig.retryIntervalMs) {

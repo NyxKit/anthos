@@ -6,6 +6,15 @@ import { TelemetryService } from '../services/TelemetryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
 import { AutomationEvaluator } from '../services/AutomationEvaluator.js'
 
+const readDeviceToken = (req: Request): string | null => {
+  const header = typeof req.header === 'function'
+    ? req.header('x-anthos-device-token')
+    : req.headers?.['x-anthos-device-token']
+
+  const value = Array.isArray(header) ? header[0] : header
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null
+}
+
 export class IngestController {
   constructor(
     private readonly telemetryService: TelemetryService,
@@ -31,6 +40,18 @@ export class IngestController {
 
     if (!payload?.nodeId || !payload?.hwId || !Array.isArray(payload?.sensors) || !payload?.health) {
       res.status(400).json({ error: 'Invalid telemetry payload' })
+      return
+    }
+
+    const deviceToken = readDeviceToken(req)
+    if (!deviceToken) {
+      res.status(401).json({ error: 'device_token_required' })
+      return
+    }
+
+    const storedToken = this.registry.getHardwareNodeWriteToken(payload.hwId)
+    if (!storedToken || storedToken !== deviceToken) {
+      res.status(403).json({ error: 'not_authorized' })
       return
     }
 

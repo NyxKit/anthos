@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import type { Database } from 'sql.js'
 
 import type {
@@ -293,6 +294,35 @@ export class NodeRegistryService {
     stmt.free()
 
     return row['firmware_version'] != null ? String(row['firmware_version']) : null
+  }
+
+  getHardwareNodeWriteToken(hwId: string): string | null {
+    const stmt = this.db.prepare('SELECT device_token FROM hardware_nodes WHERE hw_id=?')
+    stmt.bind([hwId])
+    const hasRow = stmt.step()
+    if (!hasRow) {
+      stmt.free()
+      return null
+    }
+    const row = stmt.getAsObject() as Record<string, unknown>
+    stmt.free()
+
+    return row['device_token'] != null ? String(row['device_token']) : null
+  }
+
+  ensureHardwareNodeWriteToken(hwId: string): string {
+    const current = this.getHardwareNodeWriteToken(hwId)
+    if (current) return current
+
+    const token = randomUUID()
+    const stmt = this.db.prepare(`
+      UPDATE hardware_nodes
+      SET device_token=?
+      WHERE hw_id=?
+    `)
+    stmt.run([token, hwId])
+    stmt.free()
+    return token
   }
 
   private rowToRecord(row: Record<string, unknown>): LogicalNodeRecord {

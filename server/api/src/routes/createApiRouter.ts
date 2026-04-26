@@ -34,7 +34,7 @@ export function createApiRouter(telemetry: TelemetryService, logArchive: LogArch
   const automationController = new AutomationController(automationService, auth)
   const ingestController = new IngestController(telemetry, logArchive, registry, automationEvaluator, saveDb)
   const metricsController = new MetricsController(telemetry, registry)
-  const logsController = new LogsController(logArchive)
+  const logsController = new LogsController(logArchive, registry)
   const provisionCtrl = new ProvisionController(registry, pairing, auth, saveDb)
   const powerProfileCtrl = new PowerProfileController(registry, logArchive, commandService, auth, saveDb)
   const authCtrl = new AuthController(auth)

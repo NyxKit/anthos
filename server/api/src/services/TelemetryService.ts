@@ -82,9 +82,20 @@ export class TelemetryService {
         hw_id            TEXT    PRIMARY KEY,
         first_seen       INTEGER NOT NULL,
         last_seen        INTEGER NOT NULL,
-        firmware_version TEXT
+        firmware_version TEXT,
+        device_token     TEXT
       )
     `)
+
+    const hardwareNodeColumns = this.db.exec('PRAGMA table_info(hardware_nodes)')
+    const hasDeviceTokenColumn = hardwareNodeColumns.some(result =>
+      result.columns.includes('name')
+        && result.values.some(row => String(row[result.columns.indexOf('name')]) === 'device_token')
+    )
+
+    if (!hasDeviceTokenColumn) {
+      this.db.run('ALTER TABLE hardware_nodes ADD COLUMN device_token TEXT')
+    }
 
     this.db.run(`
       CREATE TABLE IF NOT EXISTS logical_nodes (

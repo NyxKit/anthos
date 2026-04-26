@@ -25,6 +25,7 @@ export class ProvisionController {
 
     // Always upsert hardware node to track last_seen and firmware_version
     this.registry.upsertHardwareNode(hwId, fwVersion)
+    const deviceToken = this.registry.ensureHardwareNodeWriteToken(hwId)
 
     const existing = this.registry.findLogicalNodeByHwId(hwId)
 
@@ -41,6 +42,9 @@ export class ProvisionController {
       if (firmwareUpdated) {
         response['firmwareUpdated'] = true
       }
+      response['deviceToken'] = deviceToken
+
+      await this.saveDb()
 
       res.json(response)
       return
@@ -56,7 +60,7 @@ export class ProvisionController {
     await this.saveDb()
 
     const created = this.registry.getLogicalNode(nodeId)
-    res.json({ nodeId, status: 'registered', capability: created?.capability ?? 'earth' })
+    res.json({ nodeId, status: 'registered', capability: created?.capability ?? 'earth', deviceToken })
   }
 
   openProvisionWindow: RequestHandler = (_req: Request, res: Response): void => {
