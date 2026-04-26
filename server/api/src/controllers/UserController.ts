@@ -1,9 +1,9 @@
 import type { Request, Response, RequestHandler } from 'express'
 
+import { UserRole } from '../../../../shared/src/anthos/types/index.js'
 import { AuthController } from './AuthController.js'
 import { AuthService } from '../services/AuthService.js'
 import { UserService } from '../services/UserService.js'
-import { UserRole } from '@anthos/shared/users'
 
 export class UserController {
   constructor(
@@ -23,7 +23,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireActionUser(token)
+      await this.auth.requireAdmin(token)
       res.json({ users: this.users.listUsers() })
     } catch (error) {
       this.handleAuthError(error, res)
@@ -100,7 +100,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireActionUser(token)
+      await this.auth.requireAdmin(token)
       const user = this.users.getUserById(String(req.params['id']))
       if (!user) {
         res.status(404).json({ error: 'user_not_found' })
@@ -165,7 +165,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireActionUser(token)
+      await this.auth.requireAdmin(token)
 
       const user = this.users.updateUser(String(req.params['id']), {
         username: req.body?.username ? String(req.body.username) : undefined,
@@ -190,7 +190,7 @@ export class UserController {
         return
       }
 
-      await this.auth.requireActionUser(token)
+      await this.auth.requireAdmin(token)
       const deleted = this.users.deleteUser(String(req.params['id']))
 
       if (!deleted) {
