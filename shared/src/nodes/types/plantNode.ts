@@ -62,6 +62,7 @@ export interface LogicalNodeRecord {
   order: number | null
   registeredAt: number
   powerProfile: PowerProfile
+  powerProfileAssignedAt: number
 }
 
 export interface HardwareNodeRegistration {

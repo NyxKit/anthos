@@ -49,7 +49,7 @@ export class NodeRegistryService {
 
   findLogicalNodeByHwId(hwId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(`
-      SELECT node_id, hw_id, display_name, capability, registered_at
+      SELECT node_id, hw_id, display_name, node_order, capability, registered_at, power_profile_id, power_profile_assigned_at
       FROM logical_nodes WHERE hw_id=?
     `)
     stmt.bind([hwId])
@@ -112,7 +112,7 @@ export class NodeRegistryService {
 
   listLogicalNodes(): LogicalNodeRecord[] {
     const results = this.db.exec(`
-      SELECT node_id, hw_id, display_name, node_order, capability, registered_at
+      SELECT node_id, hw_id, display_name, node_order, capability, registered_at, power_profile_id, power_profile_assigned_at
       FROM logical_nodes
       ORDER BY node_order IS NULL, node_order ASC, registered_at ASC
     `)
@@ -129,7 +129,7 @@ export class NodeRegistryService {
 
   getLogicalNode(nodeId: string): LogicalNodeRecord | null {
     const stmt = this.db.prepare(`
-      SELECT node_id, hw_id, display_name, node_order, capability, registered_at
+      SELECT node_id, hw_id, display_name, node_order, capability, registered_at, power_profile_id, power_profile_assigned_at
       FROM logical_nodes WHERE node_id=?
     `)
     stmt.bind([nodeId])
@@ -415,6 +415,7 @@ export class NodeRegistryService {
       powerProfile: row['power_profile_id'] != null
         ? String(row['power_profile_id']) as LogicalNodeRecord['powerProfile']
         : DEFAULT_POWER_PROFILE,
+      powerProfileAssignedAt: Number(row['power_profile_assigned_at'] ?? 0),
     }
   }
 

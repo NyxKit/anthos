@@ -14,6 +14,7 @@ export default class PlantNode implements LogicalNodeRecord {
   hwId: string = ''
   displayName: string | null = null
   powerProfile: PowerProfile = DEFAULT_POWER_PROFILE
+  powerProfileAssignedAt: number = 0
   order: number | null = null
   registeredAt: number = 0
   calibration = {
@@ -27,9 +28,10 @@ export default class PlantNode implements LogicalNodeRecord {
     this.hwId = NyxLoader.loadString(data, 'hwId')
     this.displayName = NyxLoader.loadStringOrNull(data, 'displayName', this.displayName)
     this.capability = NyxLoader.loadEnum<NodeCapability>(data, 'capability', this._capability, Object.values(NodeCapability))
-    this.order = this.loadNullableNumber(data, 'order')
+    this.order = NyxLoader.loadNumberOrNull(data, 'order', this.order)
     this.registeredAt = NyxLoader.loadNumber(data, 'registeredAt', this.registeredAt)
     this.powerProfile = NyxLoader.loadEnum<PowerProfile>(data, 'powerProfile', this.powerProfile, Object.values(PowerProfile))
+    this.powerProfileAssignedAt = NyxLoader.loadNumber(data, 'powerProfileAssignedAt', this.powerProfileAssignedAt)
   }
 
   get nodeId (): string {
@@ -56,7 +58,9 @@ export default class PlantNode implements LogicalNodeRecord {
 
   getStatus (lastTelemetryTimestampMs: number | null | undefined): NodeStatus {
     if (!lastTelemetryTimestampMs) return NodeStatus.Disconnected
-    const isOnline = Date.now() - lastTelemetryTimestampMs <= this.telemetryOfflineThresholdMs
+
+    const effectiveTimestamp = Math.max(lastTelemetryTimestampMs, this.powerProfileAssignedAt)
+    const isOnline = Date.now() - effectiveTimestamp <= this.telemetryOfflineThresholdMs
     if (isOnline) return NodeStatus.Connected
     return NodeStatus.Error
   }
@@ -68,13 +72,5 @@ export default class PlantNode implements LogicalNodeRecord {
   set capability (capability: NodeCapability) {
     this._capability = capability
     this.calibration.moisture = new MoistureCalibration(capability)
-  }
-
-  private loadNullableNumber(data: unknown, key: string): number | null {
-    if (!data || typeof data !== 'object') return null
-    const value = (data as Record<string, unknown>)[key]
-    if (value == null || value === '') return null
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : null
   }
 }
