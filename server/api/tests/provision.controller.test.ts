@@ -148,4 +148,38 @@ describe('ProvisionController', () => {
       deviceToken: 'token-123',
     })
   })
+
+  it('reconnects known hardware without reopening the pairing window', async () => {
+    const registry = {
+      upsertHardwareNode: vi.fn().mockResolvedValue(undefined),
+      ensureHardwareNodeWriteToken: vi.fn().mockResolvedValue('token-123'),
+      findLogicalNodeByHwId: vi.fn().mockReturnValue({
+        nodeId: 'node-001',
+        capability: 'watering',
+      }),
+      getHardwareNodeFirmwareVersion: vi.fn().mockReturnValue('1.0.0'),
+      createLogicalNode: vi.fn(),
+    }
+    const pairing = {
+      isOpen: vi.fn(),
+      open: vi.fn(),
+      getStatus: vi.fn(),
+    }
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new ProvisionController(registry as never, pairing as never, auth as never)
+    const res = createRes()
+
+    await controller.register({ body: { hwId: 'hw-001', firmwareVersion: '1.0.0' } } as never, res as never)
+
+    expect(pairing.isOpen).not.toHaveBeenCalled()
+    expect(registry.createLogicalNode).not.toHaveBeenCalled()
+    expect(res.json).toHaveBeenCalledWith({
+      nodeId: 'node-001',
+      status: 'reconnected',
+      capability: 'watering',
+      deviceToken: 'token-123',
+    })
+  })
 })
