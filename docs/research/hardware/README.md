@@ -132,3 +132,4 @@ Earth Unit
 - `webshop-urls.md` - raw shop/search/product URLs
 - `pi5-server-parts-list.md` - Pi 5 server notes
 - `soil-moisture-probes.md` - moisture probe options
+- `humid-environment.md` - humidity, spray, and enclosure protection notes
