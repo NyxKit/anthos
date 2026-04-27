@@ -3,6 +3,9 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
+import { PowerProfile } from '@anthos/shared/nodes/types/powerProfile'
+
+let telemetryTimestampMs = Date.now()
 
 const { queuePump } = vi.hoisted(() => ({
   queuePump: vi.fn(),
@@ -35,7 +38,7 @@ vi.mock('@/dashboard/stores/telemetry', () => ({
       getNodeTelemetry: () => ({
         nodeId: 'node-001',
         hwId: 'hw-001',
-        timestampMs: Date.now(),
+        timestampMs: telemetryTimestampMs,
         capability: 'watering',
         health: { uptimeMs: 3600000, ip: '192.168.1.2', rssi: -42 },
         sensors: [
@@ -65,6 +68,7 @@ import NodeCard from './NodeCard.vue'
 describe('NodeCard', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    telemetryTimestampMs = Date.now()
     queuePump.mockReset()
     resolveQueuePump = null
     queuePump.mockImplementation(() => new Promise(resolve => {
@@ -165,5 +169,46 @@ describe('NodeCard', () => {
     await nextTick()
 
     expect(wrapper.text()).toContain('Pump')
+  })
+
+  it('shows a balanced node as online during intentional quiet after a profile change', async () => {
+    const now = Date.now()
+    telemetryTimestampMs = now - 20 * 60 * 1000
+
+    const wrapper = mount(NodeCard, {
+      props: {
+        modelValue: new PlantNode({
+          nodeId: 'node-001',
+          id: 'node-001',
+          hwId: 'hw-001',
+          displayName: 'Sprout Node',
+          capability: 'watering',
+          registeredAt: 1000,
+          powerProfile: PowerProfile.Balanced,
+          powerProfileAssignedAt: now - 60 * 1000,
+        }),
+      },
+      global: {
+        stubs: {
+          NyxCard: { template: '<div><slot name="header" /><slot /></div>' },
+          NyxIcon: { template: '<span />' },
+          NyxButton: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
+          NyxSpinner: { template: '<span />' },
+          NyxActionItem: { template: '<div><slot name="action" /><slot /></div>' },
+          NyxInput: { template: '<input />' },
+          NyxBadge: { template: '<span><slot /></span>' },
+          NyxDropdown: {
+            props: ['options'],
+            emits: ['select'],
+            template: '<div><slot /><slot name="dropdown" /><button v-for="option in options" :key="option.value" @click="$emit(\'select\', option)">{{ option.label }}</button></div>',
+          },
+        },
+      },
+    })
+
+    await Promise.resolve()
+    await nextTick()
+
+    expect(wrapper.text()).toContain('Online')
   })
 })
