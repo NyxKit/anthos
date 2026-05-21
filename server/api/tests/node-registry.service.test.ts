@@ -69,4 +69,38 @@ describe('NodeRegistryService', () => {
 
     expect(nodeId).toBe('node-010')
   })
+
+  it('deletes only the logical node record and keeps the hardware record intact', async () => {
+    const db = await createDb()
+    db.run(`
+      CREATE TABLE hardware_nodes (
+        hw_id TEXT PRIMARY KEY,
+        first_seen INTEGER NOT NULL,
+        last_seen INTEGER NOT NULL,
+        firmware_version TEXT,
+        device_token TEXT
+      )
+    `)
+    db.run(`
+      INSERT INTO hardware_nodes (hw_id, first_seen, last_seen, firmware_version)
+      VALUES ('hw-001', 1, 2, '1.0.0')
+    `)
+    db.run(`
+      INSERT INTO logical_nodes (node_id, hw_id, display_name, node_order, capability, registered_at)
+      VALUES ('node-001', 'hw-001', 'Fern', NULL, 'earth', 2)
+    `)
+
+    const registry = new NodeRegistryService(db, vi.fn().mockResolvedValue(undefined))
+
+    await expect(registry.deleteLogicalNode('node-001')).resolves.toBe(true)
+
+    const logicalStmt = db.prepare(`SELECT node_id FROM logical_nodes WHERE node_id='node-001'`)
+    expect(logicalStmt.step()).toBe(false)
+    logicalStmt.free()
+
+    const hardwareStmt = db.prepare(`SELECT hw_id, firmware_version FROM hardware_nodes WHERE hw_id='hw-001'`)
+    expect(hardwareStmt.step()).toBe(true)
+    expect(hardwareStmt.getAsObject()).toMatchObject({ hw_id: 'hw-001', firmware_version: '1.0.0' })
+    hardwareStmt.free()
+  })
 })

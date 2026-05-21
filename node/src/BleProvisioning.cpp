@@ -387,7 +387,7 @@ bool BleProvisioning::begin() {
     delay(100);
   }
 
-  // Small delay to let the status notification reach the client before BLE closes
+  // Small delay to let the status notification reach the client before BLE changes state
   delay(500);
   stop();
 
@@ -396,5 +396,7 @@ bool BleProvisioning::begin() {
 
 void BleProvisioning::stop() {
   NimBLEDevice::getAdvertising()->stop();
+  NimBLEDevice::deinit(true);
+  initialized_ = false;
   Serial.println("[BLE] Session closed");
 }

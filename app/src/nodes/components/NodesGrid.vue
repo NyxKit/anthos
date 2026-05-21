@@ -26,10 +26,16 @@ const visibleNodes = computed(() => {
   </NyxGrid>
 </template>
 
-<style scoped>
+<style>
 .nodes-grid__empty {
   color: var(--nyx-c-text-muted, #9ca3af);
   font-size: 0.9375rem;
   margin: 0;
+}
+
+@media (max-width: 768px) {
+  .nodes-grid .nyx-grid__content {
+    --nyx-grid-columns: 1;
+  }
 }
 </style>

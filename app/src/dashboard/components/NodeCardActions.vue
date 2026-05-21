@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { NyxActionItem, NyxButton, NyxDropdown, NyxIcon, NyxSpinner, NyxModal, NyxForm, NyxFormField, NyxInput, NyxSwitch } from 'nyx-kit/components'
 import { NyxInputNumberControls, NyxInputType, NyxShape, NyxSize, NyxTheme, NyxVariant, type NyxSelectOption } from 'nyx-kit/types'
 import PlantNode from '@anthos/shared/nodes/classes/PlantNode'
 import { useTelemetryStore } from '@/dashboard/stores/telemetry'
+import { useNodesStore } from '@/nodes/stores/nodes'
 import { useNodePowerProfile } from '@/dashboard/composables/useNodePowerProfile'
 import { useAuthStore } from '@/auth/stores/auth'
 import { POWER_PROFILES } from '@anthos/shared/nodes/data/powerProfiles'
@@ -14,6 +15,7 @@ import { useNodeCardPumpState } from '@/dashboard/composables/useNodeCardPumpSta
 const node = defineModel<PlantNode>({ required: true })
 
 const telemetryStore = useTelemetryStore()
+const nodesStore = useNodesStore()
 const auth = useAuthStore()
 const powerProfileSelectOptions: NyxSelectOption<PowerProfile>[] = Object.values(POWER_PROFILES)
   .map(profile => ({ label: profile.label, value: profile.id, icon: profile.icon }))
@@ -43,6 +45,31 @@ const {
   isSavingDisplayName,
   handleEditSubmit,
 } = useNodeCardEditState(node, nodeId)
+
+const isDeleteModalOpen = ref(false)
+const isDeletingNode = ref(false)
+const deleteError = ref('')
+
+function openDeleteModal() {
+  deleteError.value = ''
+  isDeleteModalOpen.value = true
+}
+
+async function handleDeleteSubmit(): Promise<void> {
+  if (!nodeId.value) return
+
+  isDeletingNode.value = true
+  deleteError.value = ''
+
+  try {
+    await nodesStore.deleteNode(nodeId.value)
+    isDeleteModalOpen.value = false
+  } catch (error) {
+    deleteError.value = error instanceof Error ? error.message : 'Failed to delete node'
+  } finally {
+    isDeletingNode.value = false
+  }
+}
 
 async function handlePowerProfileSelect(option: NyxSelectOption<PowerProfile>) {
   if (!nodeId.value) return
@@ -122,17 +149,39 @@ async function handlePowerProfileSelect(option: NyxSelectOption<PowerProfile>) {
       </NyxButton>
     </NyxDropdown>
 
-    <NyxButton
+    <NyxDropdown
+      class="node-card-actions__menu-dropdown"
       :theme="NyxTheme.Primary"
-      :variant="NyxVariant.Subtle"
       :size="NyxSize.Small"
-      :shape="NyxShape.Square"
-      :disabled="!isLiveNode || !canPerformActions"
-      :title="canPerformActions ? 'Edit node' : 'Guests can only view nodes'"
-      @click="isEditModalOpen = true"
     >
-      <NyxIcon name="pencil" :size="NyxSize.Small" />
-    </NyxButton>
+      <NyxButton
+        :theme="NyxTheme.Primary"
+        :variant="NyxVariant.Subtle"
+        :size="NyxSize.Small"
+        :shape="NyxShape.Square"
+        :disabled="!canPerformActions"
+        :title="canPerformActions ? 'Node actions' : 'Guests can only view nodes'"
+      >
+        <NyxIcon name="ellipsis-vertical" :size="NyxSize.Small" />
+      </NyxButton>
+
+      <template #dropdown>
+        <NyxActionItem
+          title="Edit node"
+          action="Edit"
+          description="Update the node name, capability, or order."
+          :theme="NyxTheme.Primary"
+          @click="isEditModalOpen = true"
+        />
+        <NyxActionItem
+          title="Delete node"
+          action="Delete"
+          description="Remove the node from the list."
+          :theme="NyxTheme.Danger"
+          @click="openDeleteModal"
+        />
+      </template>
+    </NyxDropdown>
 
     <NyxModal
       v-model="isEditModalOpen"
@@ -179,6 +228,44 @@ async function handlePowerProfileSelect(option: NyxSelectOption<PowerProfile>) {
             :disabled="isSavingDisplayName || !editDisplayName.trim()"
           >
             Save
+          </NyxButton>
+        </NyxFormField>
+      </NyxForm>
+    </NyxModal>
+
+    <NyxModal
+      v-model="isDeleteModalOpen"
+      :theme="NyxTheme.Danger"
+      :size="NyxSize.Small"
+    >
+      <template #header>
+        <h1 class="node-card-actions__delete-modal-title">Delete node: <span>{{ node.name || node.displayName || node.nodeId }}</span></h1>
+      </template>
+
+      <div class="node-card-actions__delete-modal-body">
+        <p>This will remove the node from the list.</p>
+        <p>You still need to manually reset the node hardware. If you do not, the server may register it again when telemetry resumes.</p>
+        <p v-if="deleteError" class="node-card-actions__delete-modal-error">{{ deleteError }}</p>
+      </div>
+
+      <NyxForm :size="NyxSize.Small" @submit="handleDeleteSubmit">
+        <NyxFormField class="node-card-actions__delete-modal-footer">
+          <NyxButton
+            :theme="NyxTheme.Info"
+            :size="NyxSize.Medium"
+            :variant="NyxVariant.Subtle"
+            @click="isDeleteModalOpen = false"
+          >
+            Cancel
+          </NyxButton>
+          <NyxButton
+            :theme="NyxTheme.Danger"
+            :size="NyxSize.Medium"
+            type="submit"
+            :loading="isDeletingNode"
+            :disabled="isDeletingNode"
+          >
+            Confirm delete
           </NyxButton>
         </NyxFormField>
       </NyxForm>
@@ -232,6 +319,40 @@ async function handlePowerProfileSelect(option: NyxSelectOption<PowerProfile>) {
 .node-card-actions__edit-modal-title span {
   font-family: var(--nyx-font-family-headline, 'Space Grotesk', sans-serif);
   color: var(--nyx-c-primary);
+  font-weight: 500;
+}
+
+.node-card-actions__delete-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: var(--nyx-c-text-2);
+}
+
+.node-card-actions__delete-modal-body p {
+  margin: 0;
+}
+
+.node-card-actions__delete-modal-error {
+  color: var(--nyx-c-error, #ffb4ab);
+}
+
+.node-card-actions__delete-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.node-card-actions__delete-modal-title {
+  font-size: var(--nyx-font-size-lg);
+  font-weight: 600;
+  color: var(--nyx-c-text-1);
+  margin: 0;
+}
+
+.node-card-actions__delete-modal-title span {
+  font-family: var(--nyx-font-family-headline, 'Space Grotesk', sans-serif);
+  color: var(--nyx-c-danger, #ff7b7b);
   font-weight: 500;
 }
 </style>

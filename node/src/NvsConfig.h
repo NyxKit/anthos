@@ -25,6 +25,7 @@ class NvsConfig {
   static unsigned long getTelemetryIntervalMs();
   static unsigned long getQueueIntervalMs();
   static unsigned long getTelemetrySuspendCutoffMs();
+  static bool isPerformancePowerProfile();
 
   // Setters
   static void setWifiCredentials(const String& ssid, const String& pass);
@@ -48,4 +49,5 @@ class NvsConfig {
   static constexpr const char* kNodeId    = "node_id";
   static constexpr const char* kNodeCapability = "node_capability";
   static constexpr const char* kDeviceToken = "device_token";
+  static constexpr unsigned long kPerformanceProfileIntervalMs = 1000UL;
 };

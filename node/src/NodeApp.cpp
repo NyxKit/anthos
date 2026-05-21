@@ -65,6 +65,7 @@ void NodeApp::begin() {
   showBootColor(0x000808);
 
   health_.begin();
+  applyWifiPowerSavePolicy();
   syncNodeRegistration();
   applyHardwareProfileIfNeeded();
   api_.begin();
@@ -80,6 +81,7 @@ void NodeApp::loop() {
   syncNodeRegistration();
   applyHardwareProfileIfNeeded();
   commands_.loop();
+  applyWifiPowerSavePolicy();
   api_.loop();
   holdAfterCycle();
   maybeSuspendAfterTelemetry();
@@ -129,6 +131,26 @@ void NodeApp::holdAfterCycle() {
   }
 
   suspendHoldUntilAt_ = millis() + PowerPolicy::kSuspendHoldMs;
+}
+
+void NodeApp::applyWifiPowerSavePolicy() {
+  const bool disableSleep = NvsConfig::isPerformancePowerProfile();
+
+  if (wifiPowerSaveConfigured_ && wifiPowerSaveDisabled_ == disableSleep) {
+    return;
+  }
+
+  if (disableSleep &&
+      !PowerPolicy::shouldDisableWifiSleep(NimBLEDevice::getInitialized(), disableSleep)) {
+    return;
+  }
+
+  WiFi.setSleep(!disableSleep);
+  wifiPowerSaveDisabled_ = disableSleep;
+  wifiPowerSaveConfigured_ = true;
+  Serial.printf("[PWR] WiFi sleep %s for %s profile\n",
+                disableSleep ? "disabled" : "enabled",
+                disableSleep ? "performance" : "non-performance");
 }
 
 void NodeApp::syncNodeRegistration() {
