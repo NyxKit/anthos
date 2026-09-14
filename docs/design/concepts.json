@@ -1,0 +1,98 @@
+[
+  {
+    "id": "01",
+    "name": "Signal leaf",
+    "route": "existing",
+    "description": "Fewer traces. The familiar silhouette.",
+    "light_ink": "#7940bb",
+    "dark_ink": "#dcb8ff"
+  },
+  {
+    "id": "02",
+    "name": "Living circuit",
+    "route": "existing",
+    "description": "An upright leaf with two sensing points.",
+    "light_ink": "#7940bb",
+    "dark_ink": "#dcb8ff"
+  },
+  {
+    "id": "03",
+    "name": "Leaf / trace",
+    "route": "existing",
+    "description": "A bold silhouette with a single open vein.",
+    "light_ink": "#7940bb",
+    "dark_ink": "#dcb8ff"
+  },
+  {
+    "id": "04",
+    "name": "Growing type",
+    "route": "anthos",
+    "description": "A sprouting t brings the name to life.",
+    "light_ink": "#35634c",
+    "dark_ink": "#b9d9b3"
+  },
+  {
+    "id": "05",
+    "name": "In bloom",
+    "route": "anthos",
+    "description": "A flower takes the place of the o.",
+    "light_ink": "#984655",
+    "dark_ink": "#f0b0ba"
+  },
+  {
+    "id": "06",
+    "name": "Seed letter",
+    "route": "anthos",
+    "description": "A leaf-shaped a starts a custom wordmark.",
+    "light_ink": "#7940bb",
+    "dark_ink": "#dcb8ff"
+  },
+  {
+    "id": "07",
+    "name": "Leafbar A",
+    "route": "initial",
+    "description": "A botanical crossbar in an open initial.",
+    "light_ink": "#7940bb",
+    "dark_ink": "#dcb8ff"
+  },
+  {
+    "id": "08",
+    "name": "Cut-leaf A",
+    "route": "initial",
+    "description": "One leaf carved into a compact, solid A.",
+    "light_ink": "#35634c",
+    "dark_ink": "#b9d9b3"
+  },
+  {
+    "id": "09",
+    "name": "Growing A",
+    "route": "initial",
+    "description": "A soft arch with a young shoot at its apex.",
+    "light_ink": "#9b4e34",
+    "dark_ink": "#efbd9e"
+  },
+  {
+    "id": "10",
+    "name": "Unfurl",
+    "route": "plant",
+    "description": "A curling frond suggests growth over time.",
+    "light_ink": "#35634c",
+    "dark_ink": "#b9d9b3"
+  },
+  {
+    "id": "11",
+    "name": "Plant companion",
+    "route": "plant",
+    "description": "A familiar pot with a small sensing dot.",
+    "light_ink": "#7940bb",
+    "dark_ink": "#dcb8ff"
+  },
+  {
+    "id": "12",
+    "name": "Canopy",
+    "route": "plant",
+    "description": "A plant seen from above, gathered around a center.",
+    "light_ink": "#35634c",
+    "dark_ink": "#b9d9b3"
+  }
+]
