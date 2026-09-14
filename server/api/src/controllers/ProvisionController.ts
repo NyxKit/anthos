@@ -186,4 +186,30 @@ export class ProvisionController {
 
     res.json(this.registry.getLogicalNode(nodeId))
   }
+
+  delete: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+    const token = AuthController.readToken(req)
+    if (!token) {
+      res.status(401).json({ error: 'not_authenticated' })
+      return
+    }
+
+    try {
+      await this.auth.requireActionUser(token)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'not_authorized'
+      res.status(message === 'not_authorized' ? 403 : 500).json({ error: message })
+      return
+    }
+
+    const nodeId = String(req.params['id'])
+    const deleted = await this.registry.deleteLogicalNode(nodeId)
+
+    if (!deleted) {
+      res.status(404).json({ error: 'Node not found' })
+      return
+    }
+
+    res.status(204).send()
+  }
 }

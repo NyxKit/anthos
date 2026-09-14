@@ -1,82 +1,268 @@
-# Design System Specification: Athos Digital Ecosystem
-
-## 1. Overview & Creative North Star: "The Living Laboratory"
-This design system is built to bridge the gap between raw botanical data and high-end technical instrumentation. Our Creative North Star is **The Living Laboratory**—an aesthetic that treats the dashboard not as a flat screen, but as a deep, illuminated glass console. 
-
-We move away from the "SaaS template" look by embracing **Intentional Asymmetry**. Large-scale data visualizations should sit offset against compact control modules, creating a rhythmic tension that feels bespoke and engineered. The experience must feel "technical" through monospaced precision, but "premium" through luxurious negative space and tonal depth.
-
+---
+name: Anthos
+description: Local-first home monitoring and provisioning dashboard for Anthos nodes.
+colors:
+  surface-dim: "#0f1419"
+  surface-container-lowest: "#0a0f14"
+  surface-container-low: "#171c22"
+  surface-container: "#1b2026"
+  surface-container-high: "#252a30"
+  surface-container-highest: "#30353b"
+  surface-bright: "#353a40"
+  surface-variant: "#30353b"
+  divider: "#47474d33"
+  divider-light: "#47474d1f"
+  outline: "#988d9f"
+  outline-variant: "#4c4354"
+  text-1: "#dee3eb"
+  text-2: "#cfc2d6"
+  text-3: "#abaab18c"
+  text-4: "#abaab140"
+  primary: "#dcb8ff"
+  primary-light: "#efdbff"
+  primary-dark: "#6700b5"
+  primary-highlight: "#b56eff"
+  primary-container: "#b56eff"
+  primary-fixed: "#efdbff"
+  primary-fixed-dim: "#dcb8ff"
+  on-primary: "#480082"
+  on-primary-container: "#3f0072"
+  secondary: "#9acbfb"
+  secondary-light: "#cee5ff"
+  secondary-dark: "#003353"
+  secondary-highlight: "#0b4a73"
+  secondary-container: "#0b4a73"
+  on-secondary: "#003353"
+  on-secondary-container: "#89bae9"
+  tertiary: "#60de87"
+  tertiary-light: "#7dfca0"
+  tertiary-dark: "#003918"
+  tertiary-highlight: "#17a656"
+  tertiary-container: "#17a656"
+  on-tertiary: "#003918"
+  on-tertiary-container: "#003114"
+  error: "#ffb4ab"
+  error-light: "#ffdad6"
+  error-dark: "#690005"
+  error-container: "#93000a"
+  on-error: "#690005"
+  on-error-container: "#ffdad6"
+typography:
+  display:
+    fontFamily: "Space Grotesk, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontSize: "42px"
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: "-0.025em"
+  headline:
+    fontFamily: "Space Grotesk, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontSize: "2rem"
+    fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: "-0.025em"
+  title:
+    fontFamily: "Space Grotesk, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "-0.025em"
+  body:
+    fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    fontSize: "0.875rem"
+    fontWeight: 400
+    lineHeight: 1.5
+    letterSpacing: "0"
+  label:
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace"
+    fontSize: "0.625rem"
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: "0.1em"
+rounded:
+  xs: "0.125rem"
+  sm: "0.25rem"
+  md: "0.375rem"
+  lg: "0.5rem"
+  xl: "0.75rem"
+  full: "9999px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
+  2xl: "32px"
+  3xl: "40px"
+components:
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-primary}"
+    rounded: "{rounded.sm}"
+    padding: "14px 20px"
+  button-secondary:
+    backgroundColor: "{colors.surface-container}"
+    textColor: "{colors.text-2}"
+    rounded: "{rounded.md}"
+    padding: "14px 20px"
+  nav-item-active:
+    backgroundColor: "{colors.surface-container}"
+    textColor: "{colors.primary}"
+    rounded: "{rounded.sm}"
+    padding: "12px 16px"
+  metric-card:
+    backgroundColor: "{colors.surface-container}"
+    textColor: "{colors.text-1}"
+    rounded: "{rounded.lg}"
+    padding: "16px"
+  sensor-tile:
+    backgroundColor: "{colors.surface-container-low}"
+    textColor: "{colors.text-1}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  filters-panel:
+    backgroundColor: "{colors.surface-container}"
+    textColor: "{colors.text-1}"
+    rounded: "{rounded.xl}"
+    padding: "16px"
+  status-dot:
+    backgroundColor: "{colors.tertiary}"
+    textColor: "{colors.on-tertiary}"
+    rounded: "{rounded.full}"
+    padding: "4px 8px"
 ---
 
-## 2. Color Theory & Tonal Depth
-The palette utilizes the dark foundation of the brand to create a high-contrast, data-centric environment. We prioritize the "glow" of information against the "void" of the background.
+# Design System: Anthos
 
-### Surface Hierarchy & The "No-Line" Rule
-Traditional 1px borders are strictly prohibited for sectioning. They create visual noise that distracts from the data. Instead, define boundaries through **Tonal Transitions**:
-- **Baseline:** The application background uses `surface` (`#0f1419`).
-- **Nesting:** Place a `surface_container_low` (`#171c22`) area to define a workspace.
-- **Elevation:** Content cards or individual sensor modules should use `surface_container` (`#1b2026`) or `surface_container_high` (`#252a30`) to create a natural, "stepped" lift.
+## 1. Overview
 
-### The "Glass & Gradient" Rule
-To elevate the UI beyond flat blocks, use **Glassmorphism** for floating elements (e.g., tooltips, popovers, or floating navigation):
-- Apply `surface_variant` with a 60% opacity and a `24px` backdrop blur.
-- **Signature Textures:** Use subtle linear gradients for primary actions. A transition from `primary` (`#dcb8ff`) to `primary_container` (`#b56eff`) at a 135-degree angle provides a tactile, "lit from within" quality.
+**Creative North Star: "The Living Laboratory"**
 
----
+Anthos is a dark, local-first control surface for a home operator looking at live node health in a dim room, often at a desk or near a NAS rack. The UI leans into technical calm, with compact data surfaces, restrained glow, and deliberate asymmetry instead of generic SaaS symmetry.
 
-## 3. Typography: The Technical Monolith
-The system utilizes a dual-type approach to balance editorial authority with raw data legibility.
+The current system reads as an instrument panel more than a marketing site. It favors clear state, readable telemetry, and a confident purple accent over decorative noise. It rejects generic SaaS dashboards, overly playful consumer polish, and loud neon maker aesthetics.
 
-*   **Headlines & Display (Space Grotesk / Mona Sans VF):** Used for high-level plant names and critical metrics. These should feel architectural. Use `display-lg` for hero metrics (e.g., Temperature percentage) to create an "editorial" hierarchy.
-*   **Data & Labels (Inter / ui-monospace):** All sensor readouts, timestamps, and technical logs must use the monospaced weight. This ensures that changing digits do not cause horizontal layout shifts and maintains the "technical laboratory" feel.
+Key characteristics:
+- Dark, low-glare environment tuned for home and utility-room use.
+- Technical typography with strong contrast between headline and label roles.
+- Surface depth through tonal shifts, light borders, and occasional shadow.
+- Clear distinction between live, inactive, warning, and critical states.
 
-| Role | Token | Font | Size | Intent |
-| :--- | :--- | :--- | :--- | :--- |
-| **Hero Metric** | `display-lg` | Space Grotesk | 3.5rem | Primary Data Point (e.g., 72%) |
-| **Section Header**| `headline-sm` | Space Grotesk | 1.5rem | Sensor Category (e.g., Soil Health) |
-| **Readout** | `title-md` | Inter (Mono) | 1.125rem | Value Labeling |
-| **Technical Log** | `label-sm` | Inter (Mono) | 0.6875rem | Metadata / Timestamps |
+## 2. Colors
 
----
+Anthos uses a dark purple-led palette with blue secondary support, green success states, and red critical states.
 
-## 4. Elevation & Depth: Tonal Layering
-We do not use shadows to represent light; we use color to represent proximity.
+### Primary
+- **Primary Purple** (`#dcb8ff`): the main accent for brand moments, active navigation, and emphasis.
+- **Primary Container Purple** (`#b56eff`): used for stronger fills and highlighted action states.
+- **Deep Primary** (`#6700b5`): reserved for pressed, inverse, or high-contrast text treatments.
 
-*   **The Layering Principle:** Stacking is the primary tool for hierarchy. A `surface_container_highest` element suggests it is physically closer to the user than a `surface_dim` background. 
-*   **Ambient Shadows:** If a floating state is required (e.g., a modal), use an ultra-diffused shadow: `offset: 0 20px, blur: 40px, color: rgba(0, 0, 0, 0.4)`. 
-*   **The Ghost Border:** If a boundary is required for accessibility (e.g., in a high-density data grid), use a `Ghost Border`: `outline_variant` at 15% opacity. It should be felt, not seen.
+### Secondary
+- **Secondary Blue** (`#9acbfb`): informational support color for neutral status and utility actions.
+- **Secondary Container Blue** (`#0b4a73`): deeper UI fills and selected background states.
 
----
+### Tertiary
+- **Success Green** (`#60de87`): connected, healthy, and active node states.
+- **Tertiary Container Green** (`#17a656`): stronger success fills and confirmation states.
 
-## 5. Component Logic
+### Error
+- **Error Rose** (`#ffb4ab`): critical alerts and degraded sensor state.
+- **Error Container Red** (`#93000a`): severe alert fill and destructive emphasis.
 
-### Metrics & Sensor Cards
-*   **Rule:** Forbid divider lines. Separate "Current Value" from "Historical Trend" using a shift from `surface_container` to `surface_container_low`.
-*   **Status Indicators:** Use `tertiary` (`#60de87`) for "Optimal" and `error` (`#ffb4ab`) for "Critical." These should have a subtle outer glow (bloom) using their own color at 20% opacity.
+### Neutral
+- **Surface Dim** (`#0f1419`): app background.
+- **Surface Container Low** (`#171c22`): shell and grouped panel backgrounds.
+- **Surface Container** (`#1b2026`): primary content panels.
+- **Surface Container High** (`#252a30`): elevated or hover states.
+- **Surface Container Highest** (`#30353b`): strongest layer in the current system.
+- **Outline Variant** (`#4c4354`): thin separators and subtle borders.
+- **Text 1** (`#dee3eb`): primary body text.
+- **Text 2** (`#cfc2d6`): secondary labels and navigation text.
+- **Text 3** (`#abaab18c`): muted metadata and low-priority labels.
 
-### Buttons (Action Modules)
-*   **Primary:** Gradient fill (`primary` to `primary_container`). `0.25rem` (sm) roundedness for a precision-tool feel.
-*   **Secondary:** No fill. `Ghost Border` using `outline`. Text color `on_surface`.
-*   **Tertiary:** Text only, `ui-monospace`, all caps, `0.75rem`.
+### Named Rules
+**The Night Console Rule.** Dark surfaces are the default because the product is used in low-light home environments and should minimize glare.
 
-### Input Fields & Controls
-*   **Base:** `surface_container_lowest`. 
-*   **Focus State:** Do not change the border color; instead, shift the background to `surface_bright` and add a `primary` "glow" line (2px) only at the bottom of the field.
+**The Purple Is Rare Rule.** Purple carries identity and active state, not decoration for its own sake.
 
-### Selection Chips
-*   For plant filtering or timeline toggles (24h, 7d, 30d). 
-*   **Active:** `secondary_container` background with `on_secondary_container` text.
-*   **Inactive:** `surface_container_high` background.
+## 3. Typography
 
----
+**Display Font:** Space Grotesk, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+**Body Font:** Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+**Label/Mono Font:** ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace
 
-## 6. Do’s and Don’ts
+**Character:** The pairing feels technical without turning sterile. Headlines are compact and architectural, while labels and telemetry keep a fixed-width, operational tone.
 
-### Do
-*   **DO** use monochromatic icons with a single accent color for active states.
-*   **DO** allow for "Breathing Room." Data-heavy dashboards need more whitespace than standard apps to prevent cognitive overload.
-*   **DO** use the `tertiary` green (`#1FAA59`) strictly for healthy biological data.
+### Hierarchy
+- **Display** (700, 42px, 1): used for landing titles and highest-level views.
+- **Headline** (700, 2rem, 1.1): used for page and section titles.
+- **Title** (500, 1.5rem, 1.2): used for card headings and major node values.
+- **Body** (400, 0.875rem, 1.5, 65 to 75ch): used for general interface copy.
+- **Label** (700, 0.625rem, 0.1em, uppercase): used for sensor labels, timestamps, and meta.
 
-### Don't
-*   **DON'T** use 100% white (#FFFFFF) for body text. Use `on_surface` (`#dee3eb`) to reduce eye strain in dark environments.
-*   **DON'T** use standard "Drop Shadows." Use tonal shifts (Surface Levels) to indicate elevation.
-*   **DON'T** use rounded corners larger than `0.5rem` (lg) for functional data components; keep the "technical instrument" feel sharp and precise.
+### Named Rules
+**The Monospace Label Rule.** Low-level UI labels, log metadata, and sensor tags stay fixed-width so technical data remains scannable.
+
+## 4. Elevation
+
+The system uses tonal layering first, then thin borders and soft glow. Most depth comes from shifting between `surface-dim`, `surface-container-low`, `surface-container`, and `surface-container-high`, with a small set of low-opacity shadows for float and emphasis. It is not a pure flat system, but it also avoids heavy material-style elevation.
+
+### Shadow Vocabulary
+- **xs** (`0 0 24px -4px rgba(230, 228, 236, 0.04)`): subtle bloom on quiet surfaces.
+- **sm** (`0 0 24px -4px rgba(230, 228, 236, 0.06)`): low emphasis hover and support depth.
+- **md** (`0 0 32px -4px rgba(230, 228, 236, 0.08)`): stronger floating utility surfaces.
+- **lg** (`0 0 40px -4px rgba(230, 228, 236, 0.10)`): prominent overlays.
+- **xl** (`0 0 48px -4px rgba(230, 228, 236, 0.12)`): rare high-focus lift.
+
+### Named Rules
+**The Thin Boundary Rule.** Borders stay subtle and structural, not decorative.
+
+## 5. Components
+
+### Buttons
+Buttons are compact, square-leaning controls with a precision-tool feel.
+- **Shape:** small radii, typically `0.25rem` to `0.375rem`.
+- **Primary:** purple fill with dark text, used for the strongest action.
+- **Secondary:** muted surface fill with lighter text, used for navigation and alternate actions.
+- **Hover / Focus:** background brightens or deepens, rather than adding heavy motion.
+
+### Navigation
+The sidebar is fixed, narrow, and text-forward.
+- **Style:** uppercase labels, icon plus text, fixed left rail.
+- **Active state:** purple text with a deeper surface background.
+- **Mobile treatment:** hidden below tablet widths.
+
+### Metric Cards
+Metric surfaces are compact data tiles.
+- **Corner Style:** `0.5rem`.
+- **Background:** `surface-container`.
+- **Border:** subtle outline or accent edge in some variants.
+- **Internal Padding:** 16px.
+
+### Sensor Tiles
+Sensor tiles are dense and grid-based, with stronger focus on value than decoration.
+- **Style:** low surface, square grid seams, small label text.
+- **State:** inactive values fade, critical moisture state turns red and gets a stronger tint.
+
+### Filters Panel
+The logs filter bar is a dense utility surface.
+- **Style:** grouped controls on a surface container with a light border.
+- **State:** responsive grid collapses from five columns to two, then one.
+
+### Status Dot
+The status pill is small but explicit.
+- **Style:** rounded success or info marker with uppercase text.
+- **State:** online uses green, offline falls back to info tone.
+
+## 6. Do's and Don'ts
+
+### Do:
+- **Do** keep surfaces dark and low-glare for home and late-night use.
+- **Do** use `#dcb8ff` and `#b56eff` for active state and identity, not everywhere.
+- **Do** preserve small radii, tight spacing, and fixed-width labels for technical readability.
+- **Do** make live, warning, and critical states obvious at a glance.
+
+### Don't:
+- **Don't** turn the app into a generic SaaS dashboard with interchangeable cards and enterprise polish.
+- **Don't** make it feel like an overly playful consumer app that hides the technical details.
+- **Don't** push it into loud neon maker aesthetics or decorative glow for its own sake.
+- **Don't** use 1px borders as the main visual system when tonal depth can carry the structure.

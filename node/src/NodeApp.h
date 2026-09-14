@@ -21,6 +21,7 @@ class NodeApp {
   const char* describePortMode() const;
   void syncNodeRegistration();
   void applyHardwareProfileIfNeeded();
+  void applyWifiPowerSavePolicy();
   void maybeSuspendAfterTelemetry();
   void holdAfterCycle();
 
@@ -37,4 +38,6 @@ class NodeApp {
   unsigned long      lastRegisterAt_ = 0;
   unsigned long      suspendHoldUntilAt_ = 0;
   String             appliedCapability_ = "";
+  bool               wifiPowerSaveDisabled_ = false;
+  bool               wifiPowerSaveConfigured_ = false;
 };

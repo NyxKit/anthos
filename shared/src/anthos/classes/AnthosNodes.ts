@@ -37,6 +37,12 @@ export class AnthosNodes {
     })
   }
 
+  deleteLogicalNode(nodeId: string): Promise<void> {
+    return this.anthos.request<void>(`/api/nodes/${nodeId}`, {
+      method: 'DELETE',
+    })
+  }
+
   openProvisionWindow(): Promise<void> {
     return this.anthos.request<void>('/api/provision/open', {
       method: 'POST',

@@ -6,6 +6,7 @@ function createRes() {
   return {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
+    send: vi.fn().mockReturnThis(),
   }
 }
 
@@ -181,5 +182,27 @@ describe('ProvisionController', () => {
       capability: 'watering',
       deviceToken: 'token-123',
     })
+  })
+
+  it('deletes a logical node through the registry and returns no content', async () => {
+    const registry = {
+      deleteLogicalNode: vi.fn().mockResolvedValue(true),
+    }
+    const pairing = {
+      isOpen: vi.fn(),
+      open: vi.fn(),
+      getStatus: vi.fn(),
+    }
+    const auth = {
+      requireActionUser: vi.fn().mockResolvedValue({}),
+    }
+    const controller = new ProvisionController(registry as never, pairing as never, auth as never)
+    const res = createRes()
+
+    await controller.delete({ params: { id: 'node-001' }, headers: { authorization: 'Bearer token' } } as never, res as never)
+
+    expect(auth.requireActionUser).toHaveBeenCalledWith('token')
+    expect(registry.deleteLogicalNode).toHaveBeenCalledWith('node-001')
+    expect(res.status).toHaveBeenCalledWith(204)
   })
 })

@@ -200,6 +200,21 @@ export class NodeRegistryService {
     return updated
   }
 
+  async deleteLogicalNode(nodeId: string): Promise<boolean> {
+    const stmt = this.db.prepare(`
+      DELETE FROM logical_nodes WHERE node_id=?
+    `)
+    stmt.run([nodeId])
+    stmt.free()
+
+    const deleted = this.db.getRowsModified() > 0
+    if (deleted) {
+      await this.persist()
+    }
+
+    return deleted
+  }
+
   getPowerProfileState(nodeId: string): NodePowerProfileState | null {
     const stmt = this.db.prepare(`
       SELECT

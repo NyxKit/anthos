@@ -44,6 +44,20 @@ export const useNodesStore = defineStore('nodes', () => {
     nodes.value = sortNodes(nodes.value)
   }
 
+  async function deleteNode(nodeId: string): Promise<void> {
+    isLoading.value = true
+    error.value = null
+    try {
+      await anthos.nodes.deleteLogicalNode(nodeId)
+      nodes.value = nodes.value.filter(node => node.id !== nodeId)
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Failed to delete node'
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   async function updateDisplayName(nodeId: string, displayName: string): Promise<PlantNode | null> {
     isLoading.value = true
     error.value = null
@@ -101,5 +115,5 @@ export const useNodesStore = defineStore('nodes', () => {
     }
   }
 
-  return { nodes, isLoading, error, fetchNodes, updateDisplayName, updateCapability, updateOrder, openProvisionWindow }
+  return { nodes, isLoading, error, fetchNodes, deleteNode, updateDisplayName, updateCapability, updateOrder, openProvisionWindow }
 })

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-30T00:00:00Z",
+  "title": "Design System: Anthos",
+  "extensions": {
+    "narrative": {
+      "northStar": "The Living Laboratory",
+      "overview": "A dark, local-first control surface for home operators monitoring node health, logs, and provisioning in low light.",
+      "antiReferences": [
+        "generic SaaS dashboards with interchangeable cards and enterprise polish",
+        "overly playful consumer apps that hide the technical details",
+        "loud neon maker aesthetics or decorative glow for its own sake"
+      ],
+      "rules": [
+        "Purple is for identity and active state, not decoration everywhere.",
+        "Depth comes from tonal layering first, then thin borders and soft glow.",
+        "Labels and log metadata stay fixed-width for scanability."
+      ]
+    },
+    "colorMeta": {
+      "surface-dim": { "role": "neutral", "displayName": "Surface Dim", "canonical": "#0f1419", "tonalRamp": ["#0a0f14", "#0f1419", "#171c22"] },
+      "surface-container-low": { "role": "neutral", "displayName": "Surface Container Low", "canonical": "#171c22", "tonalRamp": ["#0f1419", "#171c22", "#1b2026"] },
+      "surface-container": { "role": "neutral", "displayName": "Surface Container", "canonical": "#1b2026", "tonalRamp": ["#171c22", "#1b2026", "#252a30"] },
+      "surface-container-high": { "role": "neutral", "displayName": "Surface Container High", "canonical": "#252a30", "tonalRamp": ["#1b2026", "#252a30", "#30353b"] },
+      "primary": { "role": "primary", "displayName": "Primary Purple", "canonical": "#dcb8ff", "tonalRamp": ["#6700b5", "#b56eff", "#dcb8ff", "#efdbff"] },
+      "secondary": { "role": "secondary", "displayName": "Secondary Blue", "canonical": "#9acbfb", "tonalRamp": ["#003353", "#0b4a73", "#9acbfb", "#cee5ff"] },
+      "tertiary": { "role": "success", "displayName": "Success Green", "canonical": "#60de87", "tonalRamp": ["#003918", "#17a656", "#60de87", "#7dfca0"] },
+      "error": { "role": "danger", "displayName": "Error Rose", "canonical": "#ffb4ab", "tonalRamp": ["#690005", "#93000a", "#ffb4ab", "#ffdad6"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Landing titles and the strongest section headings." },
+      "headline": { "displayName": "Headline", "purpose": "Page and section titles." },
+      "title": { "displayName": "Title", "purpose": "Card headings and major node values." },
+      "body": { "displayName": "Body", "purpose": "General interface copy." },
+      "label": { "displayName": "Label", "purpose": "Sensor labels, timestamps, and other fixed metadata." }
+    },
+    "shadowMeta": {
+      "xs": "0 0 24px -4px rgba(230, 228, 236, 0.04)",
+      "sm": "0 0 24px -4px rgba(230, 228, 236, 0.06)",
+      "md": "0 0 32px -4px rgba(230, 228, 236, 0.08)",
+      "lg": "0 0 40px -4px rgba(230, 228, 236, 0.10)",
+      "xl": "0 0 48px -4px rgba(230, 228, 236, 0.12)"
+    },
+    "motionMeta": {
+      "durationRegular": "0.3s",
+      "easing": "ease-out-quart"
+    },
+    "breakpoints": {
+      "mobile": "768px",
+      "tablet": "1024px"
+    }
+  }
+}

@@ -102,6 +102,10 @@ unsigned long NvsConfig::getTelemetrySuspendCutoffMs() {
   return PowerPolicy::kSuspendCutoffMs;
 }
 
+bool NvsConfig::isPerformancePowerProfile() {
+  return getIntervalMs() == kPerformanceProfileIntervalMs;
+}
+
 void NvsConfig::setWifiCredentials(const String& ssid, const String& pass) {
   Preferences prefs;
   prefs.begin(kNamespace, false);

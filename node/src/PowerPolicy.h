@@ -9,4 +9,5 @@ class PowerPolicy {
 
   static bool staysAwakeBetweenTelemetry(unsigned long intervalMs);
   static bool shouldSuspendAfterTelemetry(unsigned long intervalMs);
+  static bool shouldDisableWifiSleep(bool bleInitialized, bool performanceProfile);
 };
