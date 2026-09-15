@@ -5,6 +5,7 @@
 #include <cstring>
 
 #include "AppConfig.h"
+#include "DeviceResponseValidator.h"
 #include "BleProvisioning.h"
 #include "NvsConfig.h"
 
@@ -134,7 +135,7 @@ bool ApiClient::publishLog(const char* source, const char* message, const char* 
   doc["source"] = source;
   doc["level"] = level;
   doc["message"] = message;
-  doc["timestampMs"] = millis();
+  doc["uptimeMs"] = millis();
   if (metaJson != nullptr && std::strlen(metaJson) > 0) {
     StaticJsonDocument<128> meta;
     if (deserializeJson(meta, metaJson) == DeserializationError::Ok) {
@@ -186,21 +187,17 @@ bool ApiClient::publishHeartbeat() {
   }
 
   const String response = http.getString();
-  if (response.length() > 0) {
-    StaticJsonDocument<128> resp;
-    if (deserializeJson(resp, response) == DeserializationError::Ok) {
-      const String assignedNodeId = resp["nodeId"] | "";
-      if (assignedNodeId.length() > 0 && assignedNodeId != NvsConfig::getNodeId()) {
-        NvsConfig::setNodeId(assignedNodeId);
-        Serial.printf("[API] Synced node_id=%s from ingest response\n", assignedNodeId.c_str());
-      }
-
-      const String capability = resp["capability"] | "earth";
-      NvsConfig::setNodeCapability(capability == "watering" ? "watering" : "earth");
-    }
-  }
-
   http.end();
+  StaticJsonDocument<256> resp;
+  if (deserializeJson(resp, response) != DeserializationError::Ok) {
+    logger_.info("api: invalid success response");
+    return false;
+  }
+  if (!DeviceResponseValidator::ingest(resp.as<JsonVariantConst>(), NvsConfig::getNodeId().c_str())) {
+    logger_.info("api: invalid response identity or capability");
+    return false;
+  }
+  NvsConfig::setNodeCapability(resp["capability"].as<const char*>());
   successfulPublishPending_ = true;
   return true;
 }

@@ -83,7 +83,19 @@ String NvsConfig::getDeviceToken() {
 }
 
 unsigned long NvsConfig::getIntervalMs() {
-  return sIntervalMs > 0 ? sIntervalMs : kAppConfig.pushIntervalMs;
+  if (sIntervalMs == 0) restoreIntervalMs();
+  return sIntervalMs;
+}
+
+bool NvsConfig::restoreIntervalMs() {
+  sIntervalMs = kAppConfig.pushIntervalMs;
+  Preferences prefs;
+  if (!prefs.begin(kNamespace, true)) return false;
+  const unsigned long stored = prefs.getULong(kIntervalMs, 0);
+  prefs.end();
+  if (!PowerPolicy::isValidInterval(stored)) return false;
+  sIntervalMs = stored;
+  return true;
 }
 
 unsigned long NvsConfig::getReadIntervalMs() {
@@ -138,8 +150,17 @@ void NvsConfig::setDeviceToken(const String& token) {
   prefs.end();
 }
 
-void NvsConfig::setIntervalMs(unsigned long intervalMs) {
+bool NvsConfig::setIntervalMs(unsigned long intervalMs) {
+  if (!PowerPolicy::isValidInterval(intervalMs)) return false;
+  Preferences prefs;
+  if (!prefs.begin(kNamespace, false)) return false;
+  // Redelivery must not wear flash by rewriting an already persisted profile.
+  const bool saved = prefs.getULong(kIntervalMs, 0) == intervalMs ||
+                     prefs.putULong(kIntervalMs, intervalMs) == sizeof(uint32_t);
+  prefs.end();
+  if (!saved) return false;
   sIntervalMs = intervalMs;
+  return true;
 }
 
 void NvsConfig::setReadIntervalMs(unsigned long intervalMs) {

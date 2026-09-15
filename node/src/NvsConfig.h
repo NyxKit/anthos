@@ -21,6 +21,8 @@ class NvsConfig {
   static String getNodeCapability();
   static String getDeviceToken();
   static unsigned long getIntervalMs();
+  // Restore once at boot; invalid/legacy storage uses the default cadence.
+  static bool restoreIntervalMs();
   static unsigned long getReadIntervalMs();
   static unsigned long getTelemetryIntervalMs();
   static unsigned long getQueueIntervalMs();
@@ -32,7 +34,7 @@ class NvsConfig {
   static void setNodeId(const String& nodeId);
   static void setNodeCapability(const String& capability);
   static void setDeviceToken(const String& token);
-  static void setIntervalMs(unsigned long intervalMs);
+  static bool setIntervalMs(unsigned long intervalMs);
   static void setReadIntervalMs(unsigned long intervalMs);
   static void setTelemetryIntervalMs(unsigned long intervalMs);
   static void setQueueIntervalMs(unsigned long intervalMs);
@@ -48,4 +50,5 @@ class NvsConfig {
   static constexpr const char* kNodeId    = "node_id";
   static constexpr const char* kNodeCapability = "node_capability";
   static constexpr const char* kDeviceToken = "device_token";
+  static constexpr const char* kIntervalMs = "interval_ms";
 };
