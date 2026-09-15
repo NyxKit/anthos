@@ -14,12 +14,13 @@ class CommandClient {
   void begin();
   void loop();
   bool pollNow();
+  bool hasPendingWork() const;
 
  private:
   bool shouldPoll() const;
   String commandsUrl() const;
   String ackUrl(const String& commandId) const;
-  void pollCommands();
+  bool pollCommands();
   void logCommandReceived(const String& commandId, const char* type);
   bool processCommand(const String& commandId, unsigned long durationMs);
   void processPowerProfileCommand(const String& commandId,

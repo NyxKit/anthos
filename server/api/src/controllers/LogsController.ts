@@ -1,4 +1,5 @@
 import type { Request, Response, RequestHandler } from 'express'
+import { DeviceLogStatus, type DeviceLogRequest, type DeviceLogResponse } from '@anthos/shared'
 
 import { NodeRegistryService } from '../services/NodeRegistryService.js'
 import { LogArchiveService } from '../services/LogArchiveService.js'
@@ -30,15 +31,8 @@ export class LogsController {
   ) {}
 
   create: RequestHandler = async (req: Request, res: Response): Promise<void> => {
-    const body = req.body as {
-      nodeId?: unknown
-      level?: unknown
-      source?: unknown
-      message?: unknown
-      meta?: unknown
-      timestamp?: unknown
-      timestampMs?: unknown
-    }
+    const receivedAt = Date.now()
+    const body = req.body as Partial<Record<keyof DeviceLogRequest, unknown>>
 
     const nodeId = parseOptionalString(body.nodeId)
     const deviceToken = readDeviceToken(req)
@@ -74,20 +68,26 @@ export class LogsController {
       return
     }
 
+    const uptimeMs = body.uptimeMs ?? body.timestampMs
+    if (uptimeMs !== undefined &&
+        (typeof uptimeMs !== 'number' || !Number.isSafeInteger(uptimeMs) || uptimeMs < 0)) {
+      res.status(400).json({ error: 'Invalid log uptime' })
+      return
+    }
+    const meta = typeof body.meta === 'object' && body.meta !== null && !Array.isArray(body.meta)
+      ? body.meta as Record<string, unknown>
+      : undefined
+
     const entry = await this.logArchive.recordEntry({
       nodeId: parseOptionalString(body.nodeId) ?? null,
       level: level ?? 'info',
       source,
       message,
-      meta: typeof body.meta === 'object' && body.meta !== null ? body.meta as Record<string, unknown> : undefined,
-      timestamp: typeof body.timestamp === 'number'
-        ? body.timestamp
-        : typeof body.timestampMs === 'number'
-          ? body.timestampMs
-          : undefined,
+      meta: uptimeMs === undefined ? meta : { ...meta, uptimeMs },
+      timestamp: receivedAt,
     })
 
-    res.status(202).json({ status: 'accepted', id: entry.id })
+    res.status(202).json({ status: DeviceLogStatus.Accepted, id: entry.id } satisfies DeviceLogResponse)
   }
 
   list: RequestHandler = async (req: Request, res: Response): Promise<void> => {

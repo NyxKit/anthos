@@ -11,6 +11,7 @@
 #include "ProvisioningManager.h"
 #include "PumpActuator.h"
 #include "SensorManager.h"
+#include "SleepCoordinator.h"
 
 class NodeApp {
  public:
@@ -35,6 +36,6 @@ class NodeApp {
   CommandClient      commands_{logger_, health_, pump_, api_};
   unsigned long      lastReadAt_ = 0;
   unsigned long      lastRegisterAt_ = 0;
-  unsigned long      suspendHoldUntilAt_ = 0;
+  SleepCoordinator   sleep_;
   String             appliedCapability_ = "";
 };

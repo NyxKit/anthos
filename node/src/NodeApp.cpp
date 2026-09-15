@@ -34,6 +34,7 @@ const char* NodeApp::describePortMode() const {
 
 void NodeApp::begin() {
   logger_.begin(115200);
+  NvsConfig::restoreIntervalMs();
 
   AtomS3.begin(true);
   showBootColor(0x080000);
@@ -95,25 +96,14 @@ void NodeApp::loop() {
 }
 
 void NodeApp::maybeSuspendAfterTelemetry() {
-  if (suspendHoldUntilAt_ == 0) {
-    return;
-  }
+  const uint32_t intervalMs = sleep_.prepareSleep(
+      millis(),
+      [this]() { return commands_.pollNow(); },
+      []() { return NvsConfig::getIntervalMs(); },
+      [this]() { return commands_.hasPendingWork(); });
+  if (intervalMs == 0) return;
 
-  const auto now = millis();
-  if (now < suspendHoldUntilAt_) {
-    return;
-  }
-
-  const unsigned long intervalMs = NvsConfig::getIntervalMs();
-  if (!PowerPolicy::shouldSuspendAfterTelemetry(intervalMs)) {
-    suspendHoldUntilAt_ = 0;
-    return;
-  }
-
-  commands_.pollNow();
-  suspendHoldUntilAt_ = 0;
-
-  Serial.printf("[PWR] Deep sleep for %lu ms\n", intervalMs);
+  logger_.info("[PWR] Entering deep sleep with applied cadence");
   api_.publishLog("power", "I'm hibernating now");
   sensors_.suspend();
   WiFi.disconnect(true);
@@ -128,7 +118,7 @@ void NodeApp::holdAfterCycle() {
     return;
   }
 
-  suspendHoldUntilAt_ = millis() + PowerPolicy::kSuspendHoldMs;
+  sleep_.onSuccessfulPublish(millis());
 }
 
 void NodeApp::syncNodeRegistration() {

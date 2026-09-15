@@ -5,7 +5,9 @@
 #include <cstring>
 
 #include "AppConfig.h"
+#include "DeviceResponseValidator.h"
 #include "NvsConfig.h"
+#include "PowerPolicy.h"
 
 CommandClient::CommandClient(Logger& logger, const NodeHealth& health, PumpActuator& pump, ApiClient& api)
     : logger_(logger), health_(health), pump_(pump), api_(api) {}
@@ -43,8 +45,11 @@ bool CommandClient::pollNow() {
     return false;
   }
 
-  pollCommands();
-  return true;
+  return pollCommands();
+}
+
+bool CommandClient::hasPendingWork() const {
+  return pump_.isRunning() || activePumpCommandId_.length() > 0 || activePumpAckPending_;
 }
 
 bool CommandClient::shouldPoll() const {
@@ -67,9 +72,9 @@ String CommandClient::ackUrl(const String& commandId) const {
   return url + "/" + commandId + "/ack";
 }
 
-void CommandClient::pollCommands() {
+bool CommandClient::pollCommands() {
   const String url = commandsUrl();
-  if (url.length() == 0) return;
+  if (url.length() == 0) return false;
 
   lastPollAt_ = millis();
 
@@ -77,39 +82,38 @@ void CommandClient::pollCommands() {
   http.setTimeout(2000);
   if (!http.begin(url)) {
     logger_.info("commands: begin failed");
-    return;
+    return false;
   }
 
   const int statusCode = http.GET();
   if (statusCode < 0) {
     Serial.printf("commands error=%s target=%s\n", http.errorToString(statusCode).c_str(), url.c_str());
     http.end();
-    return;
+    return false;
   }
 
   if (statusCode < 200 || statusCode >= 300) {
     Serial.printf("commands status=%d target=%s\n", statusCode, url.c_str());
     http.end();
-    return;
+    return false;
   }
 
   const String response = http.getString();
   http.end();
-  if (response.length() == 0) return;
+  if (response.length() == 0) return false;
 
   StaticJsonDocument<1024> doc;
   if (deserializeJson(doc, response) != DeserializationError::Ok) {
     Serial.println("commands status=invalid_json");
-    return;
+    return false;
   }
 
+  if (!DeviceResponseValidator::queue(doc.as<JsonVariantConst>(), NvsConfig::getNodeId().c_str())) {
+    logger_.info("commands: invalid response identity or capability");
+    return false;
+  }
+  NvsConfig::setNodeCapability(doc["capability"].as<const char*>());
   JsonArray commands = doc["commands"].as<JsonArray>();
-  if (!doc["commands"].is<JsonArray>()) {
-    return;
-  }
-
-  const String capability = doc["capability"] | "earth";
-  NvsConfig::setNodeCapability(capability == "watering" ? "watering" : "earth");
 
   for (JsonObject command : commands) {
     const String commandId = command["commandId"] | "";
@@ -137,15 +141,17 @@ void CommandClient::pollCommands() {
     }
 
     if (std::strcmp(type, "power-profile") == 0) {
-      processPowerProfileCommand(
-        commandId,
-        payload["intervalMs"] | 0
-      );
+      if (!payload["intervalMs"].is<unsigned long>()) {
+        acknowledgeCommand(commandId, "failed", "invalid power profile payload");
+        continue;
+      }
+      processPowerProfileCommand(commandId, payload["intervalMs"].as<unsigned long>());
       continue;
     }
 
     acknowledgeCommand(commandId, "failed", "unsupported command type");
   }
+  return true;
 }
 
 bool CommandClient::processCommand(const String& commandId, unsigned long durationMs) {
@@ -163,16 +169,16 @@ bool CommandClient::processCommand(const String& commandId, unsigned long durati
 void CommandClient::processPowerProfileCommand(
     const String& commandId,
     unsigned long intervalMs) {
-  if (intervalMs == 0) {
+  if (!PowerPolicy::isValidInterval(intervalMs)) {
     acknowledgeCommand(commandId, "failed", "invalid power profile payload");
     return;
   }
 
-  NvsConfig::setIntervalMs(intervalMs);
-  NvsConfig::setReadIntervalMs(intervalMs);
-  NvsConfig::setTelemetryIntervalMs(intervalMs);
-  NvsConfig::setQueueIntervalMs(intervalMs);
-  Serial.printf("cadence status=applied interval_ms=%lu\n", intervalMs);
+  if (!NvsConfig::setIntervalMs(intervalMs)) {
+    acknowledgeCommand(commandId, "failed", "power profile storage failed");
+    return;
+  }
+  logger_.info("cadence: persisted and applied");
   acknowledgeCommand(commandId, "completed", "power profile applied");
 }
 

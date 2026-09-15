@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Arduino.h>
+#include <cstdint>
 
 class PowerPolicy {
  public:
@@ -9,4 +9,5 @@ class PowerPolicy {
 
   static bool staysAwakeBetweenTelemetry(unsigned long intervalMs);
   static bool shouldSuspendAfterTelemetry(unsigned long intervalMs);
+  static bool isValidInterval(unsigned long intervalMs);
 };
